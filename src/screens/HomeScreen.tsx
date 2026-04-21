@@ -42,6 +42,10 @@ import {
   type UserBehaviorState,
   type BehaviorNudge,
 } from "../utils/behaviorEngine";
+import { getUserState, type UserState, type Action } from "../engine";
+import { useBehaviorStore } from "../store/useBehaviorStore";
+import BehaviorActionCard from "../components/BehaviorActionCard";
+import LiveActionModal from "../components/LiveActionModal";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -80,6 +84,13 @@ export default function HomeScreen({ navigation }: Props) {
   const [showFiveSecond, setShowFiveSecond] = useState(false);
   const [interventionDismissed, setInterventionDismissed] = useState(false);
   const [confetti, setConfetti] = useState(false);
+  const [liveAction, setLiveAction] = useState<Action | null>(null);
+
+  // ── Behavior Operating System (engine/) ─────────────────────────────────
+  const muscles = useBehaviorStore((s) => s.muscles);
+  const recentActions = useBehaviorStore((s) => s.recentActions);
+  const lastActionAt = useBehaviorStore((s) => s.lastActionAt);
+  const recordAction = useBehaviorStore((s) => s.recordAction);
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastY = useRef(new Animated.Value(20)).current;
   const [toastMsg, setToastMsg] = useState("");
@@ -112,6 +123,49 @@ export default function HomeScreen({ navigation }: Props) {
   }, [behaviorState, profile]);
 
   const surfaceStatus = behaviorState ? getSurfaceStatus(behaviorState.riskLevel) : "on_track";
+
+  // Behavior OS: kullanıcının ANKİ durumu + ne yapacağı
+  const userState: UserState | null = useMemo(() => {
+    if (!profile) return null;
+    return getUserState({
+      startDate: profile.startDate,
+      habitName: profile.habitName,
+      dayNumber,
+      checkins,
+      mindDumps: mindDumpEntries,
+      todayDone,
+      muscles,
+      recentActions,
+      lastActionAt,
+    });
+  }, [
+    profile,
+    dayNumber,
+    checkins,
+    mindDumpEntries,
+    todayDone,
+    muscles,
+    recentActions,
+    lastActionAt,
+  ]);
+
+  const handleLiveAction = useCallback(() => {
+    if (!userState) return;
+    if (profile?.hapticsEnabled) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setLiveAction(userState.suggestedAction);
+  }, [userState, profile?.hapticsEnabled]);
+
+  const handleLiveActionComplete = useCallback(async () => {
+    if (!liveAction) return;
+    await recordAction(liveAction);
+    setLiveAction(null);
+    if (profile?.hapticsEnabled) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    showToast("Aksiyon kaydedildi. Kas çalıştı.");
+  }, [liveAction, recordAction, profile?.hapticsEnabled]);
 
   const last14Days = useMemo(
     () => (profile ? buildLast14Days(profile.startDate, checkins) : []),
@@ -265,12 +319,17 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {/* Behavior Operating System — TEK aksiyon, BÜYÜK buton */}
+        {userState && (
+          <BehaviorActionCard state={userState} onPress={handleLiveAction} />
+        )}
+
         <DailyPrincipleCard day={dayNumber} />
 
         <Text style={styles.motivationLine}>{identityMsg}</Text>
 
-        {/* Proactive Intervention Card */}
-        {showInterventionCard && currentNudge && (
+        {/* Proactive Intervention Card (legacy) — yalnız Behavior OS yokken */}
+        {!userState && showInterventionCard && currentNudge && (
           <View style={[
             styles.nudgeCard,
             currentNudge.tone === "urgent" && styles.nudgeCardUrgent,
@@ -397,6 +456,14 @@ export default function HomeScreen({ navigation }: Props) {
           </Pressable>
         </Pressable>
       </Modal>
+
+      {/* Live Action — Behavior OS countdown akışı */}
+      <LiveActionModal
+        visible={liveAction != null}
+        action={liveAction}
+        onComplete={handleLiveActionComplete}
+        onCancel={() => setLiveAction(null)}
+      />
 
       {/* Five Second Trainer Modal */}
       <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
