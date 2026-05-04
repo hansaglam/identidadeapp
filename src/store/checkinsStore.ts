@@ -130,6 +130,8 @@ function computeLongestStreak(checkins: Record<string, CheckinRecord>): number {
 interface CheckinsState {
   checkins: Record<string, CheckinRecord>;
   isLoading: boolean;
+  /** load() yakaladığı kalıcı hata */
+  loadFailed: boolean;
   load: () => Promise<void>;
   toggleToday: (dayNumber: number) => Promise<void>;
   /** Otomatiklik + çaba puanlarıyla bugünü tamamla. */
@@ -151,13 +153,21 @@ interface CheckinsState {
 export const useCheckinsStore = create<CheckinsState>((set, get) => ({
   checkins: {},
   isLoading: false,
+  loadFailed: false,
 
   load: async () => {
-    set({ isLoading: true });
-    const records = await loadAllCheckins();
-    const map: Record<string, CheckinRecord> = {};
-    records.forEach((r) => { map[r.date] = r; });
-    set({ checkins: map, isLoading: false });
+    set({ isLoading: true, loadFailed: false });
+    try {
+      const records = await loadAllCheckins();
+      const map: Record<string, CheckinRecord> = {};
+      records.forEach((r) => {
+        map[r.date] = r;
+      });
+      set({ checkins: map, isLoading: false, loadFailed: false });
+    } catch {
+      set({ checkins: {}, isLoading: false, loadFailed: true });
+      if (__DEV__) console.warn("[checkinsStore] load failed");
+    }
   },
 
   toggleToday: async (dayNumber) => {

@@ -31,8 +31,13 @@ export const useSDTStore = create<SDTState>((set, get) => ({
   scores: [],
 
   load: async () => {
-    const scores = await loadAllSDTScores();
-    set({ scores });
+    try {
+      const scores = await loadAllSDTScores();
+      set({ scores });
+    } catch {
+      set({ scores: [] });
+      if (__DEV__) console.warn("[sdtStore] load failed");
+    }
   },
 
   saveScore: async ({ autonomy, competence, relatedness }) => {

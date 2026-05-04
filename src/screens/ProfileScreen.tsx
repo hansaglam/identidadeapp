@@ -1,12 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import {
   View, Text, StyleSheet, ScrollView, TouchableOpacity,
-  TextInput, Alert, Switch, Linking, Modal,
+  TextInput, Switch, Linking, Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Pencil, Check, Bell, Vibrate, Trash2, Crown, ChevronRight, Zap,
-  TrendingUp, Eye,
+  TrendingUp, Eye, Shield,
 } from "lucide-react-native";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
@@ -15,6 +15,7 @@ import {
   cancelAllMorningNotifications,
   scheduleMorningNotifications,
   requestNotificationPermissions,
+  setupNotifications,
 } from "../utils/notifications";
 import {
   getAverageAutomaticity,
@@ -30,11 +31,22 @@ import {
   SURFACE_LABEL,
 } from "../utils/behaviorEngine";
 import PremiumGateModal from "../components/PremiumGateModal";
+import ConfirmDialog from "../components/ConfirmDialog";
+import PrivacyDataModal from "../components/PrivacyDataModal";
+import EditCommitmentModal from "../components/EditCommitmentModal";
+import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
 import ProfileStats from "../components/ProfileStats";
+import AutomaticityTrendChart from "../components/AutomaticityTrendChart";
+import { buildAutomaticitySeriesLastDays } from "../utils/automaticityChart";
 import DisciplineMusclesView from "../components/DisciplineMusclesView";
 import FiveSecondTrainer, { FiveSecondScenario } from "../components/FiveSecondTrainer";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { APP_PROMISE_PROFILE_TAGLINE } from "../constants/purposeCopy";
+import { getIdentityTemplate } from "../constants/identityTemplates";
+import type { UserProfile } from "../types";
 import type { DisciplineMuscles } from "../types/discipline";
+
+
 
 const FIVE_TRAIN: FiveSecondScenario = {
   id: "profile-manual",
@@ -53,13 +65,25 @@ const DEFAULT_XP: DisciplineMuscles = {
   karar: 0, direnc: 0, baglam: 0, energi: 0, sosyal: 0,
 };
 
+type ProfileDialog = null | "notif_success" | "notif_settings" | "delete_all";
+
 export default function ProfileScreen() {
+
   const {
-    profile, setName, setPremium, setHapticsEnabled, setNotificationTime, clearData,
+    profile,
+    setName,
+    setPremium,
+    setHapticsEnabled,
+    setNotificationTime,
+    clearData,
+    addDisciplineMuscleXp,
+    updateProfile,
   } = useUserStore();
+  const loadProfileAgain = useUserStore((s) => s.loadProfile);
+  const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const checkins = useCheckinsStore((s) => s.checkins);
-  const { getStreakState, completionRate } = useCheckinsStore();
+  const { getStreakState, completionRate, getTodayCheckin } = useCheckinsStore();
   const streakState = getStreakState();
   const mindDumpEntries = useMindDumpStore((s) => s.entries);
 
@@ -67,11 +91,15 @@ export default function ProfileScreen() {
   const [nameInput, setNameInput] = useState(profile?.name ?? "");
   const [showGate, setShowGate] = useState(false);
   const [showTrain, setShowTrain] = useState(false);
+  const [profileDialog, setProfileDialog] = useState<ProfileDialog>(null);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showCommitmentEdit, setShowCommitmentEdit] = useState(false);
 
   const isPremium = profile?.isPremium ?? false;
   const hapticsEnabled = profile?.hapticsEnabled ?? true;
   const notifHour = profile?.notificationHour ?? 9;
   const notifMin = profile?.notificationMinute ?? 0;
+  const identityTemplate = getIdentityTemplate(profile?.identityTagId ?? null);
 
   const stats = useMemo(() => {
     if (!profile) {
@@ -87,6 +115,14 @@ export default function ProfileScreen() {
       trend14: getLast14AutoTrendPercent(profile.startDate, checkins),
     };
   }, [profile, checkins]);
+
+  const automaticitySeries = useMemo(
+    () =>
+      profile
+        ? buildAutomaticitySeriesLastDays(profile.startDate, checkins, 30)
+        : [],
+    [profile, checkins]
+  );
 
   // Lally regresyon tahmini
   const linearEstimate = useMemo(() => {
@@ -129,6 +165,16 @@ export default function ProfileScreen() {
     [profile?.disciplineMuscleXp]
   );
 
+  const applyProfilePatch = useCallback(
+    async (patch: Partial<UserProfile>) => {
+      await updateProfile(patch);
+      const next = useUserStore.getState().profile;
+      const todayDone = getTodayCheckin()?.completed ?? false;
+      if (next) await setupNotifications(next, todayDone).catch(console.warn);
+    },
+    [updateProfile, getTodayCheckin],
+  );
+
   const handleSaveName = async () => {
     if (!nameInput.trim()) return;
     await setName(nameInput.trim());
@@ -138,53 +184,41 @@ export default function ProfileScreen() {
   const handleNotifSetup = async () => {
     const granted = await requestNotificationPermissions();
     if (granted) {
-      Alert.alert("Bildirimler Aktif", "Sabah bildirimleri planlanıyor...", [
-        {
-          text: "Tamam",
-          onPress: async () => {
-            if (profile) {
-              await cancelAllMorningNotifications();
-              await scheduleMorningNotifications(profile);
-            }
-          },
-        },
-      ]);
+      setProfileDialog("notif_success");
     } else {
-      Alert.alert(
-        "İzin Gerekli",
-        "Ayarlar'dan bildirim iznini etkinleştir.",
-        [
-          { text: "Tamam" },
-          { text: "Ayarlara Git", onPress: () => Linking.openSettings() },
-        ]
-      );
+      setProfileDialog("notif_settings");
     }
   };
 
   const handleDeleteData = () => {
-    Alert.alert(
-      "Tüm Verileri Sil",
-      "Tüm alışkanlık geçmişin ve notların silinecek. Bu geri alınamaz.",
-      [
-        { text: "Vazgeç", style: "cancel" },
-        {
-          text: "Sil",
-          style: "destructive",
-          onPress: async () => {
-            await cancelAllMorningNotifications();
-            await clearData();
-          },
-        },
-      ]
-    );
+    setProfileDialog("delete_all");
   };
 
   const notifLabel = `${String(notifHour).padStart(2, "0")}:${String(notifMin).padStart(2, "0")}`;
   const rate = profile ? completionRate(profile.startDate) : 0;
 
   if (!profile) {
+    if (profileLoadFailed) {
+      return (
+        <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>Profil okunamadı</Text>
+            <Text style={styles.retryBody}>
+              Depolama veya izin kaynaklı geçici bir sorun olabilir. Tekrar deneyerek profili yeniden yükleyebilirsin.
+            </Text>
+            <TouchableOpacity
+              style={styles.retryPill}
+              onPress={() => loadProfileAgain()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.retryPillText}>Tekrar dene</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      );
+    }
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
         <View style={styles.empty}>
           <Text style={styles.emptyText}>Yükleniyor...</Text>
         </View>
@@ -193,8 +227,11 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { backgroundColor: Colors.bg }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.header}>
           <Text style={styles.title}>Profil</Text>
           <View style={styles.statusPill}>
@@ -247,8 +284,26 @@ export default function ProfileScreen() {
 
         {/* Habit summary */}
         <View style={styles.habitSummary}>
-          <Text style={styles.habitSummaryLabel}>Kimlik Hedefin</Text>
-          <Text style={styles.habitSummaryValue}>{profile.habitName}</Text>
+          <View style={styles.habitSummaryHeader}>
+            <Text style={styles.habitSummaryLabel}>Kimlik Hedefin</Text>
+            <TouchableOpacity
+              hitSlop={8}
+              onPress={() => setShowCommitmentEdit(true)}
+              style={styles.inlineEditTap}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.inlineEditLabel}>Düzenle</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.habitSummaryValue}>
+            {identityTemplate ? `${identityTemplate.emoji} ` : ""}
+            {profile.habitName}
+          </Text>
+          {identityTemplate && (
+            <Text style={styles.habitSummaryStatement}>
+              “{identityTemplate.identityStatement}”
+            </Text>
+          )}
           <Text style={styles.habitSummaryAnchor}>📌 {profile.habitAnchor}</Text>
         </View>
 
@@ -264,6 +319,8 @@ export default function ProfileScreen() {
           averageAutomaticity={stats.avgAuto}
           autoTrend14={stats.trend14}
         />
+
+        <AutomaticityTrendChart series={automaticitySeries} />
 
         {/* Lally Linear Regression Card */}
         {dayNumber >= 14 && linearEstimate && (
@@ -331,8 +388,25 @@ export default function ProfileScreen() {
           </TouchableOpacity>
         )}
 
+        <AdvancedPreferencesCard profile={profile} onPatch={applyProfilePatch} />
+
         <Text style={styles.sectionLabel}>AYARLAR</Text>
         <View style={styles.settingsCard}>
+          <SettingRow
+            iconBg={Colors.surface}
+            icon={<Shield size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
+            title="Veri ve gizlilik"
+            subtitle="Bu cihazda ne tutuluyor — kısa özet"
+            action={(
+              <TouchableOpacity
+                style={styles.pillBtn}
+                onPress={() => setShowPrivacy(true)}
+              >
+                <Text style={styles.pillBtnText}>Aç</Text>
+              </TouchableOpacity>
+            )}
+          />
+          <View style={styles.divider} />
           <SettingRow
             iconBg={Colors.primaryLight}
             icon={<Zap size={18} color={Colors.primary} strokeWidth={1.5} />}
@@ -389,7 +463,7 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.tagline}>
-          "Motivasyon bir duygu. Disiplin bir beceri."
+          {APP_PROMISE_PROFILE_TAGLINE}
         </Text>
         <Text style={styles.version}>v1.0.0 · discipline</Text>
 
@@ -418,7 +492,11 @@ export default function ProfileScreen() {
         <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
           <FiveSecondTrainer
             scenario={FIVE_TRAIN}
-            onComplete={() => {}}
+            onComplete={async (_ok, _ms, reward) => {
+              if (reward) {
+                await addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);
+              }
+            }}
             onSkip={() => setShowTrain(false)}
           />
         </SafeAreaView>
@@ -428,6 +506,93 @@ export default function ProfileScreen() {
         visible={showGate}
         onClose={() => setShowGate(false)}
         trigger="journey"
+      />
+
+      <PrivacyDataModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      <EditCommitmentModal
+        visible={showCommitmentEdit}
+        onClose={() => setShowCommitmentEdit(false)}
+        habitName={profile.habitName}
+        habitAnchor={profile.habitAnchor}
+        habitWhy={profile.habitWhy}
+        onSave={async ({ habitName, habitAnchor, habitWhy }) => {
+          await updateProfile({ habitName, habitAnchor, habitWhy });
+          const nextProfile = useUserStore.getState().profile;
+          const todayDone = getTodayCheckin()?.completed ?? false;
+          if (nextProfile) {
+            await setupNotifications(nextProfile, todayDone).catch(console.warn);
+          }
+        }}
+      />
+
+      <ConfirmDialog
+        visible={profileDialog === "notif_success"}
+        title="Bildirimler açık"
+        message="Sabah hatırlatmaların seçtiğin saate göre planlanacak."
+        tone="success"
+        closeOnBackdropPress={false}
+        onRequestClose={() => setProfileDialog(null)}
+        actions={[
+          {
+            label: "Tamam",
+            variant: "primary",
+            onPress: async () => {
+              setProfileDialog(null);
+              if (profile) {
+                await cancelAllMorningNotifications();
+                await scheduleMorningNotifications(profile);
+              }
+            },
+          },
+        ]}
+      />
+
+      <ConfirmDialog
+        visible={profileDialog === "notif_settings"}
+        title="İzin gerekli"
+        message="Bildirimleri zamanlayabilmemiz için sistem ayarlarından bildirim iznini açman gerekiyor."
+        tone="default"
+        onRequestClose={() => setProfileDialog(null)}
+        actions={[
+          {
+            label: "Vazgeç",
+            variant: "secondary",
+            onPress: () => setProfileDialog(null),
+          },
+          {
+            label: "Ayarlara git",
+            variant: "primary",
+            onPress: () => {
+              setProfileDialog(null);
+              Linking.openSettings();
+            },
+          },
+        ]}
+      />
+
+      <ConfirmDialog
+        visible={profileDialog === "delete_all"}
+        title="Tüm verileri sil"
+        message="Alışkanlık geçmişin, check-in kayıtların ve zihin notların bu cihazdan silinecek. Bu işlem geri alınamaz."
+        tone="danger"
+        onRequestClose={() => setProfileDialog(null)}
+        actions={[
+          {
+            label: "Vazgeç",
+            variant: "secondary",
+            onPress: () => setProfileDialog(null),
+          },
+          {
+            label: "Sil",
+            variant: "destructive",
+            onPress: async () => {
+              setProfileDialog(null);
+              await cancelAllMorningNotifications();
+              await clearData();
+            },
+          },
+        ]}
       />
     </SafeAreaView>
   );
@@ -485,7 +650,39 @@ const rowS = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
-  empty: { flex: 1, alignItems: "center", justifyContent: "center" },
+  empty: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.lg,
+    gap: Spacing.md,
+  },
+  emptyTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    textAlign: "center",
+  },
+  retryBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+    maxWidth: 320,
+  },
+  retryPill: {
+    marginTop: Spacing.sm,
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  retryPillText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
+  },
   emptyText: { color: Colors.textSecondary },
   container: { flex: 1, backgroundColor: Colors.bg },
   scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1 },
@@ -535,15 +732,41 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: Colors.border,
     padding: Spacing.md, gap: 4, marginBottom: Spacing.md,
   },
+  habitSummaryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 2,
+  },
   habitSummaryLabel: {
     fontSize: FontSizes.xs, fontFamily: "Inter_500Medium",
     color: Colors.textTertiary, textTransform: "uppercase", letterSpacing: 0.7,
+    flexShrink: 1,
+  },
+  inlineEditTap: {
+    flexShrink: 0,
+    paddingVertical: 2,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radii.sm,
+    backgroundColor: Colors.primaryLight,
+  },
+  inlineEditLabel: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
   habitSummaryValue: {
     fontSize: FontSizes.lg, fontFamily: "Inter_500Medium", color: Colors.textPrimary,
   },
   habitSummaryAnchor: {
     fontSize: FontSizes.sm, fontFamily: "Inter_400Regular", color: Colors.textSecondary,
+  },
+  habitSummaryStatement: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.primaryDark,
+    fontStyle: "italic",
+    marginTop: 2,
   },
   statsRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.md },
   // ── Regression Card ───────────────────────────────────────────────────

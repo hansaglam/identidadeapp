@@ -18,6 +18,8 @@ import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 interface Props {
   state: UserState;
   onPress: () => void;
+  /** Live aksiyon modali açıkken tekrar tetiklemeyi engelle */
+  disabled?: boolean;
 }
 
 const STATUS_TINT: Record<
@@ -41,7 +43,11 @@ const STATUS_TINT: Record<
   },
 };
 
-export default function BehaviorActionCard({ state, onPress }: Props) {
+export default function BehaviorActionCard({
+  state,
+  onPress,
+  disabled = false,
+}: Props) {
   const tint = STATUS_TINT[state.status];
   const a = state.suggestedAction;
 
@@ -65,16 +71,32 @@ export default function BehaviorActionCard({ state, onPress }: Props) {
       </View>
 
       <Text style={[styles.muscleTag, { color: tint.tint }]}>
-        {MUSCLE_LABELS[a.type].toUpperCase()} · {a.duration} SN
+        {a.type === "recovery"
+          ? `${MUSCLE_LABELS[a.type].toUpperCase()} · TEK HAREKET`
+          : `${MUSCLE_LABELS[a.type].toUpperCase()} · ${a.duration} SN`}
+        {state.scaledDown ? " · KÜÇÜLTÜLDÜ" : ""}
       </Text>
 
       <Text style={styles.title}>{a.title}</Text>
       <Text style={styles.reason}>{state.reason}</Text>
+      {state.situationCue ? (
+        <Text style={[styles.situationCue, { color: tint.tint }]}>
+          {state.situationCue}
+        </Text>
+      ) : null}
+      {state.phaseFocus && (
+        <Text style={styles.phaseFocus}>{state.phaseFocus}</Text>
+      )}
 
       <TouchableOpacity
-        style={[styles.cta, { backgroundColor: tint.tint }]}
+        style={[
+          styles.cta,
+          { backgroundColor: tint.tint },
+          disabled && styles.ctaDisabled,
+        ]}
         onPress={onPress}
         activeOpacity={0.85}
+        disabled={disabled}
       >
         <Text style={styles.ctaText}>
           {state.recoveryMode ? "Yeniden başla" : "Şimdi yap"}
@@ -141,6 +163,21 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     lineHeight: 20,
+    marginBottom: Spacing.xs,
+  },
+  situationCue: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    lineHeight: 18,
+    marginBottom: Spacing.sm,
+    opacity: 0.92,
+  },
+  phaseFocus: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
     marginBottom: Spacing.md,
   },
   cta: {
@@ -150,6 +187,9 @@ const styles = StyleSheet.create({
     gap: 6,
     borderRadius: Radii.button,
     paddingVertical: 14,
+  },
+  ctaDisabled: {
+    opacity: 0.55,
   },
   ctaText: {
     color: "#fff",

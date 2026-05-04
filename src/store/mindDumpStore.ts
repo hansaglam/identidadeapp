@@ -14,6 +14,7 @@ const FREE_LIMIT = 10;
 interface MindDumpState {
   entries: MindDumpEntry[];
   isLoading: boolean;
+  loadFailed: boolean;
   load: () => Promise<void>;
   createEntry: (content: string) => Promise<{ entry: MindDumpEntry; hitLimit: boolean }>;
   updateEntry: (id: string, content: string) => Promise<void>;
@@ -25,11 +26,17 @@ interface MindDumpState {
 export const useMindDumpStore = create<MindDumpState>((set, get) => ({
   entries: [],
   isLoading: false,
+  loadFailed: false,
 
   load: async () => {
-    set({ isLoading: true });
-    const entries = await loadAllMindDumps();
-    set({ entries, isLoading: false });
+    set({ isLoading: true, loadFailed: false });
+    try {
+      const entries = await loadAllMindDumps();
+      set({ entries, isLoading: false, loadFailed: false });
+    } catch {
+      set({ entries: [], isLoading: false, loadFailed: true });
+      if (__DEV__) console.warn("[mindDumpStore] load failed");
+    }
   },
 
   createEntry: async (content) => {

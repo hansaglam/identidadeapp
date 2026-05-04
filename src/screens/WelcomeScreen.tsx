@@ -14,6 +14,11 @@ import { AuthStackParamList } from "../types";
 import {
   Colors, Spacing, Radii, FontSizes, FontWeights,
 } from "../constants/theme";
+import {
+  APP_PROMISE_WELCOME_HEADLINE,
+  APP_PROMISE_WELCOME_SUB,
+  APP_PROMISE_TAGS,
+} from "../constants/purposeCopy";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
@@ -62,17 +67,17 @@ export default function WelcomeScreen({ navigation }: Props) {
 
         {/* Main headline */}
         <Animated.Text style={[styles.headline, titleStyle]}>
-          {"Motivasyon bir duygu değil.\nDisiplin bir beceri."}
+          {APP_PROMISE_WELCOME_HEADLINE}
         </Animated.Text>
 
         {/* Sub-headline */}
         <Animated.Text style={[styles.sub, subStyle]}>
-          66 günde motivasyonsuz disiplin.{"\n"}Düşmeden önce müdahale. Ölçülebilir otomatikleşme.
+          {APP_PROMISE_WELCOME_SUB.replace(/\n/g, " ")}
         </Animated.Text>
 
-        {/* Science tags */}
+        {/* Vaat uyumlu rozetler */}
         <Animated.View style={[styles.tags, tagStyle]}>
-          {["Otomatikleşme Motoru", "Kimlik Dönüşümü", "66 Gün Bilimi"].map((t) => (
+          {[...APP_PROMISE_TAGS].map((t) => (
             <View key={t} style={styles.tag}>
               <Text style={styles.tagText}>{t}</Text>
             </View>

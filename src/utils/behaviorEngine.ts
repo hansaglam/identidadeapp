@@ -21,6 +21,7 @@ export type RiskLevel = "green" | "yellow" | "red";
 export type NudgeType =
   | "proactive_intervention"   // düşüş öncesi müdahale
   | "micro_commitment"         // küçük adım teklifi
+  | "reflection_prompt"        // haftalık Zihine yöneltme (mind dump kullanılmadıysa)
   | "identity_reinforcement"   // kimlik pekiştirme
   | "celebration"              // kutlama
   | "comeback"                 // geri dönüş
@@ -236,6 +237,16 @@ function selectNudge(
   const milestones = [7, 14, 22, 30, 44, 66];
   if (milestones.includes(s.dayNumber)) return "milestone";
 
+  if (
+    !s.todayDone &&
+    risk === "green" &&
+    s.dayNumber >= 6 &&
+    s.mindDumpCountLast7 === 0 &&
+    s.consecutiveMisses === 0
+  ) {
+    return "reflection_prompt";
+  }
+
   return null;
 }
 
@@ -309,6 +320,17 @@ export function buildNudge(
         tone: "warm",
       };
 
+    case "reflection_prompt":
+      return {
+        type: nudge,
+        priority: 4,
+        headline: "Kafayı bir nefese indirgemek ister misin?",
+        body:
+          "Son haftada Zihine not düşmemiş görünüyorsun. Tek cümle bile Bugün kartıyla uyumu besler.",
+        action: { label: "Zihine yaz", type: "minddump" },
+        tone: "warm",
+      };
+
     case "identity_reinforcement":
       return {
         type: nudge,
@@ -357,42 +379,7 @@ function getMilestoneBody(day: number, habit: string): string {
   }
 }
 
-// ─── 8. Push / Bildirim Metni ───────────────────────────────────────────────
-
-export function getNotificationCopy(
-  state: UserBehaviorState,
-  habitName: string
-): { title: string; body: string } {
-  const { riskLevel, nudge, signals } = state;
-  const h = habitName || "alışkanlığın";
-
-  if (nudge === "proactive_intervention") {
-    return {
-      title: "Bugünkü otomatiklik riskin: Yüksek.",
-      body: "5 saniye antrenmanı hazır. Başlat?",
-    };
-  }
-  if (nudge === "comeback") {
-    return {
-      title: "Dün yok. Bugün var.",
-      body: `${h} için 2 dakika yeter. Mükemmellik değil, tutarlılık.`,
-    };
-  }
-  if (riskLevel === "yellow") {
-    return {
-      title: `Bugün ${h} için riskli görünüyor.`,
-      body: "Küçült ama bırakma. 1 dakika bile sayılır.",
-    };
-  }
-
-  // Varsayılan (yeşil / normal gün)
-  return {
-    title: `Gün ${signals.dayNumber} seni bekliyor.`,
-    body: `Bugün de ${h.toLowerCase()} sahibi gibi davranma zamanı.`,
-  };
-}
-
-// ─── 9. Widget / Surface Durumu ─────────────────────────────────────────────
+// ─── 8. Widget / Surface Durumu ─────────────────────────────────────────────
 
 export type SurfaceStatus = "on_track" | "at_risk" | "needs_intervention";
 

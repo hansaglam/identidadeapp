@@ -6,5 +6,6 @@ export * from "./automationScore";
 export * from "./prediction";
 export * from "./recovery";
 export * from "./mindDumpAnalyzer";
+export * from "./signalTrends";
 export * from "./behaviorEngine";
 export * from "./widget";

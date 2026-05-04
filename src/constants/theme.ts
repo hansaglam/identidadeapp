@@ -1,4 +1,28 @@
-export const Colors = {
+/** Uygulama tek açık (light) renk kümesini kullanır. */
+
+export interface AppColors {
+  primary: string;
+  primaryLight: string;
+  primaryDark: string;
+  purple: string;
+  purpleLight: string;
+  coral: string;
+  coralLight: string;
+  gold: string;
+  goldLight: string;
+  bg: string;
+  surface: string;
+  border: string;
+  borderStrong: string;
+  textPrimary: string;
+  textSecondary: string;
+  textTertiary: string;
+  success: string;
+  error: string;
+  overlay: string;
+}
+
+export const Colors: AppColors = {
   primary: "#1D9E75",
   primaryLight: "#E1F5EE",
   primaryDark: "#0F6E56",
@@ -18,7 +42,7 @@ export const Colors = {
   success: "#1D9E75",
   error: "#D85A30",
   overlay: "rgba(0,0,0,0.5)",
-} as const;
+};
 
 export const Spacing = {
   xs: 4,

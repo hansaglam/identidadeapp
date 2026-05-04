@@ -1,12 +1,13 @@
 /**
- * In-App Purchase store (Google Play Billing via react-native-iap).
+ * In-App Purchase store (Google Play / App Store via react-native-iap).
  *
- * Product IDs must be registered in Google Play Console before use.
- * This is a ready-to-fill skeleton — wire in real product IDs when ready.
- *
- * Docs: https://github.com/dooboolab-community/react-native-iap
+ * Aylık abonelik SKU'su mağazada tanımlı olmalı (Play Console / App Store Connect).
+ * Satın alma onayı asynchronous geldiği için kullanıcı profilinde premium,
+ * buradaki dinleyicide `setPremium` ile güncellenir (modal senkron if ile yetinmez).
  */
+import { Platform } from "react-native";
 import { create } from "zustand";
+import type { Purchase, ProductSubscription } from "react-native-iap";
 import {
   initConnection,
   endConnection,
@@ -17,16 +18,79 @@ import {
   finishTransaction,
   getAvailablePurchases,
 } from "react-native-iap";
+import { useUserStore } from "./userStore";
 
 // ─── Product IDs ───────────────────────────────────────────────────────────
-// Register these in the Google Play Console → In-app products / Subscriptions
+/** Play Console / App Store Connect'te "Abonelik" olarak oluştur. */
 export const IAP_PRODUCTS = {
-  PRO_LIFETIME: "discipline_66day_lifetime",
+  PRO_MONTHLY: "discipline_pro_monthly",
 } as const;
 
 export type IAPProductId = (typeof IAP_PRODUCTS)[keyof typeof IAP_PRODUCTS];
 
-// ─── Store ─────────────────────────────────────────────────────────────────
+function isOurSku(productId?: string): productId is IAPProductId {
+  return (
+    productId != null &&
+    (Object.values(IAP_PRODUCTS) as string[]).includes(productId)
+  );
+}
+
+async function persistPremiumAfterPurchase(purchase: Purchase): Promise<void> {
+  const pid = purchase.productId;
+  if (!isOurSku(pid)) return;
+  const token =
+    (purchase as Purchase & { purchaseToken?: string }).purchaseToken ??
+    purchase.id ??
+    pid;
+  const profile = useUserStore.getState().profile;
+  if (!profile) return;
+  await useUserStore.getState().setPremium(true, String(token ?? "iap"));
+}
+
+function subscriptionPurchaseArgs(
+  sku: string,
+  catalog: unknown[],
+): Parameters<typeof requestPurchase>[0] {
+  const sub = catalog.find(
+    (p): p is ProductSubscription =>
+      typeof p === "object" &&
+      p !== null &&
+      "id" in p &&
+      (p as ProductSubscription).id === sku &&
+      (p as ProductSubscription).type === "subs"
+  );
+
+  if (Platform.OS === "ios") {
+    return {
+      type: "subs",
+      request: { apple: { sku } },
+    };
+  }
+
+  if (sub?.platform === "android") {
+    const std = sub.subscriptionOffers?.[0];
+    const token =
+      std?.offerTokenAndroid ??
+      sub.subscriptionOfferDetailsAndroid?.[0]?.offerToken ??
+      null;
+    if (token) {
+      return {
+        type: "subs",
+        request: {
+          google: {
+            skus: [sku],
+            subscriptionOffers: [{ sku, offerToken: token }],
+          },
+        },
+      };
+    }
+  }
+
+  return {
+    type: "subs",
+    request: { google: { skus: [sku] } },
+  };
+}
 
 interface IAPState {
   isConnected: boolean;
@@ -42,9 +106,17 @@ interface IAPState {
   restorePurchases: () => Promise<void>;
 }
 
-export const useIAPStore = create<IAPState>((set) => {
-  let purchaseUpdateSub: ReturnType<typeof purchaseUpdatedListener> | null = null;
+export const useIAPStore = create<IAPState>((set, get) => {
+  let purchaseUpdateSub: ReturnType<typeof purchaseUpdatedListener> | null =
+    null;
   let purchaseErrorSub: ReturnType<typeof purchaseErrorListener> | null = null;
+
+  const tearDownListeners = () => {
+    purchaseUpdateSub?.remove();
+    purchaseErrorSub?.remove();
+    purchaseUpdateSub = null;
+    purchaseErrorSub = null;
+  };
 
   return {
     isConnected: false,
@@ -54,31 +126,37 @@ export const useIAPStore = create<IAPState>((set) => {
     error: null,
 
     connect: async () => {
+      tearDownListeners();
       try {
-        await initConnection();
-        set({ isConnected: true });
+        if (!get().isConnected) {
+          await initConnection();
+        }
 
-        purchaseUpdateSub = purchaseUpdatedListener(async (purchase) => {
-          // Acknowledge the purchase so Google Play doesn't refund it
+        purchaseUpdateSub = purchaseUpdatedListener(async (purchase: Purchase) => {
           await finishTransaction({ purchase, isConsumable: false });
           set({ isPro: true });
+          await persistPremiumAfterPurchase(purchase);
         });
 
         purchaseErrorSub = purchaseErrorListener((error) => {
-          // Ignore user-cancelled
           if (String(error.code) !== "E_USER_CANCELLED") {
             set({ error: error.message ?? "Purchase error" });
           }
         });
+
+        set({ isConnected: true, error: null });
       } catch (e: any) {
         set({ error: e?.message ?? "IAP connection failed" });
       }
     },
 
     disconnect: () => {
-      purchaseUpdateSub?.remove();
-      purchaseErrorSub?.remove();
-      endConnection();
+      tearDownListeners();
+      try {
+        endConnection();
+      } catch {
+        /* no-op */
+      }
       set({ isConnected: false });
     },
 
@@ -87,6 +165,7 @@ export const useIAPStore = create<IAPState>((set) => {
       try {
         const products = await fetchProducts({
           skus: Object.values(IAP_PRODUCTS),
+          type: "subs",
         });
         set({ products: products ?? [], isLoading: false });
       } catch (e: any) {
@@ -100,11 +179,8 @@ export const useIAPStore = create<IAPState>((set) => {
     purchase: async (productId) => {
       set({ isLoading: true, error: null });
       try {
-        await requestPurchase({
-          type: "in-app",
-          request: { google: { skus: [productId] } },
-        });
-        // Completion handled via purchaseUpdatedListener
+        const args = subscriptionPurchaseArgs(productId, get().products);
+        await requestPurchase(args);
       } catch (e: any) {
         if (String(e?.code) !== "E_USER_CANCELLED") {
           set({ error: e?.message ?? "Purchase failed" });
@@ -118,10 +194,10 @@ export const useIAPStore = create<IAPState>((set) => {
       set({ isLoading: true, error: null });
       try {
         const purchases = await getAvailablePurchases();
-        const hasActive = purchases.some((p) =>
-          Object.values(IAP_PRODUCTS).includes(p.productId as IAPProductId)
-        );
+        const ours = purchases.find((p) => isOurSku(p.productId));
+        const hasActive = ours != null;
         set({ isPro: hasActive, isLoading: false });
+        if (hasActive && ours) await persistPremiumAfterPurchase(ours);
       } catch (e: any) {
         set({
           error: e?.message ?? "Restore failed",

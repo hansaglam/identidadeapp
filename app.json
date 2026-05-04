@@ -42,7 +42,9 @@
           "icon": "./assets/icon.png",
           "color": "#1D9E75"
         }
-      ]
+      ],
+      "expo-quick-actions",
+      "expo-document-picker"
     ]
   }
 }

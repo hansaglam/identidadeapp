@@ -3,8 +3,15 @@ import { differenceInDays, parseISO } from "date-fns";
 import { getISOWeek, getISOWeekYear } from "date-fns";
 import * as SecureStore from "expo-secure-store";
 import { UserProfile } from "../types";
+import type { DisciplineMuscles } from "../types/discipline";
 import { loadProfile, saveProfile, clearAllData } from "../utils/storage";
 import { uuid } from "../utils/uuid";
+import { normalizeProfile } from "../utils/profileDefaults";
+import {
+  addXpToDisciplineState,
+  DISCIPLINE_DEFAULT_LEVELS,
+  DISCIPLINE_DEFAULT_XP,
+} from "../utils/disciplineProgress";
 
 const DEFAULT_NOTIF_HOUR = 9;
 const DEFAULT_NOTIF_MINUTE = 0;
@@ -12,11 +19,14 @@ const DEFAULT_NOTIF_MINUTE = 0;
 interface UserState {
   profile: UserProfile | null;
   isLoading: boolean;
-  loadProfile: () => Promise<void>;
+  /** Profil AsyncStorage’dan okunamadığında true (yeniden deneme için). */
+  profileLoadFailed: boolean;
+  loadProfile: (opts?: { quiet?: boolean }) => Promise<void>;
   completeOnboarding: (data: {
     habitName: string;
     habitAnchor: string;
     habitWhy: string;
+    identityTagId: string | null;
   }) => Promise<void>;
   setName: (name: string) => Promise<void>;
   setPremium: (isPremium: boolean, purchaseToken?: string) => Promise<void>;
@@ -24,6 +34,8 @@ interface UserState {
   setHapticsEnabled: (enabled: boolean) => Promise<void>;
   markPremiumGateShown: (gate: "day7" | "day22") => Promise<void>;
   updateProfile: (patch: Partial<UserProfile>) => Promise<void>;
+  /** Mini görev / canlı aksiyon sonrası disiplin kası XP (kalıcı) */
+  addDisciplineMuscleXp: (muscle: keyof DisciplineMuscles, amount: number) => Promise<void>;
   clearData: () => Promise<void>;
   /** Returns how many days into the 66-day journey (1-based, min 1) */
   dayNumber: () => number;
@@ -38,19 +50,43 @@ async function persist(profile: UserProfile): Promise<void> {
 export const useUserStore = create<UserState>((set, get) => ({
   profile: null,
   isLoading: true,
+  profileLoadFailed: false,
 
-  loadProfile: async () => {
-    set({ isLoading: true });
-    const profile = await loadProfile();
-    set({ profile, isLoading: false });
+  loadProfile: async (opts) => {
+    const quiet = opts?.quiet === true;
+    if (!quiet) {
+      set({ isLoading: true, profileLoadFailed: false });
+    }
+    try {
+      const raw = await loadProfile();
+      const profile = raw ? normalizeProfile(raw) : null;
+      if (quiet) {
+        set({ profile, profileLoadFailed: false });
+      } else {
+        set({ profile, isLoading: false, profileLoadFailed: false });
+      }
+    } catch {
+      if (quiet) {
+        set({ profileLoadFailed: true });
+      } else {
+        set({ profile: null, isLoading: false, profileLoadFailed: true });
+      }
+      if (__DEV__) console.warn("[userStore] loadProfile failed");
+    }
   },
 
-  completeOnboarding: async ({ habitName, habitAnchor, habitWhy }) => {
+  completeOnboarding: async ({
+    habitName,
+    habitAnchor,
+    habitWhy,
+    identityTagId,
+  }) => {
     const id = uuid();
     const now = new Date().toISOString();
     const profile: UserProfile = {
       id,
       createdAt: now,
+      identityTagId,
       habitName,
       habitAnchor,
       habitWhy,
@@ -63,16 +99,30 @@ export const useUserStore = create<UserState>((set, get) => ({
       hapticsEnabled: true,
       premiumGateDay7Shown: false,
       premiumGateDay22Shown: false,
+      contextPreset: null,
+      restModeUntilISO: null,
+      notifyMorningEnabled: true,
+      notifyEveningEnabled: true,
+      notifyWeekendEnabled: true,
+      notifyPhaseMilestones: true,
+      firstWeekGuideDismissed: false,
+      hasOpenedJourneyTab: false,
     };
-    await persist(profile);
-    await SecureStore.setItemAsync("user_id", id);
-    set({ profile });
+    const normalized = normalizeProfile(profile);
+    try {
+      await persist(normalized);
+      await SecureStore.setItemAsync("user_id", id);
+    } catch (e) {
+      if (__DEV__) console.warn("[userStore] completeOnboarding persist failed", e);
+      throw e;
+    }
+    set({ profile: normalized });
   },
 
   setName: async (name) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = { ...profile, name };
+    const updated = normalizeProfile({ ...profile, name });
     await persist(updated);
     set({ profile: updated });
   },
@@ -80,13 +130,13 @@ export const useUserStore = create<UserState>((set, get) => ({
   setPremium: async (isPremium, purchaseToken) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = {
+    const updated = normalizeProfile({
       ...profile,
       isPremium,
       purchaseToken: isPremium
         ? (purchaseToken ?? profile.purchaseToken)
         : null,
-    };
+    });
     await persist(updated);
     set({ profile: updated });
   },
@@ -94,7 +144,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   setNotificationTime: async (notificationHour, notificationMinute) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = { ...profile, notificationHour, notificationMinute };
+    const updated = normalizeProfile({
+      ...profile,
+      notificationHour,
+      notificationMinute,
+    });
     await persist(updated);
     set({ profile: updated });
   },
@@ -102,7 +156,7 @@ export const useUserStore = create<UserState>((set, get) => ({
   setHapticsEnabled: async (hapticsEnabled) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = { ...profile, hapticsEnabled };
+    const updated = normalizeProfile({ ...profile, hapticsEnabled });
     await persist(updated);
     set({ profile: updated });
   },
@@ -110,11 +164,11 @@ export const useUserStore = create<UserState>((set, get) => ({
   markPremiumGateShown: async (gate) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = {
+    const updated = normalizeProfile({
       ...profile,
       ...(gate === "day7" ? { premiumGateDay7Shown: true } : {}),
       ...(gate === "day22" ? { premiumGateDay22Shown: true } : {}),
-    };
+    });
     await persist(updated);
     set({ profile: updated });
   },
@@ -122,9 +176,30 @@ export const useUserStore = create<UserState>((set, get) => ({
   updateProfile: async (patch) => {
     const { profile } = get();
     if (!profile) return;
-    const updated = { ...profile, ...patch };
+    const updated = normalizeProfile({ ...profile, ...patch });
     await persist(updated);
     set({ profile: updated });
+  },
+
+  addDisciplineMuscleXp: async (muscle, amount) => {
+    const { profile } = get();
+    if (!profile || amount <= 0) return;
+    const baseLevels = {
+      ...DISCIPLINE_DEFAULT_LEVELS,
+      ...profile.disciplineMuscles,
+    };
+    const baseXp = {
+      ...DISCIPLINE_DEFAULT_XP,
+      ...profile.disciplineMuscleXp,
+    };
+    const { levels, xp } = addXpToDisciplineState(baseLevels, baseXp, muscle, amount);
+    const updated: UserProfile = {
+      ...profile,
+      disciplineMuscles: levels,
+      disciplineMuscleXp: xp,
+    };
+    await persist(updated);
+    set({ profile: normalizeProfile(updated) });
   },
 
   clearData: async () => {

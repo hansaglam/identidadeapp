@@ -23,7 +23,12 @@ const sdtKey = (week: string) => `sdt:${week}`;
 async function get<T>(key: string): Promise<T | null> {
   const raw = await AsyncStorage.getItem(key);
   if (!raw) return null;
-  try { return JSON.parse(raw) as T; } catch { return null; }
+  try {
+    return JSON.parse(raw) as T;
+  } catch {
+    if (__DEV__) console.warn(`[storage] JSON parse failed for key: ${key}`);
+    return null;
+  }
 }
 
 async function set<T>(key: string, value: T): Promise<void> {
@@ -40,7 +45,14 @@ async function getByPrefix<T>(prefix: string): Promise<T[]> {
   if (!matched.length) return [];
   const values = await Promise.all(matched.map((k) => AsyncStorage.getItem(k)));
   return values
-    .map((v) => { try { return v ? (JSON.parse(v) as T) : null; } catch { return null; } })
+    .map((v, i) => {
+      try {
+        return v ? (JSON.parse(v) as T) : null;
+      } catch {
+        if (__DEV__) console.warn(`[storage] getByPrefix parse failed index ${i}`);
+        return null;
+      }
+    })
     .filter((v): v is T => v !== null);
 }
 
@@ -119,11 +131,13 @@ export async function clearAllData(): Promise<void> {
   const { clearProactiveInterventionStorage } = await import(
     "./interventionStorage"
   );
+  const { clearJourneyEducationPrefs } = await import("./journeyEducationPrefs");
   await Promise.all([
     clearProfile(),
     clearProactiveInterventionStorage(),
     removeByPrefix("checkins:"),
     removeByPrefix("minddump:"),
     removeByPrefix("sdt:"),
+    clearJourneyEducationPrefs(),
   ]);
 }

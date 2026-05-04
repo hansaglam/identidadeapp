@@ -13,6 +13,8 @@ export type DisciplineMuscleXP = DisciplineMuscles;
 export interface UserProfile {
   id: string;
   createdAt: string;          // ISO – account creation
+  /** Kimlik şablonu (identityTemplates.ts id'si); custom için null */
+  identityTagId: string | null;
   habitName: string;          // "Egzersiz"
   habitAnchor: string;        // "Kahvemi aldıktan sonra"
   habitWhy: string;           // onboarding free text
@@ -26,6 +28,18 @@ export interface UserProfile {
   hapticsEnabled: boolean;
   premiumGateDay7Shown: boolean;
   premiumGateDay22Shown: boolean;
+  /** “Ev / iş / seyahat” bağlamına göre UI ipuçları (motor dilini nazikçe yönlendirir). */
+  contextPreset?: "home" | "work" | "travel" | null;
+  /** yyyy-MM-DD veya ISO; bu güne kadar molada bildirimi yumuşat */
+  restModeUntilISO?: string | null;
+  notifyMorningEnabled?: boolean;
+  notifyEveningEnabled?: boolean;
+  /** true = cumartesi/pazar bildirimi açık */
+  notifyWeekendEnabled?: boolean;
+  notifyPhaseMilestones?: boolean;
+  firstWeekGuideDismissed?: boolean;
+  /** Yolculuk sekmesi en az bir kez ziyaret mi (ilk hafta rehberi). */
+  hasOpenedJourneyTab?: boolean;
   /** 5 disiplin kası seviyesi (1+); yoksa UI varsayılan 1 */
   disciplineMuscles?: DisciplineMuscles;
   /** Kas başına toplam XP; yoksa 0 kabul */
@@ -73,8 +87,16 @@ export interface SDTScore {
 export type AuthStackParamList = {
   Welcome: undefined;
   OnboardingStep1: undefined;
-  OnboardingStep2: { habitName: string };
-  OnboardingStep3: { habitName: string; anchorBehavior: string; anchorTime: string };
+  OnboardingStep2: {
+    habitName: string;
+    identityTagId: string | null;
+  };
+  OnboardingStep3: {
+    habitName: string;
+    anchorBehavior: string;
+    anchorTime: string;
+    identityTagId: string | null;
+  };
 };
 
 export type MainTabParamList = {

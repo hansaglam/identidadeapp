@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import {
   View, Text, StyleSheet, TouchableOpacity,
-  TextInput, KeyboardAvoidingView, Platform, ScrollView,
+  TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -12,13 +12,17 @@ import {
   schedulePhaseTransitions,
 } from "../utils/notifications";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { getIdentityTemplate } from "../constants/identityTemplates";
+import { ONBOARDING_WHY_SUB_LEAD, ONBOARDING_WHY_SUB_TAIL } from "../constants/purposeCopy";
+import { trackEvent } from "../utils/analytics";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep3">;
 
 const MIN_CHARS = 10;
 
 export default function OnboardingStep3Screen({ route, navigation }: Props) {
-  const { habitName, anchorBehavior } = route.params;
+  const { habitName, anchorBehavior, identityTagId } = route.params;
+  const template = getIdentityTemplate(identityTagId);
   const [whyText, setWhyText] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -34,13 +38,21 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         habitName,
         habitAnchor: anchorBehavior,
         habitWhy: whyText.trim(),
+        identityTagId,
+      });
+      trackEvent("onboarding_completed", {
+        identityTagId: identityTagId ?? "custom",
       });
 
       // Load updated profile for notifications
       const profile = useUserStore.getState().profile;
       if (profile) {
-        await scheduleMorningNotifications(profile);
-        await schedulePhaseTransitions(profile.startDate);
+        try {
+          await scheduleMorningNotifications(profile);
+          await schedulePhaseTransitions(profile);
+        } catch {
+          if (__DEV__) console.warn("[OnboardingStep3] notification schedule failed");
+        }
       }
 
       // Navigate to main app
@@ -48,6 +60,11 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         index: 0,
         routes: [{ name: "Main" }],
       });
+    } catch {
+      Alert.alert(
+        "Kaydedilemedi",
+        "Veriler bu cihaza yazılamadı. Depolama alanını kontrol edip tekrar dene."
+      );
     } finally {
       setSaving(false);
     }
@@ -73,15 +90,15 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
 
           <Text style={styles.title}>Bu kimliği neden istiyorsun?</Text>
           <Text style={styles.sub}>
-            Motivasyon geçici bir duygu. Ama "neden" kalıcı bir pusula.
-            Düşüş günlerinde seni ayakta tutacak olan bu.
+            {ONBOARDING_WHY_SUB_LEAD}{"\n\n"}
+            {ONBOARDING_WHY_SUB_TAIL}
           </Text>
 
           <TextInput
             style={styles.whyInput}
             value={whyText}
             onChangeText={setWhyText}
-            placeholder="Düşünmeden yaz..."
+            placeholder={template?.whyPlaceholder ?? "Düşünmeden yaz..."}
             placeholderTextColor={Colors.textTertiary}
             multiline
             textAlignVertical="top"
@@ -101,6 +118,21 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
             <Text style={styles.infoText}>
               Bu neden sadece senin için. Kimse görmeyecek.
             </Text>
+          </View>
+
+          {/* Sistem önizlemesi */}
+          <View style={styles.systemPreview}>
+            <Text style={styles.systemTitle}>66 günde sistem şunları yapacak</Text>
+            {[
+              { icon: "⚡", text: "Her gün 1 aksiyon önerir — sıfır düşünme, sıfır karar yorgunluğu." },
+              { icon: "📊", text: "Momentum, efor ve zihin sinyallerini okuyarak sana özel hareket seçer." },
+              { icon: "🛡️", text: "Düşüş yakaladığında müdahale eder. Streak kırmaz, cezalandırmaz." },
+            ].map((item, i) => (
+              <View key={i} style={styles.systemRow}>
+                <Text style={styles.systemIcon}>{item.icon}</Text>
+                <Text style={styles.systemRowText}>{item.text}</Text>
+              </View>
+            ))}
           </View>
         </ScrollView>
 
@@ -199,6 +231,34 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.primaryDark,
     fontStyle: "italic",
+  },
+  systemPreview: {
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.lg,
+    gap: Spacing.md,
+  },
+  systemTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    marginBottom: Spacing.xs,
+  },
+  systemRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+  },
+  systemIcon: { fontSize: 16, lineHeight: 22 },
+  systemRowText: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   footer: {
     flexDirection: "row",

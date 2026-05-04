@@ -7,10 +7,15 @@
  */
 import * as Notifications from "expo-notifications";
 import { SchedulableTriggerInputTypes } from "expo-notifications";
-import { Platform } from "react-native";
 import { format, addDays, parseISO, differenceInDays } from "date-fns";
-import { tr } from "date-fns/locale";
+import {
+  NOTIFICATION_EVENING_TITLE,
+  pickEveningNotificationBody,
+  PHASE_MILESTONE_NOTIFICATIONS,
+} from "../constants/purposeCopy";
 import { UserProfile } from "../types";
+import { isRestModeActive } from "./restMode";
+
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -36,32 +41,97 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 const morningId = (date: string) => `morning:${date}`;
 const eveningId = (date: string) => `evening:${date}`;
 
+function weekendDay(date: Date): boolean {
+  const d = date.getDay();
+  return d === 0 || d === 6;
+}
+
+function wantsMorningPulse(profile: UserProfile, targetDate: Date): boolean {
+  if (profile.notifyMorningEnabled === false) return false;
+  if (isRestModeActive(profile, targetDate)) return false;
+  if (profile.notifyWeekendEnabled === false && weekendDay(targetDate)) return false;
+  return true;
+}
+
+function wantsEveningPulse(profile: UserProfile, onDate = new Date()): boolean {
+  if (profile.notifyEveningEnabled === false) return false;
+  if (isRestModeActive(profile, onDate)) return false;
+  if (profile.notifyWeekendEnabled === false && weekendDay(onDate)) return false;
+  return true;
+}
+
 // ─── Morning "Müdahale" ─────────────────────────────────────────────────────
 
+/** Sabah bildirimi — Welcome / Bugün vaadiyle uyumlu (kart + check-in dilini bağlar). */
 function getMorningCopy(dayN: number, habitName: string): { title: string; body: string } {
-  const h = habitName.toLowerCase();
+  const h = habitName.trim() || "bu alışkanlık";
 
-  if (dayN <= 7) {
+  if (dayN <= 3) {
     return {
       title: `Gün ${dayN} — Beyin yeni yol açıyor.`,
-      body: `Bugün ${h} için en küçük adımı at. Başlamak yeterli.`,
+      body: `Bugün kartında net seçim: ${h} için 1 küçük adım. Düşünmeden başla.`,
+    };
+  }
+  if (dayN <= 7) {
+    return {
+      title: `Gün ${dayN} — Yol inşa edilirken.`,
+      body: `${h}: Bugün kartındaki mikro-hedefi seç — on saniye bile yeter; sonra dürüst check-in zamanı.`,
+    };
+  }
+
+  if (dayN <= 14) {
+    return {
+      title: `Gün ${dayN} — Alışkanlık kurulurken.`,
+      body: `${h} yapan biri gibi küçük bir adım daha. Bugün ekranındaki kart seni sıkıştırmadan yönlendirir.`,
     };
   }
   if (dayN <= 22) {
     return {
-      title: `Gün ${dayN} — Kuruluş fazındasın.`,
-      body: `Disiplin kası güçleniyor. ${h} sahibi gibi davranma zamanı.`,
+      title: `Gün ${dayN} — Kuruluş fazı bitmek üzere.`,
+      body: `22. güne yaklaşıyorsun. İzini sürdür: Bugün kartı + check-in.`,
+    };
+  }
+
+  if (dayN === 23) {
+    return {
+      title: "Pekiştirme başlıyor.",
+      body: `${h} küçültülmüş tekrarda oturuyor. Bugün yine karttaki tek net eylemi seç.`,
+    };
+  }
+  if (dayN <= 35) {
+    return {
+      title: `Gün ${dayN} — Momentum.`,
+      body: `${h} için küçük olsa da yönün seçildi.`,
     };
   }
   if (dayN <= 44) {
     return {
-      title: `Gün ${dayN} — Artık "yapan biri"sin.`,
-      body: `"${h}" kimliğin pekişiyor. Bugün bir oy daha kullan.`,
+      title: `Gün ${dayN} — ${66 - dayN} gün daha.`,
+      body: `Kaçırmanın ardından bile toparlama zamanı — Bugün kartı en küçük sürümü hatırlatır.`,
+    };
+  }
+
+  if (dayN === 45) {
+    return {
+      title: "Son faz: Otomatikleşme.",
+      body: `${h} seçimleri alışkanlığa dönüşüyor — Bugün kartı mikro-tekrardan vazgeçme.`,
+    };
+  }
+  if (dayN <= 60) {
+    return {
+      title: `Gün ${dayN} — Kimlik netleşiyor.`,
+      body: `${66 - dayN} gün kaldı. Zor bir günde bile Bugün’de yön seçmek yeter.`,
+    };
+  }
+  if (dayN < 66) {
+    return {
+      title: `Gün ${dayN} — Bitiş çizgisi.`,
+      body: `${66 - dayN} gün kaldı. ${h}: kart + check-in akışına güven.`,
     };
   }
   return {
-    title: `Gün ${dayN} — Otomatikleşme yaklaşıyor.`,
-    body: `Beynin artık enerji harcamadan yapıyor. Farkında ol, devam et.`,
+    title: "66 gün tamam.",
+    body: `${h} artık kim olduğunun parçası. Kaçırdığında yapı hep burada.`,
   };
 }
 
@@ -93,6 +163,7 @@ export async function scheduleMorningNotifications(
     if (trigger <= new Date()) continue;
 
     await Notifications.cancelScheduledNotificationAsync(morningId(dateStr)).catch(() => {});
+    if (!wantsMorningPulse(profile, target)) continue;
 
     const copy = getMorningCopy(dayN, profile.habitName);
 
@@ -119,9 +190,7 @@ export async function cancelAllMorningNotifications(): Promise<void> {
 const EVENING_HOUR = 21;
 const EVENING_MINUTE = 0;
 
-export async function scheduleEveningReminderToday(
-  habitName: string
-): Promise<void> {
+export async function scheduleEveningReminderToday(profile: UserProfile): Promise<void> {
   const granted = await requestNotificationPermissions();
   if (!granted) return;
 
@@ -130,14 +199,18 @@ export async function scheduleEveningReminderToday(
 
   const trigger = new Date();
   trigger.setHours(EVENING_HOUR, EVENING_MINUTE, 0, 0);
-  if (trigger <= new Date()) return;
 
   await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+
+  if (!wantsEveningPulse(profile, new Date())) return;
+  if (trigger <= new Date()) return;
+
+  const calendarSeed = Number.parseInt(today.replace(/-/g, ""), 10);
   await Notifications.scheduleNotificationAsync({
     identifier: id,
     content: {
-      title: "Bugünkü disiplin durumun: Riskli.",
-      body: `${habitName} için henüz harekete geçmedin. 2 dakika yeter — küçült ama bırakma.`,
+      title: NOTIFICATION_EVENING_TITLE,
+      body: pickEveningNotificationBody(profile.habitName, calendarSeed),
     },
     trigger: { type: SchedulableTriggerInputTypes.DATE, date: trigger },
   });
@@ -148,39 +221,26 @@ export async function cancelEveningReminderToday(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(eveningId(today)).catch(() => {});
 }
 
-// ─── Phase transition notifications ─────────────────────────────────────────
-
-interface PhaseConfig {
-  dayOffset: number;
-  title: string;
-  body: string;
+async function cancelPhaseMilestoneNotifications(): Promise<void> {
+  for (const phase of PHASE_MILESTONE_NOTIFICATIONS) {
+    const id = `phase:day${phase.dayOffset + 1}`;
+    await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
+  }
 }
 
-const PHASE_TRANSITIONS: PhaseConfig[] = [
-  {
-    dayOffset: 21,
-    title: "Kuruluş fazı tamamlandı.",
-    body: "22 gün. Beyin artık farklı çalışıyor. Pekiştirme başlıyor.",
-  },
-  {
-    dayOffset: 43,
-    title: "Son faz: Otomatikleşme.",
-    body: "44 gün. Artık seçmiyorsun — yapıyorsun. Kimliğin netleşiyor.",
-  },
-  {
-    dayOffset: 65,
-    title: "66 Gün tamamlandı.",
-    body: "Bu artık kim olduğunun bir parçası. Kimse alamaz.",
-  },
-];
-
-export async function schedulePhaseTransitions(startDate: string): Promise<void> {
+/** Faz bildirimi; `notifyPhaseMilestones` kapalıysa hepsini iptal eder. */
+export async function schedulePhaseTransitions(profile: UserProfile): Promise<void> {
   const granted = await requestNotificationPermissions();
   if (!granted) return;
 
-  const start = parseISO(startDate);
+  if (profile.notifyPhaseMilestones === false) {
+    await cancelPhaseMilestoneNotifications();
+    return;
+  }
 
-  for (const phase of PHASE_TRANSITIONS) {
+  const start = parseISO(profile.startDate);
+
+  for (const phase of PHASE_MILESTONE_NOTIFICATIONS) {
     const triggerDate = addDays(start, phase.dayOffset);
     triggerDate.setHours(9, 30, 0, 0);
     if (triggerDate <= new Date()) continue;
@@ -201,8 +261,13 @@ export async function setupNotifications(
   profile: UserProfile,
   todayCheckedIn: boolean
 ): Promise<void> {
-  await scheduleMorningNotifications(profile);
+  await Promise.all([
+    scheduleMorningNotifications(profile),
+    schedulePhaseTransitions(profile),
+  ]);
   if (!todayCheckedIn) {
-    await scheduleEveningReminderToday(profile.habitName);
+    await scheduleEveningReminderToday(profile);
+  } else {
+    await cancelEveningReminderToday();
   }
 }

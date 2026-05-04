@@ -1,41 +1,82 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Share, Platform,
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  Share,
+  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { Lock, Flame, Target, TrendingUp, ExternalLink } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import {
+  Lock,
+  Target,
+  TrendingUp,
+  Share2,
+  ChevronRight,
+  CheckCircle2,
+  Map,
+  PenLine,
+  BookOpen,
+  X,
+  ClipboardList,
+} from "lucide-react-native";
 import { useUserStore } from "../store/userStore";
-import { useCheckinsStore, StreakState } from "../store/checkinsStore";
+import { useCheckinsStore } from "../store/checkinsStore";
 import { useSDTStore } from "../store/sdtStore";
+import { useMindDumpStore } from "../store/mindDumpStore";
 import DayGrid from "../components/DayGrid";
 import PremiumGateModal from "../components/PremiumGateModal";
-import FiveSecondRuleModal from "../components/FiveSecondRuleModal";
+import JourneyPhaseEducationModal from "../components/JourneyPhaseEducationModal";
+import JourneyMindSentenceModal from "../components/JourneyMindSentenceModal";
 import {
-  Colors, Spacing, Radii, FontSizes,
-  JOURNEY_PHASES, SDT_QUESTIONS, getCoachNote,
+  Colors,
+  Spacing,
+  Radii,
+  FontSizes,
+  JOURNEY_PHASES,
+  SDT_QUESTIONS,
+  getCoachNote,
 } from "../constants/theme";
-import { getDailyPrinciple, getFiveSecondAction } from "../constants/identity-copy";
+import { getDailyPrinciple } from "../constants/identity-copy";
+import { getJourneyEducationCards, phaseIdFromDay } from "../constants/journeyPhaseEducation";
+import { getJourneyMomentLine } from "../constants/journeyMoments";
 import { estimateAutomationFromFirst14Linear, getAverageAutomaticity } from "../utils/profileMetrics";
+import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs";
+import { loadJourneyEducationPrefs } from "../utils/journeyEducationPrefs";
 import { MainTabParamList } from "../types";
+
+
 
 type Props = BottomTabScreenProps<MainTabParamList, "Journey">;
 
-export default function JourneyScreen(_: Props) {
+export default function JourneyScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
   const profile = useUserStore((s) => s.profile);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const markPremiumGateShown = useUserStore((s) => s.markPremiumGateShown);
+  const updateProfile = useUserStore((s) => s.updateProfile);
 
   const { last66Days } = useCheckinsStore();
   const { scores, load: loadSDT, saveScore, needsSurvey, latestScore } = useSDTStore();
 
   const checkins = useCheckinsStore((s) => s.checkins);
   const { completionRate } = useCheckinsStore();
+  const createMindEntry = useMindDumpStore((s) => s.createEntry);
 
   const isPremium = profile?.isPremium ?? false;
   const [showGate, setShowGate] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
-  const [showFiveSecond, setShowFiveSecond] = useState(false);
+  const [showPhaseEdu, setShowPhaseEdu] = useState(false);
+  const [showMindSentence, setShowMindSentence] = useState(false);
   const [answers, setAnswers] = useState({ autonomy: 3, competence: 3, relatedness: 3 });
 
   const linearEstimate = useMemo(() => {
@@ -47,11 +88,48 @@ export default function JourneyScreen(_: Props) {
   const rate = profile ? completionRate(profile.startDate) : 0;
 
   const dailyPrinciple = getDailyPrinciple(dayNumber);
-  const fiveSecondAction = getFiveSecondAction(dayNumber);
+  const coachNote = getCoachNote(dayNumber);
 
-  useEffect(() => { loadSDT(); }, []);
+  const journeyEduCards = useMemo(() => getJourneyEducationCards(dayNumber), [dayNumber]);
+  const journeyEduPhaseId = useMemo<1 | 2 | 3>(() => {
+    const p = dailyPrinciple?.phaseId;
+    if (p === 1 || p === 2 || p === 3) return p;
+    return phaseIdFromDay(dayNumber);
+  }, [dailyPrinciple?.phaseId, dayNumber]);
 
-  // Premium gate on first Journey visit after day 7
+  const momentLine = useMemo(() => getJourneyMomentLine(dayNumber), [dayNumber]);
+  const [eduPrefs, setEduPrefs] = useState<JourneyEducationPrefsState | null>(null);
+
+  const refreshEduPrefs = useCallback(() => {
+    void loadJourneyEducationPrefs().then(setEduPrefs);
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isPremium) refreshEduPrefs();
+      if (!profile?.id || profile?.hasOpenedJourneyTab) return;
+      void updateProfile({ hasOpenedJourneyTab: true });
+    }, [isPremium, refreshEduPrefs, profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
+  );
+
+  const eduPhaseCompleted =
+    eduPrefs?.phasesCompleted12[String(journeyEduPhaseId) as "1" | "2" | "3"];
+  const saveMindSentence = useCallback(
+    async (text: string) => createMindEntry(text),
+    [createMindEntry]
+  );
+
+  useEffect(() => {
+    loadSDT();
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!profile?.id || profile.hasOpenedJourneyTab) return;
+      void updateProfile({ hasOpenedJourneyTab: true });
+    }, [profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
+  );
+
   useEffect(() => {
     if (!profile || isPremium) return;
     if (dayNumber >= 7 && !profile.premiumGateDay7Shown) {
@@ -60,7 +138,6 @@ export default function JourneyScreen(_: Props) {
     }
   }, [dayNumber]);
 
-  // SDT survey prompt
   useEffect(() => {
     if (isPremium && needsSurvey() && dayNumber > 7) {
       setShowSurvey(true);
@@ -69,25 +146,28 @@ export default function JourneyScreen(_: Props) {
 
   const grid = profile ? last66Days(profile.startDate) : [];
   const latest = latestScore();
+  const journeyProgress = Math.min(1, Math.max(0, dayNumber / 66));
+  const coachNoteText = coachNote;
 
   if (!isPremium) {
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
         <View style={styles.lockedContainer}>
           <View style={styles.lockIcon}>
             <Lock size={32} color={Colors.primary} strokeWidth={1.5} />
           </View>
           <Text style={styles.lockedTitle}>66 Gün Haritası</Text>
           <Text style={styles.lockedSub}>
-            Yolculuğunu izlemek, fazları görmek ve SDT motivasyon skorunu
-            takip etmek için premium paket gerekiyor.
+            Bugün ekranında tek net hareket + check-in akışın çalışır; fazın “tek fikri” özeti de
+            orada. 66 günlük harita ve buradaki detaylı yol özeti premium ile açılır.
           </Text>
           <TouchableOpacity
             style={styles.unlockBtn}
             onPress={() => setShowGate(true)}
             activeOpacity={0.8}
           >
-            <Text style={styles.unlockBtnText}>Kilidi Aç →</Text>
+            <Text style={styles.unlockBtnText}>Kilidi aç</Text>
+            <ChevronRight size={18} color="#fff" strokeWidth={2} />
           </TouchableOpacity>
         </View>
         <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
@@ -96,152 +176,194 @@ export default function JourneyScreen(_: Props) {
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Yolculuğun</Text>
-          <Text style={styles.subtitle}>Gün {dayNumber}</Text>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { backgroundColor: Colors.bg }]}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Üst: başlık + genel ilerleme */}
+        <View style={styles.hero}>
+          <View style={styles.heroTop}>
+            <View>
+              <Text style={styles.title}>Yolculuğun</Text>
+              <Text style={styles.subtitle}>
+                66 günlük kimlik inşası · Gün {dayNumber}
+              </Text>
+            </View>
+            <View style={styles.dayPill}>
+              <Map size={16} color={Colors.primaryDark} strokeWidth={2} />
+              <Text style={styles.dayPillText}>{dayNumber}/66</Text>
+            </View>
+          </View>
+          <View style={styles.progressTrack}>
+            <View style={[styles.progressFill, { width: `${journeyProgress * 100}%` }]} />
+          </View>
+          <Text style={styles.progressHint}>
+            Tamamlama bu dönemde %{Math.round(rate * 100)}
+            {avgAuto != null ? ` · Ort. otomatiklik ${avgAuto.toFixed(1)}/10` : ""}
+          </Text>
         </View>
 
-        {/* Coach note (milestone days) */}
-        {getCoachNote(dayNumber) && (
-          <View style={styles.coachCard}>
-            <Text style={styles.coachLabel}>Bugünkü not</Text>
-            <Text style={styles.coachNote}>{getCoachNote(dayNumber)}</Text>
-          </View>
-        )}
-
-        {/* Daily discipline principle */}
-        {dailyPrinciple && (
-          <View style={[
-            styles.principleCard,
-            { borderLeftColor: JOURNEY_PHASES[dailyPrinciple.phaseId - 1].color },
-          ]}>
-            <View style={styles.principleHeader}>
-              <Target size={16} color={JOURNEY_PHASES[dailyPrinciple.phaseId - 1].color} strokeWidth={1.5} />
-              <Text style={styles.principleLabel}>Bugünün odak cümlesi</Text>
+        {/* Bugünün paketi — tek kart */}
+        <View style={styles.sectionLabelRow}>
+          <Text style={styles.sectionLabel}>Bugünün paketi</Text>
+        </View>
+        <View style={styles.todayPack}>
+          {coachNoteText ? (
+            <View style={styles.coachBanner}>
+              <Text style={styles.coachBannerLabel}>Kilometre taşı</Text>
+              <Text style={styles.coachBannerText}>{coachNoteText}</Text>
             </View>
-            <Text style={styles.principleText}>{dailyPrinciple.principle}</Text>
-          </View>
-        )}
-
-        {/* 5 Second Rule trigger */}
-        <TouchableOpacity
-          style={styles.fiveSecondCard}
-          onPress={() => setShowFiveSecond(true)}
-          activeOpacity={0.8}
-        >
-          <View style={styles.fiveSecondLeft}>
-            <View style={styles.fiveSecondIcon}>
-              <Flame size={18} color={Colors.coral} strokeWidth={1.5} />
+          ) : momentLine ? (
+            <View style={styles.momentBanner}>
+              <Text style={styles.momentBannerLabel}>Bugünün bağlamı</Text>
+              <Text style={styles.momentBannerText}>{momentLine}</Text>
             </View>
-            <View style={styles.fiveSecondContent}>
-              <Text style={styles.fiveSecondTitle}>Bugün yapmak istemiyorum</Text>
-              <Text style={styles.fiveSecondSub}>5 Saniye Kuralı ile disiplin antrenmanı</Text>
-            </View>
-          </View>
-          <Text style={styles.fiveSecondArrow}>→</Text>
-        </TouchableOpacity>
+          ) : null}
 
-        {/* 3 phases */}
+          {dailyPrinciple ? (
+            <View style={styles.packBlock}>
+              <View style={styles.packRow}>
+                <Target
+                  size={18}
+                  color={JOURNEY_PHASES[dailyPrinciple.phaseId - 1].color}
+                  strokeWidth={1.8}
+                />
+                <Text style={styles.packKicker}>Odak cümlesi</Text>
+              </View>
+              <Text style={styles.packPrinciple}>{dailyPrinciple.principle}</Text>
+            </View>
+          ) : null}
+
+          <TouchableOpacity
+            style={styles.trainRow}
+            onPress={() => setShowPhaseEdu(true)}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.trainIcon, { backgroundColor: Colors.purpleLight }]}>
+              <BookOpen size={20} color={Colors.purple} strokeWidth={2} />
+            </View>
+            <View style={styles.trainMid}>
+              <Text style={styles.trainTitle}>Bu fazda beyin nasıl çalışıyor?</Text>
+              <Text style={styles.trainSub}>
+                {eduPhaseCompleted
+                  ? "Bu faz özetini daha önce tamamladın — yenilemek istersen aç."
+                  : "4 kısa kart · ~30 sn · bulunduğun faza göre"}
+              </Text>
+            </View>
+            <ChevronRight size={20} color={Colors.textTertiary} strokeWidth={2} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.trainRow}
+            onPress={() => setShowMindSentence(true)}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.trainIcon, { backgroundColor: Colors.primaryLight }]}>
+              <PenLine size={20} color={Colors.primaryDark} strokeWidth={2} />
+            </View>
+            <View style={styles.trainMid}>
+              <Text style={styles.trainTitle}>Yolculuktan bir cümle</Text>
+              <Text style={styles.trainSub}>Zihin’e yazılı sırayla tek satır · iste tam Zihine geç</Text>
+              {eduPrefs?.lastMindSentenceSnippet ? (
+                <Text style={styles.mindEcho} numberOfLines={2}>
+                  Son satırın: “{eduPrefs.lastMindSentenceSnippet}”
+                </Text>
+              ) : null}
+            </View>
+            <ChevronRight size={20} color={Colors.textTertiary} strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Fazlar: sadece aktif faz geniş */}
+        <View style={styles.sectionLabelRow}>
+          <Text style={styles.sectionLabel}>66 gün · 3 faz</Text>
+          <Text style={styles.sectionHint}>Aktif faz aşağıda detaylı</Text>
+        </View>
+
         {JOURNEY_PHASES.map((phase) => {
           const isActive = dayNumber >= phase.startDay && dayNumber <= phase.endDay;
           const isCompleted = dayNumber > phase.endDay;
           const isLocked = dayNumber < phase.startDay;
           const phaseGrid = grid.slice(phase.startDay - 1, phase.endDay);
 
+          if (isCompleted) {
+            return (
+              <View key={phase.id} style={styles.phaseStripDone}>
+                <CheckCircle2 size={20} color={Colors.primary} strokeWidth={2} />
+                <Text style={styles.phaseStripDoneText}>
+                  Faz {phase.id} · {phase.label} tamamlandı
+                </Text>
+              </View>
+            );
+          }
+
+          if (isLocked) {
+            return (
+              <View key={phase.id} style={styles.phaseStripLocked}>
+                <Lock size={18} color={Colors.textTertiary} strokeWidth={1.8} />
+                <View style={styles.phaseStripLockedBody}>
+                  <Text style={styles.phaseStripLockedTitle}>
+                    Faz {phase.id} · {phase.label}
+                  </Text>
+                  <Text style={styles.phaseStripLockedSub}>
+                    Gün {phase.startDay}’te açılır
+                  </Text>
+                </View>
+              </View>
+            );
+          }
+
           return (
             <View
               key={phase.id}
-              style={[
-                styles.phaseCard,
-                isActive && { borderColor: phase.color },
-                isCompleted && styles.phaseCompleted,
-              ]}
+              style={[styles.phaseCardActive, { borderColor: phase.color }]}
             >
-              <View style={styles.phaseHeader}>
+              <View style={styles.phaseActiveHead}>
                 <View style={[styles.phaseBadge, { backgroundColor: phase.colorLight }]}>
                   <Text style={[styles.phaseBadgeText, { color: phase.color }]}>
-                    Faz {phase.id}
+                    Şu an · Faz {phase.id}
                   </Text>
                 </View>
-                {isCompleted && (
-                  <View style={styles.completedBadge}>
-                    <Text style={styles.completedText}>✓ Tamamlandı</Text>
-                  </View>
-                )}
-                {isActive && (
-                  <View style={[styles.activeBadge, { backgroundColor: phase.colorLight }]}>
-                    <Text style={[styles.activeText, { color: phase.color }]}>Aktif</Text>
-                  </View>
-                )}
-                {isLocked && (
-                  <Lock size={14} color={Colors.textTertiary} strokeWidth={1.5} />
-                )}
+                <Text style={styles.phaseActiveRange}>{phase.days}</Text>
               </View>
-
               <Text style={styles.phaseName}>{phase.label}</Text>
-              <Text style={styles.phaseDays}>{phase.days}</Text>
               <Text style={styles.phaseSub}>{phase.subtitle}</Text>
-
-              {isLocked && (
-                <Text style={styles.phaseLockedNote}>
-                  Faz {phase.id - 1}'i tamamla
-                </Text>
-              )}
-
-              {!isLocked && phaseGrid.length > 0 && (
-                <View style={styles.phaseGrid}>
+              {phaseGrid.length > 0 ? (
+                <View style={styles.phaseGridWrap}>
+                  <Text style={styles.gridCaption}>Bu fazdaki günler</Text>
                   <DayGrid days={phaseGrid} color={phase.color} />
                 </View>
-              )}
+              ) : null}
             </View>
           );
         })}
 
-        {/* Regression estimate */}
-        {dayNumber >= 14 && linearEstimate && (
+        {/* Bilim & ölçüm */}
+        <View style={styles.sectionLabelRow}>
+          <Text style={styles.sectionLabel}>Bilim & ölçüm</Text>
+        </View>
+
+        {dayNumber >= 14 && linearEstimate ? (
           <View style={styles.regressionCard}>
             <View style={styles.regressionRow}>
-              <TrendingUp size={18} color={Colors.primary} strokeWidth={1.5} />
-              <Text style={styles.regressionTitle}>Otomatikleşme Tahmini</Text>
+              <TrendingUp size={18} color={Colors.primary} strokeWidth={1.8} />
+              <Text style={styles.regressionTitle}>Otomatikleşme eğrisi</Text>
             </View>
             <Text style={styles.regressionBody}>
-              Eğim: +{linearEstimate.slopePerDay.toFixed(1)}/gün
+              İlk 14 güne göre tahmini eğim: +{linearEstimate.slopePerDay.toFixed(1)} / gün
               {linearEstimate.predictedDayAt7
-                ? ` · Tahmini: Gün ${linearEstimate.predictedDayAt7}`
-                : " · Yeterli eğim yok"}
+                ? ` · ~Gün ${linearEstimate.predictedDayAt7}’te 7/10 bandı`
+                : ""}
             </Text>
           </View>
-        )}
+        ) : null}
 
-        {/* Share card */}
-        <TouchableOpacity
-          style={styles.shareCard}
-          onPress={async () => {
-            const pct = avgAuto != null ? Math.round((avgAuto / 10) * 100) : null;
-            const msg = [
-              `Gün ${dayNumber}'deyim.`,
-              pct != null ? `Otomatiklik: %${pct}.` : null,
-              `Tamamlama: %${Math.round(rate * 100)}.`,
-              "Motivasyon değil, disiplin.",
-              "#KimlikApp",
-            ].filter(Boolean).join(" ");
-            try {
-              await Share.share({ message: msg });
-            } catch {}
-          }}
-          activeOpacity={0.8}
-        >
-          <ExternalLink size={16} color={Colors.primary} strokeWidth={1.5} />
-          <Text style={styles.shareText}>Disiplin raporunu paylaş</Text>
-        </TouchableOpacity>
-
-        {/* SDT card */}
         <View style={styles.sdtCard}>
-          <View style={styles.sdtHeader}>
-            <Text style={styles.sdtTitle}>SDT Motivasyon Skoru</Text>
-          </View>
+          <Text style={styles.sdtTitle}>Motivasyon nabzı (SDT)</Text>
+          <Text style={styles.sdtSub}>
+            Özerklik, yetkinlik, bağlanma — haftalık mini ölçüm
+          </Text>
 
           {latest ? (
             <View style={styles.sdtBars}>
@@ -255,82 +377,184 @@ export default function JourneyScreen(_: Props) {
               ))}
             </View>
           ) : (
-            <TouchableOpacity
-              style={styles.surveyBtn}
-              onPress={() => setShowSurvey(true)}
-            >
-              <Text style={styles.surveyBtnText}>Bu haftanın anketini doldur →</Text>
+            <TouchableOpacity style={styles.surveyBtn} onPress={() => setShowSurvey(true)}>
+              <Text style={styles.surveyBtnText}>İlk anketi doldur</Text>
+              <ChevronRight size={18} color={Colors.primary} strokeWidth={2} />
             </TouchableOpacity>
           )}
 
-          {latest && needsSurvey() && (
+          {latest && needsSurvey() ? (
             <TouchableOpacity onPress={() => setShowSurvey(true)}>
               <Text style={styles.updateText}>Bu haftayı güncelle</Text>
             </TouchableOpacity>
-          )}
+          ) : null}
         </View>
+
+        <TouchableOpacity
+          style={styles.shareRow}
+          onPress={async () => {
+            const pct = avgAuto != null ? Math.round((avgAuto / 10) * 100) : null;
+            const msg = [
+              `Gün ${dayNumber}/66.`,
+              pct != null ? `Otomatiklik ~%${pct}.` : null,
+              `Tamamlama %${Math.round(rate * 100)}.`,
+              "#KimlikApp",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            try {
+              await Share.share({ message: msg });
+            } catch {
+              /* kullanıcı iptal */
+            }
+          }}
+          activeOpacity={0.75}
+        >
+          <Share2 size={18} color={Colors.primary} strokeWidth={1.8} />
+          <Text style={styles.shareText}>İlerlemeyi paylaş</Text>
+        </TouchableOpacity>
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      {/* SDT Survey modal */}
-      <Modal visible={showSurvey} transparent animationType="slide">
-        <View style={styles.surveyOverlay}>
-          <View style={styles.surveySheet}>
-            <Text style={styles.surveyTitle}>Haftalık Anket</Text>
+      <Modal
+        visible={showSurvey}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSurvey(false)}
+      >
+        <KeyboardAvoidingView
+          style={styles.surveyOverlay}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
+        >
+          <Pressable
+            style={styles.surveyBackdrop}
+            onPress={() => setShowSurvey(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Kapat"
+          />
+          <View
+            style={[
+              styles.surveySheet,
+              { paddingBottom: Math.max(Spacing.lg, insets.bottom + Spacing.sm) },
+            ]}
+          >
+            <View style={styles.surveyHandle} />
+            <View style={styles.surveyHeader}>
+              <View style={styles.surveyHeaderLeft}>
+                <View style={styles.surveyIconWrap}>
+                  <ClipboardList size={20} color={Colors.primary} strokeWidth={1.8} />
+                </View>
+                <View>
+                  <Text style={styles.surveyTitle}>Haftalık anket</Text>
+                  <Text style={styles.surveyMeta}>3 soru · yaklaşık 1 dk</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.surveyClose}
+                onPress={() => setShowSurvey(false)}
+                hitSlop={12}
+                accessibilityLabel="Kapat"
+              >
+                <X size={22} color={Colors.textTertiary} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.surveySub}>
-              Her soruyu 1 (hiç) – 5 (çok) arasında değerlendir.
+              Bu haftaki hislerine göre 1 (hiç) ile 5 (çok) arasında bir değer seç.
             </Text>
 
-            {SDT_QUESTIONS.map((q) => {
-              const key = q.id as "autonomy" | "competence" | "relatedness";
-              return (
-                <View key={q.id} style={styles.question}>
-                  <Text style={styles.questionText}>{q.question}</Text>
-                  <View style={styles.scale}>
-                    {[1, 2, 3, 4, 5].map((v) => {
-                      const selected = answers[key] === v;
-                      return (
-                        <TouchableOpacity
-                          key={v}
-                          style={[styles.scaleBtn, selected && styles.scaleBtnActive]}
-                          onPress={() => setAnswers((prev) => ({ ...prev, [key]: v }))}
-                        >
-                          <Text style={[styles.scaleNum, selected && styles.scaleNumActive]}>
-                            {v}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                  <View style={styles.scaleHints}>
-                    <Text style={styles.scaleHint}>{q.low}</Text>
-                    <Text style={styles.scaleHint}>{q.high}</Text>
-                  </View>
-                </View>
-              );
-            })}
-
-            <TouchableOpacity
-              style={styles.submitBtn}
-              onPress={async () => {
-                await saveScore(answers);
-                setShowSurvey(false);
-              }}
+            <ScrollView
+              style={[styles.surveyScroll, { maxHeight: Math.min(420, windowHeight * 0.5) }]}
+              contentContainerStyle={styles.surveyScrollContent}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text style={styles.submitText}>Kaydet</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowSurvey(false)}>
-              <Text style={styles.cancelText}>Şimdi değil</Text>
-            </TouchableOpacity>
+              {SDT_QUESTIONS.map((q, index) => {
+                const key = q.id as "autonomy" | "competence" | "relatedness";
+                return (
+                  <View key={q.id} style={styles.questionCard}>
+                    <View style={styles.questionBadge}>
+                      <Text style={styles.questionBadgeText}>Soru {index + 1}</Text>
+                      <Text style={styles.questionBadgeHint}>{q.label}</Text>
+                    </View>
+                    <Text style={styles.questionText}>{q.question}</Text>
+                    <View style={styles.scale}>
+                      {[1, 2, 3, 4, 5].map((v) => {
+                        const selected = answers[key] === v;
+                        return (
+                          <TouchableOpacity
+                            key={v}
+                            style={[styles.scaleBtn, selected && styles.scaleBtnActive]}
+                            onPress={() => setAnswers((prev) => ({ ...prev, [key]: v }))}
+                            activeOpacity={0.85}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected }}
+                            accessibilityLabel={`${v} seç`}
+                          >
+                            <Text style={[styles.scaleNum, selected && styles.scaleNumActive]}>
+                              {v}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                    <View style={styles.scaleHints}>
+                      <Text style={[styles.scaleHint, styles.scaleHintLeft]} numberOfLines={2}>
+                        1 — {q.low}
+                      </Text>
+                      <Text style={[styles.scaleHint, styles.scaleHintRight]} numberOfLines={2}>
+                        5 — {q.high}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
+            </ScrollView>
+
+            <View style={styles.surveyFooter}>
+              <TouchableOpacity
+                style={styles.submitBtn}
+                onPress={async () => {
+                  await saveScore(answers);
+                  setShowSurvey(false);
+                }}
+                activeOpacity={0.9}
+              >
+                <Text style={styles.submitText}>Kaydet ve kapat</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.cancelBtn}
+                onPress={() => setShowSurvey(false)}
+                hitSlop={{ top: 8, bottom: 8 }}
+              >
+                <Text style={styles.cancelText}>Şimdi değil</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
 
-      <FiveSecondRuleModal
-        visible={showFiveSecond}
-        onClose={() => setShowFiveSecond(false)}
-        actionText={fiveSecondAction}
+      <JourneyPhaseEducationModal
+        visible={showPhaseEdu}
+        onClose={() => {
+          setShowPhaseEdu(false);
+          refreshEduPrefs();
+        }}
+        phaseId={journeyEduPhaseId}
+        cards={journeyEduCards}
+        hapticsEnabled={profile?.hapticsEnabled !== false}
+      />
+      <JourneyMindSentenceModal
+        visible={showMindSentence}
+        onClose={() => setShowMindSentence(false)}
+        isPremium={isPremium}
+        onHitFreeLimit={() => setShowGate(true)}
+        onSave={saveMindSentence}
+        onAfterMindSave={refreshEduPrefs}
+        onOpenMindDump={() => {
+          setShowMindSentence(false);
+          navigation.navigate("MindDump");
+        }}
       />
       <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
     </SafeAreaView>
@@ -345,7 +569,9 @@ function SDTBar({ label, value, max }: { label: string; value: number; max: numb
       <View style={sdtS.track}>
         <View style={[sdtS.fill, { width: `${pct * 100}%` }]} />
       </View>
-      <Text style={sdtS.val}>{value}/{max}</Text>
+      <Text style={sdtS.val}>
+        {value}/{max}
+      </Text>
     </View>
   );
 }
@@ -353,19 +579,22 @@ function SDTBar({ label, value, max }: { label: string; value: number; max: numb
 const sdtS = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   label: {
-    width: 70,
+    width: 72,
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
   track: {
-    flex: 1, height: 6,
+    flex: 1,
+    height: 6,
     backgroundColor: Colors.border,
     borderRadius: Radii.full,
     overflow: "hidden",
   },
   fill: {
-    height: "100%", backgroundColor: Colors.primary, borderRadius: Radii.full,
+    height: "100%",
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.full,
   },
   val: {
     width: 36,
@@ -378,116 +607,326 @@ const sdtS = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1 },
+  scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1, paddingBottom: Spacing.md },
   lockedContainer: {
-    flex: 1, alignItems: "center", justifyContent: "center",
-    paddingHorizontal: Spacing.xl, gap: Spacing.lg,
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.lg,
   },
   lockIcon: {
-    width: 72, height: 72, borderRadius: 36,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     backgroundColor: Colors.primaryLight,
-    alignItems: "center", justifyContent: "center",
+    alignItems: "center",
+    justifyContent: "center",
   },
   lockedTitle: {
-    fontSize: FontSizes.xxl, fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary, textAlign: "center",
+    fontSize: FontSizes.xxl,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    textAlign: "center",
   },
   lockedSub: {
-    fontSize: FontSizes.md, fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary, textAlign: "center", lineHeight: 22,
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
   },
   unlockBtn: {
-    backgroundColor: Colors.primary, borderRadius: Radii.button,
-    paddingVertical: 14, paddingHorizontal: Spacing.xl,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.xl,
   },
   unlockBtnText: {
-    fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: "#fff",
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
   },
-  header: { paddingTop: Spacing.md, marginBottom: Spacing.lg },
+  hero: {
+    paddingTop: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  heroTop: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginBottom: Spacing.md,
+  },
   title: {
-    fontSize: FontSizes.xxl, fontFamily: "Inter_500Medium", color: Colors.textPrimary,
+    fontSize: FontSizes.xxl,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
   },
   subtitle: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary, marginTop: 4,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    marginTop: 4,
+    maxWidth: 240,
+    lineHeight: 20,
   },
-  coachCard: {
-    backgroundColor: Colors.surface, borderRadius: Radii.card,
-    borderWidth: 1, borderColor: Colors.border,
-    borderLeftWidth: 3, borderLeftColor: Colors.primary,
-    padding: Spacing.md, gap: Spacing.xs, marginBottom: Spacing.md,
+  dayPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 8,
+    borderRadius: Radii.pill,
+    borderWidth: 1,
+    borderColor: "rgba(29,158,117,0.25)",
   },
-  coachLabel: {
-    fontSize: FontSizes.xs, fontFamily: "Inter_500Medium",
-    color: Colors.textTertiary, textTransform: "uppercase", letterSpacing: 0.7,
+  dayPillText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
   },
-  coachNote: {
-    fontSize: FontSizes.md, fontFamily: "Inter_400Regular",
-    color: Colors.textPrimary, lineHeight: 22,
+  progressTrack: {
+    height: 6,
+    backgroundColor: Colors.border,
+    borderRadius: Radii.full,
+    overflow: "hidden",
   },
-  principleCard: {
-    backgroundColor: Colors.surface, borderRadius: Radii.card,
-    borderWidth: 1, borderColor: Colors.border,
-    borderLeftWidth: 3,
-    padding: Spacing.md, gap: Spacing.sm, marginBottom: Spacing.md,
+  progressFill: {
+    height: "100%",
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.full,
   },
-  principleHeader: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  principleLabel: {
-    fontSize: FontSizes.xs, fontFamily: "Inter_500Medium",
-    color: Colors.textTertiary, textTransform: "uppercase", letterSpacing: 0.7,
+  progressHint: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginTop: Spacing.sm,
   },
-  principleText: {
-    fontSize: FontSizes.lg, fontFamily: "Inter_400Regular",
-    color: Colors.textPrimary, lineHeight: 24, fontStyle: "italic",
+  sectionLabelRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    justifyContent: "space-between",
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.xs,
   },
-  fiveSecondCard: {
-    backgroundColor: Colors.surface, borderRadius: Radii.card,
-    borderWidth: 1, borderColor: Colors.border,
-    padding: Spacing.md, marginBottom: Spacing.lg,
-    flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+  sectionLabel: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
   },
-  fiveSecondLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, flex: 1 },
-  fiveSecondIcon: {
-    width: 36, height: 36, borderRadius: 18,
-    backgroundColor: Colors.coralLight, alignItems: "center", justifyContent: "center",
+  sectionHint: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
-  fiveSecondContent: { flex: 1, gap: 2 },
-  fiveSecondTitle: {
-    fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: Colors.textPrimary,
+  todayPack: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card + 2,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    padding: Spacing.md,
+    marginBottom: Spacing.xl,
+    gap: Spacing.md,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  fiveSecondSub: {
-    fontSize: FontSizes.xs, fontFamily: "Inter_400Regular", color: Colors.textTertiary,
+  coachBanner: {
+    backgroundColor: Colors.purpleLight,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(83,74,183,0.15)",
+    gap: 4,
   },
-  fiveSecondArrow: {
-    fontSize: FontSizes.lg, color: Colors.coral, fontFamily: "Inter_500Medium",
+  coachBannerLabel: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.purple,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
   },
-  phaseCard: {
-    backgroundColor: Colors.surface, borderRadius: Radii.card,
-    borderWidth: 1, borderColor: Colors.border,
-    padding: Spacing.md, marginBottom: Spacing.md, gap: Spacing.sm,
+  coachBannerText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+    lineHeight: 20,
   },
-  phaseCompleted: { backgroundColor: Colors.bg },
-  phaseHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  phaseBadge: { borderRadius: Radii.pill, paddingHorizontal: Spacing.sm, paddingVertical: 3 },
+  momentBanner: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(29,158,117,0.22)",
+    gap: 4,
+  },
+  momentBannerLabel: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  momentBannerText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  packBlock: { gap: Spacing.sm },
+  packRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+  packKicker: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  packPrinciple: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    lineHeight: 24,
+    fontStyle: "italic",
+  },
+  trainRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    backgroundColor: Colors.bg,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  trainIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.coralLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  trainMid: { flex: 1, gap: 2 },
+  trainTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
+  trainSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  mindEcho: {
+    marginTop: 4,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
+    color: Colors.textTertiary,
+    lineHeight: 17,
+  },
+  phaseStripDone: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.card,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(29,158,117,0.2)",
+  },
+  phaseStripDoneText: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+  },
+  phaseStripLocked: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    opacity: 0.92,
+  },
+  phaseStripLockedBody: { flex: 1 },
+  phaseStripLockedTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+  },
+  phaseStripLockedSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
+  phaseCardActive: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card + 2,
+    borderWidth: 2,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    gap: Spacing.sm,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  phaseActiveHead: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  phaseBadge: { borderRadius: Radii.pill, paddingHorizontal: Spacing.sm, paddingVertical: 4 },
   phaseBadgeText: { fontSize: FontSizes.xs, fontFamily: "Inter_500Medium" },
-  completedBadge: {
-    backgroundColor: Colors.primaryLight, borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.sm, paddingVertical: 3,
+  phaseActiveRange: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
-  completedText: { fontSize: FontSizes.xs, fontFamily: "Inter_500Medium", color: Colors.primary },
-  activeBadge: { borderRadius: Radii.pill, paddingHorizontal: Spacing.sm, paddingVertical: 3 },
-  activeText: { fontSize: FontSizes.xs, fontFamily: "Inter_500Medium" },
-  phaseName: { fontSize: FontSizes.xl, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
-  phaseDays: { fontSize: FontSizes.sm, fontFamily: "Inter_400Regular", color: Colors.textTertiary },
+  phaseName: {
+    fontSize: FontSizes.xl,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
   phaseSub: {
-    fontSize: FontSizes.md, fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary, lineHeight: 20,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
-  phaseLockedNote: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary, fontStyle: "italic",
+  phaseGridWrap: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: Spacing.sm,
   },
-  phaseGrid: { marginTop: Spacing.xs },
+  gridCaption: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
   regressionCard: {
     backgroundColor: Colors.primaryLight,
     borderRadius: Radii.card,
@@ -499,79 +938,229 @@ const styles = StyleSheet.create({
   },
   regressionRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   regressionTitle: {
-    fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: Colors.primary,
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
   },
   regressionBody: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular",
-    color: Colors.textPrimary, lineHeight: 20,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+    lineHeight: 20,
   },
-  shareCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
+  sdtCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.md,
+    padding: Spacing.lg,
+    gap: Spacing.md,
     marginBottom: Spacing.md,
   },
-  shareText: {
-    fontSize: FontSizes.md, fontFamily: "Inter_400Regular", color: Colors.primary,
+  sdtTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
   },
-  sdtCard: {
-    backgroundColor: Colors.surface, borderRadius: Radii.card,
-    borderWidth: 1, borderColor: Colors.border,
-    padding: Spacing.md, gap: Spacing.md,
+  sdtSub: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
-  sdtHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  sdtTitle: { fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
   sdtBars: { gap: Spacing.sm },
   surveyBtn: {
-    backgroundColor: Colors.primaryLight, borderRadius: Radii.button,
-    padding: Spacing.md, alignItems: "center",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.button,
+    padding: Spacing.md,
   },
-  surveyBtnText: { fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: Colors.primary },
+  surveyBtnText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
   updateText: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary, textAlign: "center",
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    textAlign: "center",
   },
-  // Survey modal
-  surveyOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "flex-end" },
+  shareRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  shareText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
+  surveyOverlay: { flex: 1 },
+  surveyBackdrop: {
+    flex: 1,
+    width: "100%",
+    backgroundColor: Colors.overlay,
+  },
   surveySheet: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: Spacing.xl, gap: Spacing.lg,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: Spacing.xl,
+    paddingTop: Spacing.sm,
+    maxHeight: "92%",
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 16,
   },
-  surveyTitle: { fontSize: FontSizes.xl, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
+  surveyHandle: {
+    alignSelf: "center",
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    marginBottom: Spacing.md,
+  },
+  surveyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: Spacing.sm,
+  },
+  surveyHeaderLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.md, flex: 1 },
+  surveyIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  surveyClose: {
+    padding: Spacing.xs,
+    borderRadius: Radii.button,
+  },
+  surveyTitle: {
+    fontSize: FontSizes.xl,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
+  surveyMeta: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginTop: 2,
+  },
   surveySub: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular", color: Colors.textSecondary,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.md,
   },
-  question: { gap: Spacing.sm },
+  surveyScroll: { flexGrow: 0, flexShrink: 1 },
+  surveyScrollContent: {
+    paddingBottom: Spacing.md,
+    gap: Spacing.md,
+  },
+  questionCard: {
+    gap: Spacing.md,
+    padding: Spacing.lg,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.bg,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  questionBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    flexWrap: "wrap",
+  },
+  questionBadgeText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  questionBadgeHint: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+  },
   questionText: {
-    fontSize: FontSizes.md, fontFamily: "Inter_400Regular",
-    color: Colors.textPrimary, lineHeight: 22,
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+    lineHeight: 22,
   },
-  scale: { flexDirection: "row", gap: Spacing.sm },
+  scale: { flexDirection: "row", gap: 6 },
   scaleBtn: {
-    flex: 1, paddingVertical: 10, borderRadius: Radii.button,
-    borderWidth: 1, borderColor: Colors.border,
-    alignItems: "center", backgroundColor: Colors.bg,
+    flex: 1,
+    minHeight: 44,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.surface,
   },
   scaleBtnActive: { borderColor: Colors.primary, backgroundColor: Colors.primaryLight },
-  scaleNum: { fontSize: FontSizes.md, fontFamily: "Inter_400Regular", color: Colors.textSecondary },
+  scaleNum: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+  },
   scaleNumActive: { color: Colors.primary, fontFamily: "Inter_500Medium" },
-  scaleHints: { flexDirection: "row", justifyContent: "space-between" },
+  scaleHints: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: Spacing.md,
+    marginTop: -4,
+  },
   scaleHint: {
-    fontSize: FontSizes.xs, fontFamily: "Inter_400Regular", color: Colors.textTertiary,
+    flex: 1,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 16,
+  },
+  scaleHintLeft: { textAlign: "left" },
+  scaleHintRight: { textAlign: "right" },
+  surveyFooter: {
+    gap: Spacing.sm,
+    paddingTop: Spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    marginTop: Spacing.sm,
   },
   submitBtn: {
-    backgroundColor: Colors.primary, borderRadius: Radii.button,
-    paddingVertical: 14, alignItems: "center",
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 14,
+    alignItems: "center",
   },
   submitText: { fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: "#fff" },
+  cancelBtn: {
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
   cancelText: {
-    fontSize: FontSizes.sm, fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary, textAlign: "center",
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+    textAlign: "center",
   },
 });

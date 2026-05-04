@@ -1,6 +1,11 @@
 import React, { useState, useMemo } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity, ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  useWindowDimensions,
 } from "react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 
@@ -58,7 +63,13 @@ function DotScale({
  * Bilimsel otomatiklik + çaba değerlendirmesi (nokta seçici, kaydırıcı değil).
  * Streak yerine tamamlama sonrası kullanım için tasarlandı.
  */
+/** Modal başlık + padding için yer bırakır; ScrollView’a net yükseklik verir (flex:1 çöküşünü önler). */
+const SHEET_HEADER_RESERVE = 76;
+
 export default function AutomaticitySlider({ dayNumber, onSubmit }: AutomaticitySliderProps) {
+  const { height: winH } = useWindowDimensions();
+  const scrollMaxH = Math.max(240, winH * 0.92 - SHEET_HEADER_RESERVE);
+
   const [automaticity, setAutomaticity] = useState(5);
   const [effort, setEffort] = useState(5);
 
@@ -69,7 +80,7 @@ export default function AutomaticitySlider({ dayNumber, onSubmit }: Automaticity
 
   return (
     <ScrollView
-      style={styles.scroll}
+      style={[styles.scroll, { maxHeight: scrollMaxH }]}
       contentContainerStyle={styles.scrollContent}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
@@ -133,8 +144,8 @@ export default function AutomaticitySlider({ dayNumber, onSubmit }: Automaticity
 }
 
 const styles = StyleSheet.create({
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: Spacing.lg, flexGrow: 1 },
+  scroll: {},
+  scrollContent: { paddingBottom: Spacing.lg },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,

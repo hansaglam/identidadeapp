@@ -24,6 +24,11 @@ const MAPS: MoodMap[] = [
       "isteksiz",
       "ağır",
       "üşeniyorum",
+      "bitkin",
+      "enerjisiz",
+      "hareketsiz",
+      "ertel",
+      "erteledim",
       "lazy",
       "tired",
     ],
@@ -36,6 +41,11 @@ const MAPS: MoodMap[] = [
       "ekran",
       "telefon",
       "kafam karışık",
+      "dikkatim",
+      "bunaldım",
+      "kaybol",
+      "unuttum",
+      "dağınıklık",
       "scattered",
       "distract",
     ],
@@ -49,6 +59,12 @@ const MAPS: MoodMap[] = [
       "boş",
       "yıkıldım",
       "vazgeç",
+      "umutsuz",
+      "çaresiz",
+      "yalnız",
+      "ağladım",
+      "depres",
+      "tüken",
       "sad",
       "down",
     ],
@@ -61,8 +77,14 @@ const MAPS: MoodMap[] = [
       "stres",
       "sinir",
       "istemiyorum",
+      "bıktım",
+      "kaygı",
+      "endişe",
+      "gergin",
+      "panik",
       "angry",
       "frustrated",
+      "anxious",
     ],
   },
   {
@@ -72,6 +94,9 @@ const MAPS: MoodMap[] = [
       "şüphe",
       "bırak",
       "anlamı yok",
+      "boşa",
+      "değmez",
+      "güvensiz",
       "confused",
     ],
   },
@@ -80,6 +105,8 @@ const MAPS: MoodMap[] = [
 export interface MindDumpAnalysis {
   detectedMuscle: MuscleType;
   matchedKeyword: string | null;
+  /** Son birleştirilmiş analizde yakalanan tüm anahtar kelimeler (ilk 5) */
+  aggregatedKeywords?: string[];
   suggestedAction: Action;
 }
 
@@ -105,8 +132,11 @@ export function analyzeMindDump(text: string): MindDumpAnalysis {
   };
 }
 
+const RECENT_MS = 48 * 60 * 60 * 1000;
+const MAX_ENTRIES = 5;
+
 /**
- * Son 24 saat içinde yazılmış mind dump'lardan en güncelini analiz eder.
+ * Son 48 saat içindeki birkaç mind dump'ı birleştirir; tekrar eden temalar güçlenir.
  */
 export function analyzeRecentMindDumps(
   entries: MindDumpEntry[]
@@ -115,8 +145,47 @@ export function analyzeRecentMindDumps(
   const sorted = [...entries].sort((a, b) =>
     b.createdAt.localeCompare(a.createdAt)
   );
-  const latest = sorted[0]!;
-  const ageMs = Date.now() - new Date(latest.createdAt).getTime();
-  if (ageMs > 24 * 60 * 60 * 1000) return null;
-  return analyzeMindDump(latest.content);
+  const fresh = sorted
+    .filter(
+      (e) => Date.now() - new Date(e.createdAt).getTime() <= RECENT_MS
+    )
+    .slice(0, MAX_ENTRIES);
+
+  if (fresh.length === 0) return null;
+
+  const muscleScores: Record<MuscleType, number> = {
+    activation: 0,
+    consistency: 0,
+    resistance: 0,
+    focus: 0,
+    recovery: 0,
+  };
+  const keywords: string[] = [];
+
+  for (const e of fresh) {
+    const a = analyzeMindDump(e.content);
+    if (a.matchedKeyword) {
+      muscleScores[a.detectedMuscle] += 2;
+      keywords.push(a.matchedKeyword);
+    }
+  }
+
+  if (keywords.length === 0) {
+    const latest = fresh[0]!;
+    const single = analyzeMindDump(latest.content);
+    if (!single.matchedKeyword) return null;
+    return single;
+  }
+
+  const ranked = (Object.entries(muscleScores) as [MuscleType, number][]).sort(
+    (x, y) => y[1] - x[1]
+  );
+  const bestMuscle = ranked[0]![0];
+
+  return {
+    detectedMuscle: bestMuscle,
+    matchedKeyword: keywords[0] ?? null,
+    aggregatedKeywords: [...new Set(keywords)].slice(0, 5),
+    suggestedAction: pickAction(bestMuscle),
+  };
 }

@@ -9,15 +9,39 @@ import {
   Colors, Spacing, Radii, FontSizes,
   ANCHOR_PRESETS, TIME_RANGES,
 } from "../constants/theme";
+import { getIdentityTemplate, previewHabitPhraseForAnchor } from "../constants/identityTemplates";
+import { ONBOARDING_ANCHOR_HINT } from "../constants/purposeCopy";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep2">;
 
 export default function OnboardingStep2Screen({ route, navigation }: Props) {
-  const { habitName } = route.params;
-  const [selectedAnchor, setSelectedAnchor] = useState<string | null>(null);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const { habitName, identityTagId } = route.params;
+  const template = getIdentityTemplate(identityTagId);
+
+  // Şablon seçiliyse önerilen çapayı listenin başına ekle (yoksa)
+  const anchorOptions = React.useMemo<readonly string[]>(() => {
+    if (!template) return ANCHOR_PRESETS;
+    if (ANCHOR_PRESETS.includes(template.defaultAnchor as never)) {
+      return ANCHOR_PRESETS;
+    }
+    return [template.defaultAnchor, ...ANCHOR_PRESETS];
+  }, [template]);
+
+  const [selectedAnchor, setSelectedAnchor] = useState<string | null>(
+    template?.defaultAnchor ?? null
+  );
+  const [selectedTime, setSelectedTime] = useState<string | null>(
+    template?.defaultTimeId ?? null
+  );
 
   const canContinue = !!selectedAnchor && !!selectedTime;
+
+  const commitmentBody =
+    selectedAnchor && template
+      ? previewHabitPhraseForAnchor(template, selectedAnchor, habitName)
+      : selectedAnchor && !template
+        ? `${habitName} için küçük adımı atacağım`
+        : "";
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
@@ -37,25 +61,40 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
 
         <Text style={styles.title}>Bu kimliği nereye bağlayacaksın?</Text>
         <Text style={styles.sub}>
-          Disiplin boşlukta oluşmaz. Var olan bir rutine çapa at — beyin otomatikleştirmeye oradan başlar.
+          Çapa, günlük “Şimdi yap” önerilerini gerçek hayatına kilitleyen yerdir —
+          seçtiğine uygun küçük hareketler göreceksin. Var olan rutine bağla.
         </Text>
 
-        {/* Preview sentence */}
+        <Text style={styles.hintMuted}>{ONBOARDING_ANCHOR_HINT}</Text>
+
+        {/* Taahhüt cümlesi: zaman cümlesi + ana yüklem (virgülle birleştirme yok) */}
         <View style={styles.previewBox}>
-          <Text style={styles.previewText}>
-            <Text style={styles.previewMuted}>
-              {selectedAnchor ?? "[ bir şey seç ]"}
+          <Text style={styles.previewKicker}>Taahhüdün</Text>
+          {!selectedAnchor ? (
+            <Text style={styles.previewPlaceholder}>
+              Aşağıdan bir çapa seçtiğinde cümlen burada tamamlanacak.
             </Text>
-            {", "}
-            <Text style={styles.previewHabit}>{habitName}</Text>
-            {" yapacağım."}
-          </Text>
+          ) : (
+            <Text style={styles.previewParagraph}>
+              <Text style={styles.previewTemporal}>{selectedAnchor}</Text>
+              <Text style={styles.previewBody}>
+                {" "}
+                {commitmentBody}
+                .
+              </Text>
+            </Text>
+          )}
+          {template && (
+            <Text style={styles.previewHint}>
+              {template.emoji} {template.title} — çapa ön seçili, istersen değiştir.
+            </Text>
+          )}
         </View>
 
         {/* Anchor options */}
         <Text style={styles.sectionLabel}>Önce ne yapıyorsun?</Text>
         <View style={styles.optionsList}>
-          {ANCHOR_PRESETS.map((anchor) => {
+          {anchorOptions.map((anchor) => {
             const active = selectedAnchor === anchor;
             return (
               <TouchableOpacity
@@ -112,6 +151,7 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
               habitName,
               anchorBehavior: selectedAnchor!,
               anchorTime: selectedTime!,
+              identityTagId,
             });
           }}
           disabled={!canContinue}
@@ -154,6 +194,13 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     lineHeight: 22,
+    marginBottom: Spacing.sm,
+  },
+  hintMuted: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 20,
     marginBottom: Spacing.lg,
   },
   previewBox: {
@@ -164,19 +211,38 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: Colors.primary,
   },
-  previewText: {
+  previewKicker: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+    marginBottom: Spacing.sm,
+  },
+  previewPlaceholder: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_400Regular",
-    color: Colors.textPrimary,
-    lineHeight: 22,
-  },
-  previewMuted: {
     color: Colors.textSecondary,
+    lineHeight: 22,
     fontStyle: "italic",
   },
-  previewHabit: {
-    color: Colors.primary,
+  previewParagraph: {
+    fontSize: FontSizes.md,
+    lineHeight: 24,
+  },
+  previewTemporal: {
     fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
+  previewBody: {
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+  },
+  previewHint: {
+    marginTop: 6,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.primaryDark,
   },
   sectionLabel: {
     fontSize: FontSizes.sm,

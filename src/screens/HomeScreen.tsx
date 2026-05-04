@@ -2,19 +2,22 @@ import React, { useState, useCallback, useRef, useEffect, useMemo } from "react"
 import {
   View, Text, StyleSheet, TouchableOpacity,
   Animated, ScrollView, Modal, Pressable,
+  Share,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
-import { PenLine, X, AlertTriangle, Zap, ArrowRight } from "lucide-react-native";
+import { PenLine, X, AlertTriangle, Zap, ArrowRight, Share2 } from "lucide-react-native";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import ConfettiAnimation from "../components/ConfettiAnimation";
+import FirstWeekGuideCard from "../components/FirstWeekGuideCard";
+import WeeklySummaryCard from "../components/WeeklySummaryCard";
 import DisciplineButton from "../components/DisciplineButton";
 import ConsistencyBadge from "../components/ConsistencyBadge";
 import AutomaticitySlider from "../components/AutomaticitySlider";
@@ -46,6 +49,13 @@ import { getUserState, type UserState, type Action } from "../engine";
 import { useBehaviorStore } from "../store/useBehaviorStore";
 import BehaviorActionCard from "../components/BehaviorActionCard";
 import LiveActionModal from "../components/LiveActionModal";
+import InterruptModal from "../components/InterruptModal";
+import GoalProgressCard from "../components/GoalProgressCard";
+import PhasePurposeCard from "../components/PhasePurposeCard";
+import { trackEvent } from "../utils/analytics";
+import { ENGINE_MUSCLE_TO_DISCIPLINE, xpForLiveAction } from "../utils/disciplineProgress";
+import { APP_PROMISE_LINE, HOME_MIND_DUMP_CTA_MICROCOPY, pickAfterLiveActionToast } from "../constants/purposeCopy";
+import { isRestModeActive } from "../utils/restMode";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -72,8 +82,12 @@ const FIVE_INTERVENTION: FiveSecondScenario = {
 
 export default function HomeScreen({ navigation }: Props) {
   const profile = useUserStore((s) => s.profile);
+  const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
+  const loadProfileAgain = useUserStore((s) => s.loadProfile);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const markPremiumGateShown = useUserStore((s) => s.markPremiumGateShown);
+  const addDisciplineMuscleXp = useUserStore((s) => s.addDisciplineMuscleXp);
+  const updateProfile = useUserStore((s) => s.updateProfile);
 
   const checkins = useCheckinsStore((s) => s.checkins);
   const { completeTodayWithRatings, getTodayCheckin, toggleToday, getStreakState, isStreakReset, completionRate } =
@@ -85,6 +99,8 @@ export default function HomeScreen({ navigation }: Props) {
   const [interventionDismissed, setInterventionDismissed] = useState(false);
   const [confetti, setConfetti] = useState(false);
   const [liveAction, setLiveAction] = useState<Action | null>(null);
+  /** Her canlı aksiyon oturumunda modal state'ini sıfırlamak için */
+  const [liveActionSession, setLiveActionSession] = useState(0);
 
   // ── Behavior Operating System (engine/) ─────────────────────────────────
   const muscles = useBehaviorStore((s) => s.muscles);
@@ -130,6 +146,7 @@ export default function HomeScreen({ navigation }: Props) {
     return getUserState({
       startDate: profile.startDate,
       habitName: profile.habitName,
+      habitAnchor: profile.habitAnchor,
       dayNumber,
       checkins,
       mindDumps: mindDumpEntries,
@@ -137,6 +154,8 @@ export default function HomeScreen({ navigation }: Props) {
       muscles,
       recentActions,
       lastActionAt,
+      identityTagId: profile.identityTagId ?? null,
+      contextPreset: profile.contextPreset ?? null,
     });
   }, [
     profile,
@@ -150,22 +169,18 @@ export default function HomeScreen({ navigation }: Props) {
   ]);
 
   const handleLiveAction = useCallback(() => {
-    if (!userState) return;
+    if (!userState || liveAction != null) return;
     if (profile?.hapticsEnabled) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
+    trackEvent("action_started", {
+      actionId: userState.suggestedAction.id,
+      identityTagId: userState.identityTagId,
+      scaledDown: userState.scaledDown,
+    });
+    setLiveActionSession((s) => s + 1);
     setLiveAction(userState.suggestedAction);
-  }, [userState, profile?.hapticsEnabled]);
-
-  const handleLiveActionComplete = useCallback(async () => {
-    if (!liveAction) return;
-    await recordAction(liveAction);
-    setLiveAction(null);
-    if (profile?.hapticsEnabled) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    showToast("Aksiyon kaydedildi. Kas çalıştı.");
-  }, [liveAction, recordAction, profile?.hapticsEnabled]);
+  }, [userState, liveAction, profile?.hapticsEnabled]);
 
   const last14Days = useMemo(
     () => (profile ? buildLast14Days(profile.startDate, checkins) : []),
@@ -214,6 +229,35 @@ export default function HomeScreen({ navigation }: Props) {
     [toastOpacity, toastY]
   );
 
+  const handleLiveActionComplete = useCallback(async () => {
+    if (!liveAction) return;
+    await recordAction(liveAction);
+    const dMuscle = ENGINE_MUSCLE_TO_DISCIPLINE[liveAction.type];
+    const xpGain = xpForLiveAction(liveAction);
+    await addDisciplineMuscleXp(dMuscle, xpGain);
+    trackEvent("action_completed", {
+      actionId: liveAction.id,
+      muscle: liveAction.type,
+      identityTagId: profile?.identityTagId ?? null,
+    });
+    setLiveAction(null);
+    if (profile?.hapticsEnabled) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    showToast(
+      pickAfterLiveActionToast(dayNumber + (recentActions?.length ?? 0) * 7)
+    );
+  }, [
+    liveAction,
+    recordAction,
+    addDisciplineMuscleXp,
+    profile?.hapticsEnabled,
+    profile?.identityTagId,
+    showToast,
+    dayNumber,
+    recentActions.length,
+  ]);
+
   const runCompleteFlow = useCallback(
     async (automaticity: number, effort: number) => {
       if (!profile) return;
@@ -249,11 +293,19 @@ export default function HomeScreen({ navigation }: Props) {
     if (!profile) return;
     if (todayDone) {
       await toggleToday(dayNumber);
-      await scheduleEveningReminderToday(profile.habitName);
+      await scheduleEveningReminderToday(profile);
       return;
     }
     setShowAutoInput(true);
   }, [profile, todayDone, toggleToday, dayNumber]);
+
+  const shareTodayProgress = useCallback(() => {
+    if (!profile) return;
+    const name = profile.habitName?.trim() || "alışkanlık";
+    Share.share({
+      message: `${dayNumber}. gün (${name}) — bugün kutusunu kapattım. Küçük adım.`,
+    }).catch(() => {});
+  }, [profile, dayNumber]);
 
   const handleNudgeAction = useCallback(() => {
     if (!currentNudge?.action) return;
@@ -274,8 +326,27 @@ export default function HomeScreen({ navigation }: Props) {
   }, [currentNudge, navigation]);
 
   if (!profile) {
+    if (profileLoadFailed) {
+      return (
+        <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+          <View style={styles.profileErrorWrap}>
+            <Text style={styles.profileErrorTitle}>Profil dosyası açılamadı</Text>
+            <Text style={styles.profileErrorBody}>
+              Depolama geçici veya eksik izin yüzünden okunamadı olabilir. Tekrar deneyebilirsin.
+            </Text>
+            <TouchableOpacity
+              style={styles.profileErrorBtn}
+              onPress={() => loadProfileAgain()}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.profileErrorBtnText}>Tekrar dene</Text>
+            </TouchableOpacity>
+          </View>
+        </SafeAreaView>
+      );
+    }
     return (
-      <SafeAreaView style={styles.container} edges={["top"]}>
+      <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
         <View style={styles.center}>
           <Text style={styles.emptyText}>Yükleniyor...</Text>
         </View>
@@ -291,10 +362,16 @@ export default function HomeScreen({ navigation }: Props) {
      currentNudge.type === "comeback" ||
      currentNudge.type === "micro_commitment");
 
+  const showReflectionStrip =
+    !!userState &&
+    currentNudge?.type === "reflection_prompt" &&
+    !todayDone &&
+    !interventionDismissed;
+
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { backgroundColor: Colors.bg }]}
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
@@ -319,9 +396,44 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </View>
 
+        <Text style={styles.purposeKicker}>{APP_PROMISE_LINE}</Text>
+        <PhasePurposeCard dayNumber={dayNumber} />
+
         {/* Behavior Operating System — TEK aksiyon, BÜYÜK buton */}
         {userState && (
-          <BehaviorActionCard state={userState} onPress={handleLiveAction} />
+          <BehaviorActionCard
+            state={userState}
+            onPress={handleLiveAction}
+            disabled={liveAction != null}
+          />
+        )}
+
+        {showReflectionStrip && currentNudge && (
+          <View style={[styles.nudgeCard, styles.nudgeCardWarm]}>
+            <View style={styles.nudgeHeader}>
+              <Zap size={18} color={Colors.primary} strokeWidth={1.5} />
+              <Text style={styles.nudgeHeadline}>{currentNudge.headline}</Text>
+            </View>
+            <Text style={styles.nudgeBody}>{currentNudge.body}</Text>
+            <View style={styles.nudgeActions}>
+              {currentNudge.action && (
+                <TouchableOpacity
+                  style={styles.nudgeCta}
+                  onPress={handleNudgeAction}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.nudgeCtaText}>{currentNudge.action.label}</Text>
+                  <ArrowRight size={14} color="#fff" strokeWidth={2} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                onPress={() => setInterventionDismissed(true)}
+                style={styles.nudgeDismiss}
+              >
+                <Text style={styles.nudgeDismissText}>Şimdi değil</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
         )}
 
         <DailyPrincipleCard day={dayNumber} />
@@ -416,10 +528,46 @@ export default function HomeScreen({ navigation }: Props) {
           <View style={styles.celebrationCard}>
             <Text style={styles.celebrationHeadline}>{currentNudge.headline}</Text>
             <Text style={styles.celebrationBody}>{currentNudge.body}</Text>
+            <TouchableOpacity
+              style={styles.celebrationShareRow}
+              onPress={shareTodayProgress}
+              activeOpacity={0.85}
+              hitSlop={8}
+            >
+              <Share2 size={16} color={Colors.primary} strokeWidth={1.8} />
+              <Text style={styles.celebrationShareText}>Metin paylaş (partner)</Text>
+            </TouchableOpacity>
           </View>
         )}
 
         <ConsistencyBadge last14Days={last14Days} />
+
+        {/* 66 Gün İlerleme */}
+        <GoalProgressCard dayNumber={dayNumber} startDate={profile.startDate} />
+
+        <FirstWeekGuideCard
+          dayNumber={dayNumber}
+          dismissed={profile.firstWeekGuideDismissed ?? false}
+          onDismiss={() => void updateProfile({ firstWeekGuideDismissed: true })}
+          todayDone={todayDone}
+          recentActionsCount={recentActions.length}
+          mindDumpCount={mindDumpEntries.length}
+          journeyOpened={profile.hasOpenedJourneyTab ?? false}
+        />
+
+        {isRestModeActive(profile) ? (
+          <View style={styles.restHint}>
+            <Text style={styles.restHintText}>
+              Mola modu: {profile.restModeUntilISO?.slice(0, 10)} tarihine kadar bildirimler hafifletildi; Bugün yine seninle.
+            </Text>
+          </View>
+        ) : null}
+
+        <WeeklySummaryCard
+          startDate={profile.startDate}
+          checkins={checkins}
+          habitName={profile.habitName}
+        />
 
         {/* Mind Dump CTA */}
         <TouchableOpacity
@@ -428,9 +576,10 @@ export default function HomeScreen({ navigation }: Props) {
           activeOpacity={0.8}
         >
           <PenLine size={18} color={Colors.textSecondary} strokeWidth={1.5} />
-          <Text style={styles.mindDumpText}>
-            Kafanda ne var? Bırak gitsin →
-          </Text>
+          <View style={styles.mindDumpTextCol}>
+            <Text style={styles.mindDumpText}>Kafanda ne var? Bırak gitsin →</Text>
+            <Text style={styles.mindDumpSub}>{HOME_MIND_DUMP_CTA_MICROCOPY}</Text>
+          </View>
         </TouchableOpacity>
 
         <View style={{ height: 100 }} />
@@ -457,12 +606,30 @@ export default function HomeScreen({ navigation }: Props) {
         </Pressable>
       </Modal>
 
-      {/* Live Action — Behavior OS countdown akışı */}
+      {/* Interrupt Modal — forcedAction=true (kırmızı + düşen momentum) */}
+      <InterruptModal
+        visible={liveAction != null && userState?.forcedAction === true}
+        action={liveAction}
+        forced
+        onDone={handleLiveActionComplete}
+        onClose={() => {
+          if (liveAction) trackEvent("action_cancelled", { actionId: liveAction.id });
+          setLiveAction(null);
+        }}
+      />
+
+      {/* Live Action — normal akış (forced değilken) */}
       <LiveActionModal
-        visible={liveAction != null}
+        key={liveAction ? `live-${liveActionSession}` : "live-closed"}
+        visible={liveAction != null && userState?.forcedAction !== true}
         action={liveAction}
         onComplete={handleLiveActionComplete}
-        onCancel={() => setLiveAction(null)}
+        onCancel={() => {
+          if (liveAction) {
+            trackEvent("action_cancelled", { actionId: liveAction.id });
+          }
+          setLiveAction(null);
+        }}
       />
 
       {/* Five Second Trainer Modal */}
@@ -474,8 +641,11 @@ export default function HomeScreen({ navigation }: Props) {
                 ? FIVE_INTERVENTION
                 : FIVE_DEFAULT
             }
-            onComplete={() => {
+            onComplete={async (_success, _ms, reward) => {
               showToast("Antrenman kaydedildi. Disiplin kası güçleniyor.");
+              if (reward) {
+                await addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);
+              }
             }}
             onSkip={() => setShowFiveSecond(false)}
           />
@@ -505,12 +675,52 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
+  profileErrorWrap: {
+    flex: 1,
+    paddingHorizontal: Spacing.lg,
+    justifyContent: "center",
+    gap: Spacing.md,
+  },
+  profileErrorTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    textAlign: "center",
+  },
+  profileErrorBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  profileErrorBtn: {
+    alignSelf: "center",
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    marginTop: Spacing.sm,
+  },
+  profileErrorBtnText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
+  },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
     paddingTop: Spacing.md,
     marginBottom: Spacing.md,
+  },
+  purposeKicker: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 17,
+    marginBottom: Spacing.sm,
+    paddingRight: Spacing.xs,
   },
   headerRight: { alignItems: "flex-end", gap: Spacing.xs },
   dayLabel: {
@@ -686,6 +896,20 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
+  celebrationShareRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.borderStrong,
+  },
+  celebrationShareText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
   // ── Other ─────────────────────────────────────────────────────────────
   mindDumpCard: {
     flexDirection: "row",
@@ -697,11 +921,31 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     padding: Spacing.md,
   },
+  mindDumpTextCol: { flex: 1, gap: 4 },
   mindDumpText: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    flex: 1,
+  },
+  mindDumpSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 17,
+  },
+  restHint: {
+    backgroundColor: "rgba(243, 156, 18, 0.08)",
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: "rgba(243, 156, 18, 0.2)",
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+  },
+  restHintText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
   toast: {
     position: "absolute",
@@ -722,10 +966,12 @@ const styles = StyleSheet.create({
   },
   autoOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "flex-end" },
   autoSheet: {
+    width: "100%",
+    maxHeight: "92%",
+    flexShrink: 1,
     backgroundColor: Colors.bg,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "92%",
     paddingBottom: Spacing.lg,
   },
   autoHeader: {

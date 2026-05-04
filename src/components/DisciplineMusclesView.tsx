@@ -15,15 +15,19 @@ export interface DisciplineMusclesViewProps {
 export default function DisciplineMusclesView({ muscles, xp }: DisciplineMusclesViewProps) {
   const weakest = useMemo(() => {
     let k: keyof DisciplineMuscles = "karar";
-    let min = Infinity;
+    let minLv = Infinity;
+    let minXp = Infinity;
     KEYS.forEach((key) => {
-      if (muscles[key] < min) {
-        min = muscles[key];
+      const lv = muscles[key];
+      const x = xp[key];
+      if (lv < minLv || (lv === minLv && x < minXp)) {
+        minLv = lv;
+        minXp = x;
         k = key;
       }
     });
     return k;
-  }, [muscles]);
+  }, [muscles, xp]);
 
   return (
     <View style={styles.wrap}>

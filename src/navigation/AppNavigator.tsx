@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
-import { StyleSheet, Platform } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   CheckSquare, PenLine, Map, User,
@@ -11,7 +11,8 @@ import {
 import {
   RootStackParamList, AuthStackParamList, MainTabParamList,
 } from "../types";
-import { Colors, FontSizes } from "../constants/theme";
+import { FontSizes, Colors, type AppColors } from "../constants/theme";
+import DataLoadBanner from "../components/DataLoadBanner";
 
 // Auth screens
 import WelcomeScreen from "../screens/WelcomeScreen";
@@ -42,79 +43,105 @@ function AuthNavigator() {
   );
 }
 
+function createMainTabStyles(colors: AppColors) {
+  return StyleSheet.create({
+    shell: {
+      flex: 1,
+      backgroundColor: colors.bg,
+    },
+    tabBar: {
+      backgroundColor: colors.surface,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+      shadowOpacity: 0,
+    },
+    tabBarItem: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    tabLabel: {
+      fontSize: FontSizes.xs,
+      fontFamily: "Inter_500Medium",
+      marginTop: 2,
+    },
+  });
+}
+
 function MainTabNavigator() {
+  const styles = useMemo(() => createMainTabStyles(Colors), []);
   const insets = useSafeAreaInsets();
-  // Edge-to-edge Android: system gesture bar overlaps tab bar if we don't pad bottom
   const bottomInset = Math.max(insets.bottom, Platform.OS === "android" ? 12 : 8);
 
   return (
-    <Tab.Navigator
-      detachInactiveScreens={false}
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: [
-          styles.tabBar,
-          {
-            paddingBottom: bottomInset,
-            paddingTop: 10,
-            minHeight: 52 + bottomInset,
-            // Keep tab bar above screen content for hit testing (Android)
-            ...(Platform.OS === "android" ? { elevation: 12 } : {}),
-          },
-        ],
-        tabBarItemStyle: styles.tabBarItem,
-        tabBarButton: (props) => (
-          <PlatformPressable
-            {...props}
-            hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
-          />
-        ),
-        tabBarActiveTintColor: Colors.primary,
-        tabBarInactiveTintColor: Colors.textTertiary,
-        tabBarLabelStyle: styles.tabLabel,
-      }}
-    >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{
-          title: "Bugün",
-          tabBarIcon: ({ color, focused }) => (
-            <CheckSquare size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+    <View style={styles.shell}>
+      <DataLoadBanner />
+      <Tab.Navigator
+        detachInactiveScreens={false}
+        screenOptions={{
+          headerShown: false,
+          tabBarStyle: [
+            styles.tabBar,
+            {
+              paddingBottom: bottomInset,
+              paddingTop: 10,
+              minHeight: 52 + bottomInset,
+              ...(Platform.OS === "android" ? { elevation: 12 } : {}),
+            },
+          ],
+          tabBarItemStyle: styles.tabBarItem,
+          tabBarButton: (props) => (
+            <PlatformPressable
+              {...props}
+              hitSlop={{ top: 12, bottom: 12, left: 6, right: 6 }}
+            />
           ),
+          tabBarActiveTintColor: Colors.primary,
+          tabBarInactiveTintColor: Colors.textTertiary,
+          tabBarLabelStyle: styles.tabLabel,
         }}
-      />
-      <Tab.Screen
-        name="MindDump"
-        component={MindDumpScreen}
-        options={{
-          title: "Zihin",
-          tabBarIcon: ({ color, focused }) => (
-            <PenLine size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Journey"
-        component={JourneyScreen}
-        options={{
-          title: "Yolculuk",
-          tabBarIcon: ({ color, focused }) => (
-            <Map size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{
-          title: "Profil",
-          tabBarIcon: ({ color, focused }) => (
-            <User size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
-          ),
-        }}
-      />
-    </Tab.Navigator>
+      >
+        <Tab.Screen
+          name="Home"
+          component={HomeScreen}
+          options={{
+            title: "Bugün",
+            tabBarIcon: ({ color, focused }) => (
+              <CheckSquare size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="MindDump"
+          component={MindDumpScreen}
+          options={{
+            title: "Zihin",
+            tabBarIcon: ({ color, focused }) => (
+              <PenLine size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Journey"
+          component={JourneyScreen}
+          options={{
+            title: "Yolculuk",
+            tabBarIcon: ({ color, focused }) => (
+              <Map size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+            ),
+          }}
+        />
+        <Tab.Screen
+          name="Profile"
+          component={ProfileScreen}
+          options={{
+            title: "Profil",
+            tabBarIcon: ({ color, focused }) => (
+              <User size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
+            ),
+          }}
+        />
+      </Tab.Navigator>
+    </View>
   );
 }
 
@@ -137,21 +164,3 @@ export default function AppNavigator({
     </RootStack.Navigator>
   );
 }
-
-const styles = StyleSheet.create({
-  tabBar: {
-    backgroundColor: Colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    shadowOpacity: 0,
-  },
-  tabBarItem: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  tabLabel: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_500Medium",
-    marginTop: 2,
-  },
-});
