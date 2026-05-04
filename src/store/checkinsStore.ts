@@ -14,7 +14,7 @@ import {
 } from "date-fns";
 import { getISOWeek, getISOWeekYear } from "date-fns";
 import {
-  loadAllCheckins, saveCheckin,
+  loadAllCheckins, saveCheckin, removeAllCheckins,
 } from "../utils/storage";
 import { CheckinRecord } from "../types";
 
@@ -148,6 +148,8 @@ interface CheckinsState {
   completionRate: (startDate: string) => number;
   /** True if today has been completed and the streak was just reset (streak == 0 before today) */
   isStreakReset: () => boolean;
+  /** Habit stacking: yeni tur — tüm günlük kayıtları sil */
+  clearAllCheckins: () => Promise<void>;
 }
 
 export const useCheckinsStore = create<CheckinsState>((set, get) => ({
@@ -199,13 +201,17 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
 
   completeTodayWithRatings: async (dayNumber, automaticity, effort) => {
     const date = todayStr();
+    const prev = get().checkins[date];
+    const auto = Math.min(10, Math.max(1, Math.round(automaticity)));
+    const eff = Math.min(10, Math.max(1, Math.round(effort)));
     const record: CheckinRecord = {
+      ...prev,
       date,
       completed: true,
       completedAt: new Date().toISOString(),
       day: dayNumber,
-      automaticityRating: automaticity,
-      effortRating: effort,
+      automaticityRating: auto,
+      effortRating: eff,
     };
     await saveCheckin(record);
     set((s) => ({ checkins: { ...s.checkins, [date]: record } }));
@@ -258,5 +264,10 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
     delete withoutToday[now];
     const prevStreak = computeStreakState(withoutToday).currentStreak;
     return prevStreak === 0 && Object.values(checkins).some((r) => r.completed);
+  },
+
+  clearAllCheckins: async () => {
+    await removeAllCheckins();
+    set({ checkins: {} });
   },
 }));

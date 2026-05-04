@@ -32,8 +32,13 @@ export default function DisciplineButton({
       Animated.timing(scale, { toValue: 0.95, duration: 90, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 1.05, duration: 120, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }),
-    ]).start(() => onPress());
-  }, [scale, onPress]);
+    ]).start();
+  }, [scale]);
+
+  const onPendingPress = useCallback(() => {
+    runPressInAnimation();
+    onPress();
+  }, [runPressInAnimation, onPress]);
 
   if (isCompleted) {
     return (
@@ -76,7 +81,7 @@ export default function DisciplineButton({
     <Animated.View style={[styles.animatedWrap, { transform: [{ scale }] }]}>
       <TouchableOpacity
         style={[styles.base, styles.pendingBtn]}
-        onPress={runPressInAnimation}
+        onPress={onPendingPress}
         activeOpacity={1}
         accessibilityRole="button"
         accessibilityLabel="Disiplini uygula"

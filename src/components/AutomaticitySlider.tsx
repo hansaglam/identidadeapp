@@ -91,6 +91,12 @@ export default function AutomaticitySlider({ dayNumber, onSubmit }: Automaticity
         <Text style={styles.subtitle}>
           Dürüst cevaplar, ilerlemeni en iyi yansıtır.
         </Text>
+        <View style={styles.reminderBox}>
+          <Text style={styles.reminderText}>
+            Atlamak serbest. Ama otomatikliğini kaydetmezsen ilerleme grafiğin oluşmaz; 66 gün
+            sonunda otomatikleşmeyi görmek için çoğu gün birkaç saniye bu adımı tamamlaman yeter.
+          </Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={styles.question}>
@@ -173,6 +179,20 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     lineHeight: 20,
     marginBottom: Spacing.xs,
+  },
+  reminderBox: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.button,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(29, 158, 117, 0.2)",
+  },
+  reminderText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   section: { gap: Spacing.sm },
   question: {

@@ -18,5 +18,8 @@ export function normalizeProfile(p: UserProfile): UserProfile {
     notifyPhaseMilestones: next.notifyPhaseMilestones !== false,
     firstWeekGuideDismissed: next.firstWeekGuideDismissed ?? false,
     hasOpenedJourneyTab: next.hasOpenedJourneyTab ?? false,
+    journeySequence: next.journeySequence ?? 0,
+    completedHabits: next.completedHabits ?? [],
+    stackingOfferPending: next.stackingOfferPending ?? false,
   };
 }

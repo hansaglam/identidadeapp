@@ -10,8 +10,9 @@ import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
 import { PenLine, X, AlertTriangle, Zap, ArrowRight, Share2 } from "lucide-react-native";
-import { format } from "date-fns";
+import { format, parseISO, startOfDay } from "date-fns";
 import { tr } from "date-fns/locale";
+import { useFocusEffect } from "@react-navigation/native";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
@@ -56,6 +57,17 @@ import { trackEvent } from "../utils/analytics";
 import { ENGINE_MUSCLE_TO_DISCIPLINE, xpForLiveAction } from "../utils/disciplineProgress";
 import { APP_PROMISE_LINE, HOME_MIND_DUMP_CTA_MICROCOPY, pickAfterLiveActionToast } from "../constants/purposeCopy";
 import { isRestModeActive } from "../utils/restMode";
+import { buildAutomaticitySeriesLastDays } from "../utils/automaticityChart";
+import { shouldTriggerProactiveIntervention } from "../utils/interventionEngine";
+import MiniAutoTrend from "../components/MiniAutoTrend";
+import ProactiveInterventionModal from "../components/ProactiveInterventionModal";
+import HabitStackingModal from "../components/HabitStackingModal";
+import { getAverageAutomaticity } from "../utils/profileMetrics";
+import { setupNotifications } from "../utils/notifications";
+import {
+  shouldOpenStackingModalOnFocus,
+  getStackingModalCopyVariant,
+} from "../utils/stackingModalRules";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -97,6 +109,8 @@ export default function HomeScreen({ navigation }: Props) {
   const [showAutoInput, setShowAutoInput] = useState(false);
   const [showFiveSecond, setShowFiveSecond] = useState(false);
   const [interventionDismissed, setInterventionDismissed] = useState(false);
+  const [showProactiveModal, setShowProactiveModal] = useState(false);
+  const [showStackingModal, setShowStackingModal] = useState(false);
   const [confetti, setConfetti] = useState(false);
   const [liveAction, setLiveAction] = useState<Action | null>(null);
   /** Her canlı aksiyon oturumunda modal state'ini sıfırlamak için */
@@ -198,6 +212,42 @@ export default function HomeScreen({ navigation }: Props) {
     ? getMissedDayMessage(consecutiveMiss)
     : null;
 
+  const proactiveHandledRef = useRef<string | null>(null);
+
+  const miniAutoSeries = useMemo(
+    () =>
+      profile
+        ? buildAutomaticitySeriesLastDays(profile.startDate, checkins, 7)
+        : [],
+    [profile, checkins]
+  );
+
+  const stackingMindEvolution = useMemo(() => {
+    if (!profile?.startDate) return null;
+    const start = startOfDay(parseISO(profile.startDate));
+    const inJourney = mindDumpEntries
+      .filter((e) => {
+        try {
+          const t = parseISO(e.createdAt);
+          return !Number.isNaN(t.getTime()) && startOfDay(t) >= start;
+        } catch {
+          return false;
+        }
+      })
+      .sort(
+        (a, b) => parseISO(a.createdAt).getTime() - parseISO(b.createdAt).getTime()
+      );
+    if (inJourney.length === 0) return null;
+    const snippet = (text: string) => {
+      const line = (text.trim().split(/\n/)[0] ?? "").trim();
+      return line.length > 120 ? `${line.slice(0, 117)}…` : line;
+    };
+    return {
+      firstSnippet: snippet(inJourney[0].content),
+      lastSnippet: snippet(inJourney[inJourney.length - 1].content),
+      count: inJourney.length,
+    };
+  }, [profile?.startDate, mindDumpEntries]);
   const dateStr = format(new Date(), "d MMMM, EEEE", { locale: tr });
   const seed = new Date().getDate() + dayNumber;
   const identityMsg = pickMessage(IDENTITY_MESSAGES.morningGreeting(dayNumber), seed);
@@ -268,6 +318,14 @@ export default function HomeScreen({ navigation }: Props) {
       await cancelEveningReminderToday();
       setConfetti(true);
       setTimeout(() => setConfetti(false), 1200);
+
+      if (dayNumber === 66) {
+        await updateProfile({ stackingOfferPending: true });
+        setShowStackingModal(true);
+        trackEvent("journey_66_complete", {});
+        return;
+      }
+
       if (automaticity < 5 || effort > 7) {
         setShowFiveSecond(true);
       } else {
@@ -278,7 +336,7 @@ export default function HomeScreen({ navigation }: Props) {
         showToast(msg);
       }
     },
-    [profile, dayNumber, completeTodayWithRatings, showToast, streakWasReset]
+    [profile, dayNumber, completeTodayWithRatings, showToast, streakWasReset, updateProfile]
   );
 
   const handleAutoSubmit = useCallback(
@@ -324,6 +382,81 @@ export default function HomeScreen({ navigation }: Props) {
         break;
     }
   }, [currentNudge, navigation]);
+
+  const dismissAutoSheet = useCallback(
+    (userSkipped: boolean) => {
+      setShowAutoInput(false);
+      if (userSkipped) {
+        showToast(
+          "Otomatikliğini kaydetmezsen ilerleme grafiğin oluşmaz. 66 gün sonunda otomatikleşmeyi görmek için her gün birkaç saniye ayırman yeter."
+        );
+      }
+    },
+    [showToast]
+  );
+
+  const markProactiveHandled = useCallback(() => {
+    proactiveHandledRef.current = format(new Date(), "yyyy-MM-dd");
+    setShowProactiveModal(false);
+  }, []);
+
+  const finalizeStackingJourney = useCallback(async (nextHabitName: string, nextHabitAnchor: string) => {
+    const preStackDay = useUserStore.getState().dayNumber();
+    const snapAvg = getAverageAutomaticity(useCheckinsStore.getState().checkins);
+    const snapDays = useCheckinsStore.getState().getStreakState().totalDays66;
+    await useCheckinsStore.getState().clearAllCheckins();
+    await useUserStore.getState().stackNewJourney({
+      snapshotAvgAuto: snapAvg,
+      snapshotCompletedDays: snapDays,
+      nextHabitName,
+      nextHabitAnchor,
+    });
+    await useBehaviorStore.getState().reset();
+    const fresh = useUserStore.getState().profile;
+    if (fresh) await setupNotifications(fresh, false);
+    setShowStackingModal(false);
+    void trackEvent("journey_stacked", {
+      tone: getStackingModalCopyVariant(preStackDay),
+      dayNumber: preStackDay,
+    });
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!profile || todayDone) return;
+      const key = format(new Date(), "yyyy-MM-dd");
+      if (proactiveHandledRef.current === key) return;
+      if (
+        shouldTriggerProactiveIntervention(
+          profile.startDate,
+          checkins,
+          dayNumber,
+          todayDone
+        )
+      ) {
+        setShowProactiveModal(true);
+      }
+    }, [profile, checkins, dayNumber, todayDone])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!profile) return;
+      if (
+        shouldOpenStackingModalOnFocus(
+          dayNumber,
+          todayDone,
+          profile.stackingOfferPending === true
+        )
+      ) {
+        setShowStackingModal(true);
+      }
+    }, [profile, dayNumber, todayDone])
+  );
+
+  useEffect(() => {
+    if (todayDone) setShowProactiveModal(false);
+  }, [todayDone]);
 
   if (!profile) {
     if (profileLoadFailed) {
@@ -398,6 +531,16 @@ export default function HomeScreen({ navigation }: Props) {
 
         <Text style={styles.purposeKicker}>{APP_PROMISE_LINE}</Text>
         <PhasePurposeCard dayNumber={dayNumber} />
+
+        {dayNumber >= 60 && dayNumber <= 65 ? (
+          <View style={styles.finishLineBanner}>
+            <Text style={styles.finishLineTitle}>Bitiş çizgisine yaklaşıyorsun</Text>
+            <Text style={styles.finishLineBody}>
+              Son günlerde çabayı küçült, tekrarı koru. 66 tamamlanınca bir sonraki kimlik katmanı için
+              seçenekler sunacağız.
+            </Text>
+          </View>
+        ) : null}
 
         {/* Behavior Operating System — TEK aksiyon, BÜYÜK buton */}
         {userState && (
@@ -540,6 +683,8 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         )}
 
+        <MiniAutoTrend series={miniAutoSeries} />
+
         <ConsistencyBadge last14Days={last14Days} />
 
         {/* 66 Gün İlerleme */}
@@ -592,12 +737,12 @@ export default function HomeScreen({ navigation }: Props) {
       )}
 
       {/* Automaticity Modal */}
-      <Modal visible={showAutoInput} animationType="slide" transparent onRequestClose={() => setShowAutoInput(false)}>
-        <Pressable style={styles.autoOverlay} onPress={() => setShowAutoInput(false)}>
+      <Modal visible={showAutoInput} animationType="slide" transparent onRequestClose={() => dismissAutoSheet(true)}>
+        <Pressable style={styles.autoOverlay} onPress={() => dismissAutoSheet(true)}>
           <Pressable style={styles.autoSheet} onPress={(e) => e.stopPropagation()}>
             <View style={styles.autoHeader}>
               <Text style={styles.autoTitle}>Değerlendirme</Text>
-              <TouchableOpacity onPress={() => setShowAutoInput(false)} hitSlop={12}>
+              <TouchableOpacity onPress={() => dismissAutoSheet(true)} hitSlop={12}>
                 <X size={22} color={Colors.textTertiary} />
               </TouchableOpacity>
             </View>
@@ -605,6 +750,47 @@ export default function HomeScreen({ navigation }: Props) {
           </Pressable>
         </Pressable>
       </Modal>
+
+      <ProactiveInterventionModal
+        visible={showProactiveModal}
+        onDismiss={markProactiveHandled}
+        onStartFiveSecond={() => {
+          markProactiveHandled();
+          setShowFiveSecond(true);
+        }}
+      />
+
+      <HabitStackingModal
+        visible={showStackingModal}
+        dayNumber={dayNumber}
+        completedHabitName={profile.habitName}
+        journeyStartDate={profile.startDate}
+        checkins={checkins}
+        profileMuscles={profile.disciplineMuscles}
+        mindEvolution={stackingMindEvolution}
+        onLater={() => {
+          void trackEvent("stacking_modal_dismissed", {
+            tone: getStackingModalCopyVariant(dayNumber),
+            dayNumber,
+          });
+          setShowStackingModal(false);
+        }}
+        onSameHabit={() => {
+          void trackEvent("stacking_same_habit_selected", {
+            tone: getStackingModalCopyVariant(dayNumber),
+            dayNumber,
+          });
+          void finalizeStackingJourney(profile.habitName, profile.habitAnchor);
+        }}
+        onPickSuggestion={(title, anchor, suggestionIndex) => {
+          void trackEvent("stacking_new_habit_selected", {
+            tone: getStackingModalCopyVariant(dayNumber),
+            dayNumber,
+            suggestionIndex,
+          });
+          void finalizeStackingJourney(title, anchor);
+        }}
+      />
 
       {/* Interrupt Modal — forcedAction=true (kırmızı + düşen momentum) */}
       <InterruptModal
@@ -823,6 +1009,26 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
+  },
+  finishLineBanner: {
+    backgroundColor: Colors.purpleLight,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: "rgba(83, 74, 183, 0.2)",
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  finishLineTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.purple,
+  },
+  finishLineBody: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
   // ── Habit Card ────────────────────────────────────────────────────────
   habitCard: {

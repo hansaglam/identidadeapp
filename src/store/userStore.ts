@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { differenceInDays, parseISO } from "date-fns";
 import { getISOWeek, getISOWeekYear } from "date-fns";
 import * as SecureStore from "expo-secure-store";
-import { UserProfile } from "../types";
+import { UserProfile, CompletedHabit } from "../types";
 import type { DisciplineMuscles } from "../types/discipline";
 import { loadProfile, saveProfile, clearAllData } from "../utils/storage";
 import { uuid } from "../utils/uuid";
@@ -39,6 +39,13 @@ interface UserState {
   clearData: () => Promise<void>;
   /** Returns how many days into the 66-day journey (1-based, min 1) */
   dayNumber: () => number;
+  /** 66. gün sonrası: arşive ekleyip yeni tur (check-in temizliği ayrı yapılmalı) */
+  stackNewJourney: (args: {
+    snapshotAvgAuto: number | null;
+    snapshotCompletedDays: number;
+    nextHabitName: string;
+    nextHabitAnchor: string;
+  }) => Promise<void>;
   /** Returns ISO week number for SDT keying */
   currentWeek: () => string; // "YYYY-Www"
 }
@@ -200,6 +207,36 @@ export const useUserStore = create<UserState>((set, get) => ({
     };
     await persist(updated);
     set({ profile: normalizeProfile(updated) });
+  },
+
+  stackNewJourney: async ({
+    snapshotAvgAuto,
+    snapshotCompletedDays,
+    nextHabitName,
+    nextHabitAnchor,
+  }) => {
+    const { profile } = get();
+    if (!profile) return;
+    const now = new Date().toISOString();
+    const entry: CompletedHabit = {
+      habitName: profile.habitName,
+      habitAnchor: profile.habitAnchor,
+      journeyStartDate: profile.startDate,
+      completedAt: now,
+      avgAutomaticity: snapshotAvgAuto,
+      completedDaysCount: snapshotCompletedDays,
+    };
+    const updated = normalizeProfile({
+      ...profile,
+      habitName: nextHabitName.trim() || profile.habitName,
+      habitAnchor: nextHabitAnchor.trim() || profile.habitAnchor,
+      startDate: now,
+      completedHabits: [...(profile.completedHabits ?? []), entry],
+      journeySequence: (profile.journeySequence ?? 0) + 1,
+      stackingOfferPending: false,
+    });
+    await persist(updated);
+    set({ profile: updated });
   },
 
   clearData: async () => {

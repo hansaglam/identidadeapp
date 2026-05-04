@@ -12,6 +12,20 @@ function journeyDayToDateStr(startDate: string, journeyDay: number): string {
   return format(d, "yyyy-MM-dd");
 }
 
+/** İlk 14 yol gününde kaç gün otomatiklik puanı var (Lally için). */
+export function countFirst14AutomationRatings(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): number {
+  let n = 0;
+  for (let day = 1; day <= 14; day += 1) {
+    const key = journeyDayToDateStr(startDate, day);
+    const c = checkins[key];
+    if (c?.completed && c.automaticityRating != null) n += 1;
+  }
+  return n;
+}
+
 /** Lally-tarzı: ilk 14 gündeki otomatiklik puanlarına doğrusal regresyon; eşik 7. */
 export interface LinearAutomationEstimate {
   slopePerDay: number;

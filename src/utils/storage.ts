@@ -90,6 +90,11 @@ export async function loadAllCheckins(): Promise<CheckinRecord[]> {
   return getByPrefix<CheckinRecord>("checkins:");
 }
 
+/** Yeni 66 günlük tur için tüm check-in kayıtlarını siler (profil ayrı güncellenmeli). */
+export async function removeAllCheckins(): Promise<void> {
+  await removeByPrefix("checkins:");
+}
+
 // ─── Mind dump ─────────────────────────────────────────────────────────────
 
 export async function loadAllMindDumps(): Promise<MindDumpEntry[]> {

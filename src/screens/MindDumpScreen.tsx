@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Animated,
   useWindowDimensions,
+  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
@@ -16,6 +17,7 @@ import { format } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useUserStore } from "../store/userStore";
+import { useCheckinsStore } from "../store/checkinsStore";
 import {
   Colors, Spacing, Radii, FontSizes,
 } from "../constants/theme";
@@ -28,6 +30,17 @@ import { MainTabParamList, MindDumpEntry } from "../types";
 import PremiumGateModal from "../components/PremiumGateModal";
 import ConfirmDialog from "../components/ConfirmDialog";
 import { isJourneyMindContent, stripJourneyMindPrefix } from "../constants/mindDumpJourney";
+import { buildMindDumpReflection, type MindDumpReflectionState } from "../utils/mindDumpReflection";
+import FiveSecondTrainer, { type FiveSecondScenario } from "../components/FiveSecondTrainer";
+
+const FIVE_FROM_MIND: FiveSecondScenario = {
+  id: "mind-dump-nudge",
+  type: "micro",
+  trigger: "Şimdi tek bir net hareket seç — beş saniye içinde başlat.",
+  countdownDuration: 5,
+  difficulty: 2,
+  disciplineMuscle: "direnc",
+};
 
 type Props = BottomTabScreenProps<MainTabParamList, "MindDump">;
 
@@ -53,6 +66,8 @@ export default function MindDumpScreen(_: Props) {
   const [showGate, setShowGate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MindDumpEntry | null>(null);
   const [journeyOnly, setJourneyOnly] = useState(false);
+  const [reflection, setReflection] = useState<MindDumpReflectionState | null>(null);
+  const [showFiveSecond, setShowFiveSecond] = useState(false);
   const searchAnim = useRef(new Animated.Value(0)).current;
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -65,15 +80,26 @@ export default function MindDumpScreen(_: Props) {
       if (saveTimer.current) clearTimeout(saveTimer.current);
       setSavingLabel("kaydediliyor...");
       saveTimer.current = setTimeout(async () => {
-        if (!value.trim()) { setSavingLabel(""); return; }
+        if (!value.trim()) {
+          setSavingLabel("");
+          return;
+        }
+        const v = value.trim();
         if (id) {
-          await updateEntry(id, value.trim());
+          await updateEntry(id, v);
           setSavingLabel("kaydedildi");
         } else {
-          const { entry, hitLimit } = await createEntry(value.trim());
+          const { entry, hitLimit } = await createEntry(v);
           setCurrentId(entry.id);
           setSavingLabel("kaydedildi");
           if (hitLimit && !isPremium) setShowGate(true);
+        }
+        const latest = useMindDumpStore.getState().entries;
+        const chk = useCheckinsStore.getState().checkins;
+        const prof = useUserStore.getState().profile;
+        if (prof) {
+          const ref = buildMindDumpReflection(v, latest, chk, prof.habitName, prof.startDate);
+          setReflection(ref.showBanner ? ref : null);
         }
         setTimeout(() => setSavingLabel(""), 1500);
       }, 2000);
@@ -102,6 +128,7 @@ export default function MindDumpScreen(_: Props) {
     setText("");
     setCurrentId(null);
     setSavingLabel("");
+    setReflection(null);
     if (saveTimer.current) clearTimeout(saveTimer.current);
   };
 
@@ -205,6 +232,25 @@ export default function MindDumpScreen(_: Props) {
             textAlignVertical="top"
             autoCorrect={false}
           />
+          {reflection?.showBanner ? (
+            <View style={styles.reflectionBanner}>
+              <View style={styles.reflectionIconRow}>
+                <Sparkles size={20} color="#C0392B" strokeWidth={1.8} />
+                <Text style={styles.reflectionTitle}>{reflection.bannerTitle}</Text>
+              </View>
+              <Text style={styles.reflectionBody}>{reflection.bannerBody}</Text>
+              {reflection.quote ? (
+                <Text style={styles.reflectionQuote}>{reflection.quote}</Text>
+              ) : null}
+              <TouchableOpacity
+                style={styles.reflectionCta}
+                onPress={() => setShowFiveSecond(true)}
+                activeOpacity={0.88}
+              >
+                <Text style={styles.reflectionCtaText}>5 saniye kuralı ile devam et?</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
         </View>
 
         {entries.length === 0 && !searchQuery.trim() && (
@@ -294,6 +340,21 @@ export default function MindDumpScreen(_: Props) {
 
         <View style={{ height: Spacing.xl }} />
       </ScrollView>
+
+      <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
+        <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
+          <FiveSecondTrainer
+            scenario={FIVE_FROM_MIND}
+            onComplete={async (_s, _ms, reward) => {
+              if (reward && profile) {
+                await useUserStore.getState().addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);
+              }
+              setShowFiveSecond(false);
+            }}
+            onSkip={() => setShowFiveSecond(false)}
+          />
+        </SafeAreaView>
+      </Modal>
 
       <PremiumGateModal
         visible={showGate}
@@ -590,6 +651,53 @@ const styles = StyleSheet.create({
     lineHeight: 28,
     textAlignVertical: "top",
   },
+  reflectionBanner: {
+    marginTop: Spacing.md,
+    backgroundColor: "rgba(243, 156, 18, 0.14)",
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: "rgba(230, 126, 34, 0.35)",
+    padding: Spacing.md,
+    gap: Spacing.sm,
+  },
+  reflectionIconRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  reflectionTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    flex: 1,
+  },
+  reflectionBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  reflectionQuote: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+    lineHeight: 18,
+    fontStyle: "italic",
+  },
+  reflectionCta: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 8,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  reflectionCtaText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
+  },
+  trainerRoot: { flex: 1, backgroundColor: "#1a1a2e" },
   emptyPanel: {
     backgroundColor: Colors.primaryLight,
     borderRadius: Radii.card,

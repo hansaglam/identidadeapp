@@ -4,6 +4,8 @@ import {
   TextInput, Switch, Linking, Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useNavigation } from "@react-navigation/native";
+import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import {
   Pencil, Check, Bell, Vibrate, Trash2, Crown, ChevronRight, Zap,
   TrendingUp, Eye, Shield,
@@ -22,7 +24,10 @@ import {
   getLast14AutoTrendPercent,
   getLast14ConsistencyPercent,
   estimateAutomationFromFirst14Linear,
+  countFirst14AutomationRatings,
 } from "../utils/profileMetrics";
+import { format, parseISO } from "date-fns";
+import { tr } from "date-fns/locale";
 import { buildIdentityMirrorReport } from "../utils/identityMirror";
 import {
   evaluateBehavior,
@@ -37,13 +42,14 @@ import EditCommitmentModal from "../components/EditCommitmentModal";
 import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
 import ProfileStats from "../components/ProfileStats";
 import AutomaticityTrendChart from "../components/AutomaticityTrendChart";
+import ViralStoryCard from "../components/ViralStoryCard";
 import { buildAutomaticitySeriesLastDays } from "../utils/automaticityChart";
 import DisciplineMusclesView from "../components/DisciplineMusclesView";
 import FiveSecondTrainer, { FiveSecondScenario } from "../components/FiveSecondTrainer";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 import { APP_PROMISE_PROFILE_TAGLINE } from "../constants/purposeCopy";
 import { getIdentityTemplate } from "../constants/identityTemplates";
-import type { UserProfile } from "../types";
+import type { UserProfile, MainTabParamList } from "../types";
 import type { DisciplineMuscles } from "../types/discipline";
 
 
@@ -94,6 +100,9 @@ export default function ProfileScreen() {
   const [profileDialog, setProfileDialog] = useState<ProfileDialog>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCommitmentEdit, setShowCommitmentEdit] = useState(false);
+  const [showViral, setShowViral] = useState(false);
+
+  const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList>>();
 
   const isPremium = profile?.isPremium ?? false;
   const hapticsEnabled = profile?.hapticsEnabled ?? true;
@@ -123,6 +132,20 @@ export default function ProfileScreen() {
         : [],
     [profile, checkins]
   );
+
+  const first14RatingCount = useMemo(
+    () => (profile ? countFirst14AutomationRatings(profile.startDate, checkins) : 0),
+    [profile, checkins]
+  );
+
+  const hasAutoChartPoints = useMemo(
+    () => automaticitySeries.some((p) => p.value != null),
+    [automaticitySeries]
+  );
+
+  const goToday = useCallback(() => {
+    navigation.navigate("Home");
+  }, [navigation]);
 
   // Lally regresyon tahmini
   const linearEstimate = useMemo(() => {
@@ -307,6 +330,27 @@ export default function ProfileScreen() {
           <Text style={styles.habitSummaryAnchor}>📌 {profile.habitAnchor}</Text>
         </View>
 
+        {(profile.completedHabits?.length ?? 0) > 0 ? (
+          <View style={styles.completedJourneysCard}>
+            <Text style={styles.completedJourneysTitle}>Tamamlanan 66 günlük turlar</Text>
+            {[...(profile.completedHabits ?? [])].reverse().map((h, i) => (
+              <View
+                key={`${h.completedAt}-${h.habitName}-${i}`}
+                style={styles.completedJourneyRow}
+              >
+                <Text style={styles.completedJourneyName}>{h.habitName}</Text>
+                <Text style={styles.completedJourneyMeta}>
+                  {format(parseISO(h.completedAt), "d MMM yyyy", { locale: tr })} ·{" "}
+                  {h.completedDaysCount} gün tamamlandı
+                  {h.avgAutomaticity != null
+                    ? ` · ort. otomatiklik ${h.avgAutomaticity.toFixed(1)}`
+                    : ""}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
+
         {/* Stats row */}
         <View style={styles.statsRow}>
           <StatTile label="Aktif gün" value={String(dayNumber)} />
@@ -318,31 +362,60 @@ export default function ProfileScreen() {
           consistency14={stats.cons14}
           averageAutomaticity={stats.avgAuto}
           autoTrend14={stats.trend14}
+          onGoToday={goToday}
         />
 
         <AutomaticityTrendChart series={automaticitySeries} />
+        {!hasAutoChartPoints ? (
+          <TouchableOpacity style={styles.goTodayLink} onPress={goToday} activeOpacity={0.85}>
+            <Text style={styles.goTodayLinkText}>
+              Henüz otomatiklik verisi yok — Bugün&apos;e git, check-in&apos;de slider&apos;ı doldur.
+            </Text>
+          </TouchableOpacity>
+        ) : null}
 
-        {/* Lally Linear Regression Card */}
-        {dayNumber >= 14 && linearEstimate && (
-          <View style={styles.regressionCard}>
-            <View style={styles.regressionHeader}>
-              <TrendingUp size={18} color={Colors.primary} strokeWidth={1.5} />
-              <Text style={styles.regressionTitle}>Kişisel Otomatikleşme Tahmini</Text>
-            </View>
-            <Text style={styles.regressionBody}>
-              Ortalama insan 66 günde otomatikleşir.{"\n"}
-              Senin eğrinin eğimi: <Text style={styles.regressionBold}>+{linearEstimate.slopePerDay.toFixed(1)}/gün</Text>.{"\n"}
-              {linearEstimate.predictedDayAt7 ? (
-                <>Tahmini otomatikleşmen: <Text style={styles.regressionBold}>Gün {linearEstimate.predictedDayAt7}</Text>.</>
-              ) : (
-                <>Eğimin henüz yeterli değil — tutarlılığını artır.</>
-              )}
-            </Text>
-            <Text style={styles.regressionNote}>
-              İlk 14 gün otomatiklik puanlarına dayalı doğrusal regresyon. ({linearEstimate.sampleSize} veri noktası)
-            </Text>
+        {/* Lally — her zaman açıklama veya tahmin */}
+        <View style={styles.regressionCard}>
+          <View style={styles.regressionHeader}>
+            <TrendingUp size={18} color={Colors.primary} strokeWidth={1.5} />
+            <Text style={styles.regressionTitle}>Kişisel otomatikleşme tahmini</Text>
           </View>
-        )}
+          {dayNumber < 14 ? (
+            <Text style={styles.regressionBody}>
+              14 gün ve ilk iki haftada yeterli otomatiklik puanı toplandıktan sonra kişisel doğrusal
+              tahmin burada görünür. Şu an {dayNumber}. gündesin; veri toplamaya devam.
+            </Text>
+          ) : linearEstimate ? (
+            <>
+              <Text style={styles.regressionBody}>
+                Ortalama insan 66 günde otomatikleşir.{"\n"}
+                Senin eğrinin eğimi:{" "}
+                <Text style={styles.regressionBold}>+{linearEstimate.slopePerDay.toFixed(1)}/gün</Text>.{"\n"}
+                {linearEstimate.predictedDayAt7 ? (
+                  <>
+                    Tahmini otomatikleşme bandı:{" "}
+                    <Text style={styles.regressionBold}>Gün {linearEstimate.predictedDayAt7}</Text>.
+                  </>
+                ) : (
+                  <>
+                    Eğim henüz hedef band için net öngörü vermiyor — günlük puanlar ve tutarlılık
+                    güçlendikçe netleşir.
+                  </>
+                )}
+              </Text>
+              <Text style={styles.regressionNote}>
+                İlk 14 gün otomatiklik puanlarına dayalı doğrusal regresyon. (
+                {linearEstimate.sampleSize} veri noktası)
+              </Text>
+            </>
+          ) : (
+            <Text style={styles.regressionBody}>
+              Tahmin için ilk 14 günde en az 3 otomatiklik puanı gerekir (şu an{" "}
+              {first14RatingCount} kayıt). Bugünkü check-in&apos;de değerlendirme yapınca grafiğin
+              dolması birkaç güne yayılır.
+            </Text>
+          )}
+        </View>
 
         {/* Identity Mirror Card */}
         {mirrorReport && (
@@ -366,6 +439,14 @@ export default function ProfileScreen() {
             </Text>
           </View>
         )}
+
+        <TouchableOpacity
+          style={styles.shareAchievementBtn}
+          onPress={() => setShowViral(true)}
+          activeOpacity={0.88}
+        >
+          <Text style={styles.shareAchievementText}>Başarımı paylaş</Text>
+        </TouchableOpacity>
 
         <DisciplineMusclesView muscles={muscles} xp={muscleXp} />
 
@@ -487,6 +568,16 @@ export default function ProfileScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      <ViralStoryCard
+        visible={showViral}
+        onClose={() => setShowViral(false)}
+        dayNumber={dayNumber}
+        consistencyPercent={stats.cons14}
+        habitName={profile.habitName}
+        startDate={profile.startDate}
+        checkins={checkins}
+      />
 
       <Modal visible={showTrain} animationType="fade" onRequestClose={() => setShowTrain(false)}>
         <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
@@ -768,6 +859,34 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     marginTop: 2,
   },
+  completedJourneysCard: {
+    backgroundColor: Colors.purpleLight,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: "rgba(83, 74, 183, 0.2)",
+    padding: Spacing.md,
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  completedJourneysTitle: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.purple,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  completedJourneyRow: { gap: 4 },
+  completedJourneyName: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
+  completedJourneyMeta: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
   statsRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.md },
   // ── Regression Card ───────────────────────────────────────────────────
   regressionCard: {
@@ -791,6 +910,35 @@ const styles = StyleSheet.create({
   regressionNote: {
     fontSize: FontSizes.xs, fontFamily: "Inter_400Regular",
     color: Colors.textTertiary, lineHeight: 16,
+  },
+  goTodayLink: {
+    alignSelf: "stretch",
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.button,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  goTodayLinkText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.primary,
+    textAlign: "center",
+    lineHeight: 20,
+  },
+  shareAchievementBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: Spacing.md,
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  shareAchievementText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
   },
   // ── Identity Mirror Card ──────────────────────────────────────────────
   mirrorCard: {

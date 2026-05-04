@@ -7,6 +7,16 @@ export { MUSCLE_NAMES } from "./discipline";
 /** XP 0+; aynı anahtarlar */
 export type DisciplineMuscleXP = DisciplineMuscles;
 
+/** Tamamlanan 66 günlük yolculuk özeti (habit stacking arşivi) */
+export interface CompletedHabit {
+  habitName: string;
+  habitAnchor: string;
+  journeyStartDate: string;
+  completedAt: string;
+  avgAutomaticity: number | null;
+  completedDaysCount: number;
+}
+
 // ─── AsyncStorage data types ───────────────────────────────────────────────
 
 /** key: 'user:profile' */
@@ -44,6 +54,12 @@ export interface UserProfile {
   disciplineMuscles?: DisciplineMuscles;
   /** Kas başına toplam XP; yoksa 0 kabul */
   disciplineMuscleXp?: DisciplineMuscleXP;
+  /** Kaç tam 66 tur tamamlandı (0 = ilk yolculuk) */
+  journeySequence?: number;
+  /** Tamamlanan yolculuklar; yeni tur başlarken son kayıt eklenir */
+  completedHabits?: CompletedHabit[];
+  /** 66. gün kutlaması / stacking seçimi bekliyor */
+  stackingOfferPending?: boolean;
 }
 
 /** key: 'checkins:YYYY-MM-DD' */
