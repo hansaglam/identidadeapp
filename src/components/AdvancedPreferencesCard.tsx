@@ -68,12 +68,23 @@ async function pickBackupJson(): Promise<
   }
 }
 
+export type AdvancedPreferenceSection = "context" | "rest" | "notifications" | "backup";
+
 interface Props {
   profile: UserProfile;
   onPatch: (patch: Partial<UserProfile>) => Promise<void>;
+  /** Boş bırakılırsa tüm bölümler gösterilir. */
+  visibleSections?: AdvancedPreferenceSection[];
 }
 
-export default function AdvancedPreferencesCard({ profile, onPatch }: Props) {
+export default function AdvancedPreferencesCard({
+  profile,
+  onPatch,
+  visibleSections,
+}: Props) {
+  const all: AdvancedPreferenceSection[] = ["context", "rest", "notifications", "backup"];
+  const sections = visibleSections ?? all;
+  const show = (k: AdvancedPreferenceSection) => sections.includes(k);
   const [busy, setBusy] = useState(false);
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState("");
@@ -210,156 +221,172 @@ export default function AdvancedPreferencesCard({ profile, onPatch }: Props) {
   return (
     <>
       <View style={[styles.card, { backgroundColor: Colors.surface, borderColor: Colors.border }]}>
-        <Text style={[styles.section, { color: Colors.textTertiary }]}>BAĞLAM VE RİTİM</Text>
+        {show("context") ? (
+          <>
+            <Text style={[styles.section, { color: Colors.textTertiary }]}>BAĞLAM VE RİTİM</Text>
 
-        <View style={styles.rowHead}>
-          <MapPin size={16} color={Colors.purple} strokeWidth={1.6} />
-          <Text style={[styles.head, { color: Colors.textPrimary }]}>Bugün bağlamı</Text>
-        </View>
-        <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-          Kart altında bağlam ipucu; kişiyi okuyan yapay zekâ yok.
-        </Text>
-        <View style={styles.chipRow}>
-          <TouchableOpacity
-            style={[
-              styles.chip,
-              {
-                borderWidth: 1,
-                borderColor: profile.contextPreset == null ? Colors.purple : Colors.border,
-                backgroundColor:
-                  profile.contextPreset == null ? Colors.purpleLight : Colors.bg,
-              },
-            ]}
-            onPress={() => void setContext(null)}
-          >
-            <Text style={[styles.chipText, { color: Colors.textSecondary }]}>Varsayılan</Text>
-          </TouchableOpacity>
-          {ctxOpts.map((c) => {
-            const sel = profile.contextPreset === c.id;
-            return (
+            <View style={styles.rowHead}>
+              <MapPin size={16} color={Colors.purple} strokeWidth={1.6} />
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>Bugün bağlamı</Text>
+            </View>
+            <Text style={[styles.micro, { color: Colors.textTertiary }]}>
+              Kart altında bağlam ipucu; kişiyi okuyan yapay zekâ yok.
+            </Text>
+            <View style={styles.chipRow}>
               <TouchableOpacity
-                key={c.id}
                 style={[
                   styles.chip,
                   {
                     borderWidth: 1,
-                    borderColor: sel ? Colors.purple : Colors.border,
-                    backgroundColor: sel ? Colors.purpleLight : Colors.bg,
+                    borderColor: profile.contextPreset == null ? Colors.purple : Colors.border,
+                    backgroundColor:
+                      profile.contextPreset == null ? Colors.purpleLight : Colors.bg,
                   },
                 ]}
-                onPress={() => void setContext(c.id)}
+                onPress={() => void setContext(null)}
               >
-                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>
-                  {c.label}
-                </Text>
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>Varsayılan</Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
+              {ctxOpts.map((c) => {
+                const sel = profile.contextPreset === c.id;
+                return (
+                  <TouchableOpacity
+                    key={c.id}
+                    style={[
+                      styles.chip,
+                      {
+                        borderWidth: 1,
+                        borderColor: sel ? Colors.purple : Colors.border,
+                        backgroundColor: sel ? Colors.purpleLight : Colors.bg,
+                      },
+                    ]}
+                    onPress={() => void setContext(c.id)}
+                  >
+                    <Text style={[styles.chipText, { color: Colors.textSecondary }]}>
+                      {c.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
-        <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+            <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+          </>
+        ) : null}
 
-        <View style={styles.rowHead}>
-          <Moon size={16} color={Colors.gold} strokeWidth={1.6} />
-          <Text style={[styles.head, { color: Colors.textPrimary }]}>{restLabel}</Text>
-        </View>
-        <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-          Bu tarihe kadar push’lar hafifletilir; süre sonunda otomatik kalkar (istersen önce iptal et).
-        </Text>
-        <View style={styles.chipRow}>
-          <TouchableOpacity
-            style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
-            onPress={() => void restQuick(2)}
-          >
-            <Text style={[styles.chipText, { color: Colors.textSecondary }]}>3 gün mola</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
-            onPress={() => void restQuick(6)}
-          >
-            <Text style={[styles.chipText, { color: Colors.textSecondary }]}>7 gün mola</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.chip, { borderWidth: 1, borderColor: Colors.coral }]} onPress={() => void setRest(null)}>
-            <X size={14} color={Colors.coral} />
-            <Text style={[styles.chipText, { color: Colors.coral, marginLeft: 6 }]}>Kaldır</Text>
-          </TouchableOpacity>
-        </View>
+        {show("rest") ? (
+          <>
+            <View style={styles.rowHead}>
+              <Moon size={16} color={Colors.gold} strokeWidth={1.6} />
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>{restLabel}</Text>
+            </View>
+            <Text style={[styles.micro, { color: Colors.textTertiary }]}>
+              Bu tarihe kadar push’lar hafifletilir; süre sonunda otomatik kalkar (istersen önce iptal et).
+            </Text>
+            <View style={styles.chipRow}>
+              <TouchableOpacity
+                style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
+                onPress={() => void restQuick(2)}
+              >
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>3 gün mola</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
+                onPress={() => void restQuick(6)}
+              >
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>7 gün mola</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.chip, { borderWidth: 1, borderColor: Colors.coral }]} onPress={() => void setRest(null)}>
+                <X size={14} color={Colors.coral} />
+                <Text style={[styles.chipText, { color: Colors.coral, marginLeft: 6 }]}>Kaldır</Text>
+              </TouchableOpacity>
+            </View>
 
-        <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+            <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+          </>
+        ) : null}
 
-        <View style={styles.rowHead}>
-          <Bell size={16} color={Colors.primary} strokeWidth={1.6} />
-          <Text style={[styles.head, { color: Colors.textPrimary }]}>Bildirim ince ayar</Text>
-        </View>
+        {show("notifications") ? (
+          <>
+            <View style={styles.rowHead}>
+              <Bell size={16} color={Colors.primary} strokeWidth={1.6} />
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>Bildirim ince ayar</Text>
+            </View>
 
-        <ToggleLine
-          icon={<Sunrise size={14} color={Colors.textSecondary} />}
-          title="Sabah bildirimi"
-          value={profile.notifyMorningEnabled !== false}
-          palette={Colors}
-          onChange={(v) => void onPatch({ notifyMorningEnabled: v })}
-        />
-        <ToggleLine
-          icon={<Sunset size={14} color={Colors.textSecondary} />}
-          title="Akşam hatırlatması"
-          value={profile.notifyEveningEnabled !== false}
-          palette={Colors}
-          onChange={(v) => void onPatch({ notifyEveningEnabled: v })}
-        />
-        <ToggleLine
-          icon={<Calendar size={14} color={Colors.textSecondary} />}
-          title="Hafta sonu bildirimleri"
-          value={profile.notifyWeekendEnabled !== false}
-          palette={Colors}
-          onChange={(v) => void onPatch({ notifyWeekendEnabled: v })}
-        />
-        <ToggleLine
-          icon={<Bell size={14} color={Colors.textSecondary} />}
-          title="Faz milestone push"
-          value={profile.notifyPhaseMilestones !== false}
-          palette={Colors}
-          onChange={(v) => void onPatch({ notifyPhaseMilestones: v })}
-        />
+            <ToggleLine
+              icon={<Sunrise size={14} color={Colors.textSecondary} />}
+              title="Sabah bildirimi"
+              value={profile.notifyMorningEnabled !== false}
+              palette={Colors}
+              onChange={(v) => void onPatch({ notifyMorningEnabled: v })}
+            />
+            <ToggleLine
+              icon={<Sunset size={14} color={Colors.textSecondary} />}
+              title="Akşam hatırlatması"
+              value={profile.notifyEveningEnabled !== false}
+              palette={Colors}
+              onChange={(v) => void onPatch({ notifyEveningEnabled: v })}
+            />
+            <ToggleLine
+              icon={<Calendar size={14} color={Colors.textSecondary} />}
+              title="Hafta sonu bildirimleri"
+              value={profile.notifyWeekendEnabled !== false}
+              palette={Colors}
+              onChange={(v) => void onPatch({ notifyWeekendEnabled: v })}
+            />
+            <ToggleLine
+              icon={<Bell size={14} color={Colors.textSecondary} />}
+              title="Faz milestone push"
+              value={profile.notifyPhaseMilestones !== false}
+              palette={Colors}
+              onChange={(v) => void onPatch({ notifyPhaseMilestones: v })}
+            />
 
-        <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+            <View style={[styles.hr, { backgroundColor: Colors.border }]} />
+          </>
+        ) : null}
 
-        <View style={styles.rowHead}>
-          <Archive size={16} color={Colors.textSecondary} strokeWidth={1.6} />
-          <Text style={[styles.head, { color: Colors.textPrimary }]}>Yerel yedek (JSON)</Text>
-        </View>
-        <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-          Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.
-        </Text>
-        <TouchableOpacity
-          style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
-          onPress={() => void exportTap()}
-          disabled={busy}
-        >
-          {busy ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <>
-              <Share2 size={16} color="#fff" strokeWidth={2} />
-              <Text style={styles.exportTxt}>Paylaşım olarak dışa aktar</Text>
-            </>
-          )}
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.importBtn, { borderColor: Colors.primary }]}
-          onPress={() => importTap()}
-          disabled={busy}
-        >
-          <Upload size={16} color={Colors.primary} strokeWidth={1.8} />
-          <Text style={[styles.importTxt, { color: Colors.primary }]}>JSON dosyasından geri yükle</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.pasteBtn, { borderColor: Colors.borderStrong }]}
-          onPress={openPasteRestore}
-          disabled={busy}
-        >
-          <ClipboardPaste size={16} color={Colors.textSecondary} strokeWidth={1.8} />
-          <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>Yapıştırarak geri yükle</Text>
-        </TouchableOpacity>
+        {show("backup") ? (
+          <>
+            <View style={styles.rowHead}>
+              <Archive size={16} color={Colors.textSecondary} strokeWidth={1.6} />
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>Yerel yedek (JSON)</Text>
+            </View>
+            <Text style={[styles.micro, { color: Colors.textTertiary }]}>
+              Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.
+            </Text>
+            <TouchableOpacity
+              style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
+              onPress={() => void exportTap()}
+              disabled={busy}
+            >
+              {busy ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <Share2 size={16} color="#fff" strokeWidth={2} />
+                  <Text style={styles.exportTxt}>Paylaşım olarak dışa aktar</Text>
+                </>
+              )}
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.importBtn, { borderColor: Colors.primary }]}
+              onPress={() => importTap()}
+              disabled={busy}
+            >
+              <Upload size={16} color={Colors.primary} strokeWidth={1.8} />
+              <Text style={[styles.importTxt, { color: Colors.primary }]}>JSON dosyasından geri yükle</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.pasteBtn, { borderColor: Colors.borderStrong }]}
+              onPress={openPasteRestore}
+              disabled={busy}
+            >
+              <ClipboardPaste size={16} color={Colors.textSecondary} strokeWidth={1.8} />
+              <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>Yapıştırarak geri yükle</Text>
+            </TouchableOpacity>
+          </>
+        ) : null}
       </View>
 
       <Modal visible={pasteOpen} animationType="slide" transparent onRequestClose={() => setPasteOpen(false)}>

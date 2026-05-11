@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Sparkles, Share2, Layers } from "lucide-react-native";
 import type { CheckinRecord } from "../types";
 import type { DisciplineMuscles } from "../types/discipline";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import { buildAutomaticitySeriesLastDays } from "../utils/automaticityChart";
 import AutomaticityTrendChart from "./AutomaticityTrendChart";
 import { suggestStackedHabits } from "../utils/habitStackingEngine";
@@ -242,6 +242,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.sm,
     gap: 6,
+    ...Shadows.soft,
   },
   sugTitle: {
     fontSize: FontSizes.md,
@@ -270,6 +271,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     marginBottom: Spacing.md,
     gap: 6,
+    ...Shadows.soft,
   },
   sameBtnText: {
     fontSize: FontSizes.md,

@@ -10,7 +10,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { addDays, format, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
-import { Colors, FontSizes, Radii, Spacing } from "../constants/theme";
+import { Colors, FontSizes, Radii, Spacing, Shadows } from "../constants/theme";
 
 interface Props {
   dayNumber: number;
@@ -121,6 +121,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     gap: Spacing.md,
     marginBottom: Spacing.md,
+    ...Shadows.card,
   },
   header: {
     flexDirection: "row",

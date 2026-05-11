@@ -7,6 +7,8 @@
  *   checkins:YYYY-MM-DD    → CheckinRecord
  *   minddump:{timestamp}   → MindDumpEntry (timestamp = Date.now() at creation)
  *   sdt:YYYY-Www           → SDTScore
+ *   habit:daily:v1         → { todayCheckedIn, lastCheckInDate, todayCheckIn? }
+ *   habit:definition:v1     → Habit (onboarding kimlik / çapa / slug)
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserProfile, CheckinRecord, MindDumpEntry, SDTScore } from "../types";
@@ -144,5 +146,8 @@ export async function clearAllData(): Promise<void> {
     removeByPrefix("minddump:"),
     removeByPrefix("sdt:"),
     clearJourneyEducationPrefs(),
+    AsyncStorage.removeItem("habit:daily:v1"),
+    AsyncStorage.removeItem("habit:definition:v1"),
+    AsyncStorage.removeItem("habit:reflections:v1"),
   ]);
 }

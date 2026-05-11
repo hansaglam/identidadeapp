@@ -28,6 +28,8 @@ export interface UserProfile {
   habitName: string;          // "Egzersiz"
   habitAnchor: string;        // "Kahvemi aldıktan sonra"
   habitWhy: string;           // onboarding free text
+  /** Yolculuk ağacı görseli: oak | cherry | olive | bamboo | acacia */
+  journeyTreeType?: string;
   startDate: string;          // ISO – 66-day countdown starts here
   isPremium: boolean;
   purchaseToken: string | null;
@@ -71,6 +73,9 @@ export interface CheckinRecord {
   /** Tamamlanma değerlendirmesi: 1–10 (yoksa kayıt öncesi / geri alındı) */
   automaticityRating?: number;
   effortRating?: number;
+  /** Hızlı teyit sheet’te seçilen metin (Zaman Makinesi vb.). */
+  checkInNote?: string;
+  checkInDetail?: string | null;
 }
 
 /** Bugünkü ekran durumu (UI; kalıcılık CheckinRecord üzerinden) */

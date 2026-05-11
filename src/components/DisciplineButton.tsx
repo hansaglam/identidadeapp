@@ -2,11 +2,7 @@ import React, { useRef, useCallback } from "react";
 import {
   Text, StyleSheet, TouchableOpacity, Animated,
 } from "react-native";
-import { Spacing, Radii, FontSizes } from "../constants/theme";
-
-const BG_PENDING = "#2c3e50";
-const BG_DONE = "#27ae60";
-const BORDER_ORANGE = "#f39c12";
+import { Spacing, Radii, FontSizes, Colors, Shadows } from "../constants/theme";
 
 export interface DisciplineButtonProps {
   onPress: () => void;
@@ -29,8 +25,8 @@ export default function DisciplineButton({
   const runPressInAnimation = useCallback(() => {
     scale.setValue(1);
     Animated.sequence([
-      Animated.timing(scale, { toValue: 0.95, duration: 90, useNativeDriver: true }),
-      Animated.timing(scale, { toValue: 1.05, duration: 120, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 0.97, duration: 90, useNativeDriver: true }),
+      Animated.timing(scale, { toValue: 1.02, duration: 120, useNativeDriver: true }),
       Animated.timing(scale, { toValue: 1, duration: 100, useNativeDriver: true }),
     ]).start();
   }, [scale]);
@@ -43,7 +39,7 @@ export default function DisciplineButton({
   if (isCompleted) {
     return (
       <TouchableOpacity
-        style={[styles.base, styles.doneBtn]}
+        style={[styles.base, styles.doneBtn, Shadows.soft]}
         onPress={onPress}
         activeOpacity={0.88}
         accessibilityRole="button"
@@ -62,17 +58,17 @@ export default function DisciplineButton({
   if (isMissedYesterday) {
     return (
       <TouchableOpacity
-        style={[styles.base, styles.comebackCard]}
+        style={[styles.base, styles.comebackCard, Shadows.soft]}
         onPress={onPress}
         activeOpacity={0.9}
         accessibilityRole="button"
         accessibilityLabel="Geri dönüş günü, devam et"
       >
-        <Text style={styles.comebackTitle}>Geri Dönüş Günü</Text>
+        <Text style={styles.comebackTitle}>Geri dönüş günü</Text>
         <Text style={styles.comebackBody}>
           1 gün kaçırmak, 66 günlük yolculuğun sadece %1.5&apos;u. Beynin hâlâ bu yolu biliyor.
         </Text>
-        <Text style={styles.comebackAction}>Devam Et →</Text>
+        <Text style={styles.comebackAction}>Devam et →</Text>
       </TouchableOpacity>
     );
   }
@@ -80,13 +76,13 @@ export default function DisciplineButton({
   return (
     <Animated.View style={[styles.animatedWrap, { transform: [{ scale }] }]}>
       <TouchableOpacity
-        style={[styles.base, styles.pendingBtn]}
+        style={[styles.base, styles.pendingBtn, Shadows.soft]}
         onPress={onPendingPress}
         activeOpacity={1}
         accessibilityRole="button"
         accessibilityLabel="Disiplini uygula"
       >
-        <Text style={styles.pendingTitle}>Disiplini Uygula</Text>
+        <Text style={styles.pendingTitle}>Disiplini uygula</Text>
         <Text style={styles.pendingSub}>Motivasyona ihtiyaç yok. Sadece başla.</Text>
       </TouchableOpacity>
     </Animated.View>
@@ -101,10 +97,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 8,
   },
   pendingBtn: {
-    backgroundColor: BG_PENDING,
+    backgroundColor: Colors.ink,
   },
   pendingTitle: {
     fontSize: FontSizes.lg,
@@ -114,10 +110,11 @@ const styles = StyleSheet.create({
   pendingSub: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.82)",
+    color: "rgba(255,255,255,0.88)",
     textAlign: "center",
+    lineHeight: 20,
   },
-  doneBtn: { backgroundColor: BG_DONE },
+  doneBtn: { backgroundColor: Colors.primary },
   doneTitle: {
     fontSize: FontSizes.lg,
     fontFamily: "Inter_500Medium",
@@ -129,27 +126,26 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.9)",
   },
   comebackCard: {
-    backgroundColor: "#fff",
-    borderWidth: 2,
-    borderColor: BORDER_ORANGE,
-    borderStyle: "dashed",
+    backgroundColor: Colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: "rgba(184, 137, 46, 0.28)",
   },
   comebackTitle: {
-    fontSize: FontSizes.lg,
+    fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
-    color: "#1A1A18",
+    color: Colors.textPrimary,
   },
   comebackBody: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
-    color: "#6B6B67",
+    color: Colors.textSecondary,
     textAlign: "center",
-    lineHeight: 20,
+    lineHeight: 21,
   },
   comebackAction: {
     marginTop: Spacing.xs,
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_500Medium",
-    color: BORDER_ORANGE,
+    color: Colors.gold,
   },
 });

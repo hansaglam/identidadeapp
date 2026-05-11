@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { View, Text, StyleSheet, ScrollView, type LayoutChangeEvent } from "react-native";
 import Svg, { Polyline, Circle, Line } from "react-native-svg";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import type { AutomaticityChartPoint } from "../utils/automaticityChart";
 
 const CHART_H = 40;
@@ -144,6 +144,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     padding: Spacing.md,
     marginBottom: Spacing.md,
+    ...Shadows.card,
   },
   headerRow: {
     flexDirection: "row",

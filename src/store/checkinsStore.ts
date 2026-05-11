@@ -134,8 +134,14 @@ interface CheckinsState {
   loadFailed: boolean;
   load: () => Promise<void>;
   toggleToday: (dayNumber: number) => Promise<void>;
-  /** Otomatiklik + çaba puanlarıyla bugünü tamamla. */
-  completeTodayWithRatings: (dayNumber: number, automaticity: number, effort: number) => Promise<void>;
+  /** Otomatiklik + çaba puanlarıyla bugünü tamamla; teyit notları isteğe bağlı. */
+  completeTodayWithRatings: (
+    dayNumber: number,
+    automaticity: number,
+    effort: number,
+    checkInNote?: string | null,
+    checkInDetail?: string | null
+  ) => Promise<void>;
   getTodayCheckin: () => CheckinRecord | null;
   getStreakState: () => StreakState;
   /** @deprecated Use getStreakState().currentStreak */
@@ -150,12 +156,16 @@ interface CheckinsState {
   isStreakReset: () => boolean;
   /** Habit stacking: yeni tur — tüm günlük kayıtları sil */
   clearAllCheckins: () => Promise<void>;
+  /** Yolculuk ağacı büyüme animasyonu (check-in sonrası); JourneyTree tetikler */
+  journeyTreeGrowthPulse: boolean;
+  acknowledgeJourneyTreeGrowthPulse: () => void;
 }
 
 export const useCheckinsStore = create<CheckinsState>((set, get) => ({
   checkins: {},
   isLoading: false,
   loadFailed: false,
+  journeyTreeGrowthPulse: false,
 
   load: async () => {
     set({ isLoading: true, loadFailed: false });
@@ -184,6 +194,8 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
         completedAt: null,
         automaticityRating: undefined,
         effortRating: undefined,
+        checkInNote: undefined,
+        checkInDetail: undefined,
       };
       await saveCheckin(updated);
       set((s) => ({ checkins: { ...s.checkins, [date]: updated } }));
@@ -195,11 +207,20 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
         day: dayNumber,
       };
       await saveCheckin(record);
-      set((s) => ({ checkins: { ...s.checkins, [date]: record } }));
+      set((s) => ({
+        checkins: { ...s.checkins, [date]: record },
+        journeyTreeGrowthPulse: true,
+      }));
     }
   },
 
-  completeTodayWithRatings: async (dayNumber, automaticity, effort) => {
+  completeTodayWithRatings: async (
+    dayNumber,
+    automaticity,
+    effort,
+    checkInNote,
+    checkInDetail
+  ) => {
     const date = todayStr();
     const prev = get().checkins[date];
     const auto = Math.min(10, Math.max(1, Math.round(automaticity)));
@@ -213,9 +234,19 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
       automaticityRating: auto,
       effortRating: eff,
     };
+    if (checkInNote !== undefined) {
+      record.checkInNote = checkInNote ?? undefined;
+      record.checkInDetail =
+        checkInDetail === undefined ? undefined : checkInDetail;
+    }
     await saveCheckin(record);
-    set((s) => ({ checkins: { ...s.checkins, [date]: record } }));
+    set((s) => ({
+      checkins: { ...s.checkins, [date]: record },
+      journeyTreeGrowthPulse: true,
+    }));
   },
+
+  acknowledgeJourneyTreeGrowthPulse: () => set({ journeyTreeGrowthPulse: false }),
 
   getTodayCheckin: () => {
     const { checkins } = get();
@@ -268,6 +299,6 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
 
   clearAllCheckins: async () => {
     await removeAllCheckins();
-    set({ checkins: {} });
+    set({ checkins: {}, journeyTreeGrowthPulse: false });
   },
 }));

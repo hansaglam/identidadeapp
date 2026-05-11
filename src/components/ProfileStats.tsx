@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 
 export interface ProfileStatsProps {
   /** Son 14 gün % */
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     padding: Spacing.md,
     alignItems: "center",
+    ...Shadows.soft,
   },
   value: { fontSize: FontSizes.xl, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
   valueMuted: { fontSize: FontSizes.xl, fontFamily: "Inter_500Medium", color: Colors.textTertiary },

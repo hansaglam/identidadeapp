@@ -1,4 +1,5 @@
 import { UserProfile } from "../types";
+import { coerceJourneyTreeType } from "./journeyTree";
 
 /**
  * AsyncStorage'dan gelen eksik / eski şemalar için güvenli varsayılanlar.
@@ -21,5 +22,6 @@ export function normalizeProfile(p: UserProfile): UserProfile {
     journeySequence: next.journeySequence ?? 0,
     completedHabits: next.completedHabits ?? [],
     stackingOfferPending: next.stackingOfferPending ?? false,
+    journeyTreeType: coerceJourneyTreeType(next.journeyTreeType),
   };
 }

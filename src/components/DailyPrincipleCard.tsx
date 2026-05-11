@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Colors, Spacing, Radii, FontSizes, JOURNEY_PHASES } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, JOURNEY_PHASES, Shadows } from "../constants/theme";
 import { getPrincipleByDay } from "../data/dailyPrinciples";
 
 export interface DailyPrincipleCardProps {
@@ -22,7 +22,7 @@ export default function DailyPrincipleCard({ day }: DailyPrincipleCardProps) {
   if (!p) return null;
   const phase = JOURNEY_PHASES[p.phase - 1];
   return (
-    <View style={[styles.card, { borderLeftColor: phase.color, backgroundColor: "#FAFAF0" }]}>
+    <View style={[styles.card, { borderLeftColor: phase.color, backgroundColor: Colors.surfaceMuted }]}>
       <Text style={styles.kicker}>
         Gün {d} · {PHASE_LINE[p.phase]}
       </Text>
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
     marginBottom: Spacing.md,
     gap: Spacing.xs,
+    ...Shadows.soft,
   },
   kicker: {
     fontSize: FontSizes.xs,

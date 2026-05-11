@@ -1,7 +1,56 @@
 import {
-  format, subDays, differenceInDays, parseISO, startOfDay,
+  format,
+  subDays,
+  differenceInDays,
+  parseISO,
+  startOfDay,
+  startOfWeek,
+  addDays,
+  isAfter,
+  isBefore,
 } from "date-fns";
 import { CheckinRecord } from "../types";
+
+/** Takvim haftası (Pzt–Paz); bugünün bulunduğu ISO haftası. */
+export interface CalendarWeekDayCell {
+  dateKey: string;
+  shortLabel: string;
+  completed: boolean;
+  automaticityRating?: number;
+  /** Yolculuk başlangıcından önceki günler */
+  beforeJourney: boolean;
+  /** Bugünden sonraki günler */
+  isFuture: boolean;
+}
+
+/** Pzt başlangıçlı hafta: her gün için tamamlanma + otomatiklik (varsa). */
+export function buildCalendarWeekAroundToday(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): CalendarWeekDayCell[] {
+  const journeyStart = startOfDay(parseISO(startDate));
+  const today = startOfDay(new Date());
+  const weekStart = startOfWeek(today, { weekStartsOn: 1 });
+  const labels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
+  const out: CalendarWeekDayCell[] = [];
+  for (let i = 0; i < 7; i += 1) {
+    const d = addDays(weekStart, i);
+    const dateKey = format(d, "yyyy-MM-dd");
+    const beforeJourney = isBefore(d, journeyStart);
+    const isFuture = isAfter(d, today);
+    const rec = checkins[dateKey];
+    const completed = !!rec?.completed;
+    out.push({
+      dateKey,
+      shortLabel: labels[i],
+      completed,
+      automaticityRating: rec?.automaticityRating,
+      beforeJourney,
+      isFuture,
+    });
+  }
+  return out;
+}
 
 /** Bugünden 14 gün geriye (dahil), soldan sağa en eski → en yeni. */
 export function buildLast14Days(

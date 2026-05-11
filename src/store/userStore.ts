@@ -7,6 +7,7 @@ import type { DisciplineMuscles } from "../types/discipline";
 import { loadProfile, saveProfile, clearAllData } from "../utils/storage";
 import { uuid } from "../utils/uuid";
 import { normalizeProfile } from "../utils/profileDefaults";
+import { randomJourneyTreeType } from "../utils/journeyTree";
 import {
   addXpToDisciplineState,
   DISCIPLINE_DEFAULT_LEVELS,
@@ -97,6 +98,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       habitName,
       habitAnchor,
       habitWhy,
+      journeyTreeType: randomJourneyTreeType(),
       startDate: now,          // day-1 = today
       isPremium: false,
       purchaseToken: null,
@@ -230,6 +232,7 @@ export const useUserStore = create<UserState>((set, get) => ({
       ...profile,
       habitName: nextHabitName.trim() || profile.habitName,
       habitAnchor: nextHabitAnchor.trim() || profile.habitAnchor,
+      journeyTreeType: randomJourneyTreeType(),
       startDate: now,
       completedHabits: [...(profile.completedHabits ?? []), entry],
       journeySequence: (profile.journeySequence ?? 0) + 1,

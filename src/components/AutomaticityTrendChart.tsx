@@ -14,7 +14,7 @@ import Svg, {
   Line,
   Circle,
 } from "react-native-svg";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import type { AutomaticityChartPoint } from "../utils/automaticityChart";
 
 const CHART_HEIGHT = 160;
@@ -256,11 +256,12 @@ const styles = StyleSheet.create({
   card: {
     width: "100%",
     backgroundColor: Colors.surface,
-    borderRadius: Radii.card + 4,
+    borderRadius: Radii.card + 2,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.md,
     marginBottom: Spacing.md,
+    ...Shadows.card,
   },
   headerRow: {
     marginBottom: Spacing.sm,

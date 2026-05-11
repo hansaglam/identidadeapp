@@ -7,12 +7,13 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import { useUserStore } from "../store/userStore";
+import { useHabitStore } from "../store/habitStore";
 import {
   scheduleMorningNotifications,
   schedulePhaseTransitions,
 } from "../utils/notifications";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
-import { getIdentityTemplate } from "../constants/identityTemplates";
+import { Colors, Spacing, Radii, FontSizes, TIME_RANGES } from "../constants/theme";
+import { getIdentitySlugForTag, getIdentityTemplate } from "../constants/identityTemplates";
 import { ONBOARDING_WHY_SUB_LEAD, ONBOARDING_WHY_SUB_TAIL } from "../constants/purposeCopy";
 import { trackEvent } from "../utils/analytics";
 
@@ -21,8 +22,10 @@ type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep3">;
 const MIN_CHARS = 10;
 
 export default function OnboardingStep3Screen({ route, navigation }: Props) {
-  const { habitName, anchorBehavior, identityTagId } = route.params;
+  const { habitName, anchorBehavior, anchorTime, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
+  const timeSlotLabel =
+    TIME_RANGES.find((r) => r.id === anchorTime)?.label ?? anchorTime;
   const [whyText, setWhyText] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -40,6 +43,16 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         habitWhy: whyText.trim(),
         identityTagId,
       });
+
+      await useHabitStore.getState().saveHabitFromOnboarding({
+        identity: template?.title ?? habitName,
+        identityIcon: template?.emoji ?? "✏️",
+        identitySlug: getIdentitySlugForTag(identityTagId),
+        cue: anchorBehavior,
+        timeSlot: timeSlotLabel,
+        why: whyText.trim(),
+      });
+
       trackEvent("onboarding_completed", {
         identityTagId: identityTagId ?? "custom",
       });

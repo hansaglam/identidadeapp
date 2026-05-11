@@ -19,6 +19,9 @@ import {
   useFonts,
   Inter_400Regular,
   Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+  Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -30,6 +33,7 @@ import { useCheckinsStore } from "./src/store/checkinsStore";
 import { useMindDumpStore } from "./src/store/mindDumpStore";
 import { useSDTStore } from "./src/store/sdtStore";
 import { useBehaviorStore } from "./src/store/useBehaviorStore";
+import { useHabitStore } from "./src/store/habitStore";
 import AppNavigator from "./src/navigation/AppNavigator";
 import AppErrorBoundary from "./src/components/AppErrorBoundary";
 import { navigateToBugunTab, navigationRef } from "./src/navigation/navigationRef";
@@ -49,6 +53,9 @@ function AppBootstrap() {
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Inter_800ExtraBold,
   });
 
   const loadProfile = useUserStore((s) => s.loadProfile);
@@ -59,6 +66,8 @@ function AppBootstrap() {
   const loadMindDump = useMindDumpStore((s) => s.load);
   const loadSDT = useSDTStore((s) => s.load);
   const loadBehavior = useBehaviorStore((s) => s.load);
+  const loadHabitDaily = useHabitStore((s) => s.load);
+  const rollHabitDay = useHabitStore((s) => s.rollDayIfNeeded);
 
   const onboardingDone = loadedProfile?.startDate != null;
 
@@ -107,6 +116,7 @@ function AppBootstrap() {
         loadMindDump(),
         loadSDT(),
         loadBehavior(),
+        loadHabitDaily(),
       ]);
       const rejected = results.filter((r) => r.status === "rejected");
       if (rejected.length > 0 && __DEV__) {
@@ -130,10 +140,13 @@ function AppBootstrap() {
 
     sync();
     const sub = AppState.addEventListener("change", (next) => {
-      if (next === "active") sync();
+      if (next === "active") {
+        void rollHabitDay();
+        sync();
+      }
     });
     return () => sub.remove();
-  }, [loadedProfile]);
+  }, [loadedProfile, rollHabitDay]);
 
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener(() => {

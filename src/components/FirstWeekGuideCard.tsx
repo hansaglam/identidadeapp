@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Check } from "lucide-react-native";
-import { Spacing, Radii, FontSizes, Colors } from "../constants/theme";
+import { Spacing, Radii, FontSizes, Colors, Shadows } from "../constants/theme";
 
 interface Props {
   dayNumber: number;
@@ -32,7 +32,7 @@ export default function FirstWeekGuideCard({
   ];
 
   return (
-    <View style={[styles.card, { borderColor: Colors.border, backgroundColor: Colors.surface }]}>
+    <View style={[styles.card, { borderColor: Colors.border, backgroundColor: Colors.surface }, Shadows.card]}>
       <Text style={[styles.head, { color: Colors.textPrimary }]}>İlk hafta — küçük harita</Text>
       <Text style={[styles.body, { color: Colors.textSecondary }]}>
         Uygulama yoğun; bu dört küçük adım ilk hissi oturtur.

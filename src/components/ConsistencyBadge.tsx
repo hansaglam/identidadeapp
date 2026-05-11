@@ -1,8 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 
-const ORANGE = "#f39c12";
 const WINDOW = 14;
 
 export interface ConsistencyBadgeProps {
@@ -36,19 +35,19 @@ export default function ConsistencyBadge({ last14Days }: ConsistencyBadgeProps) 
     [doneCount]
   );
   const strong = pct >= 70;
+  const accent = strong ? Colors.primary : Colors.gold;
 
   return (
     <View
       style={[
         styles.card,
-        { borderColor: strong ? Colors.primary : ORANGE, backgroundColor: strong ? Colors.primaryLight : "rgba(243, 156, 18, 0.10)" },
+        { borderLeftColor: accent },
+        Shadows.card,
       ]}
     >
       <View style={styles.headerRow}>
-        <Text style={[styles.percentBadge, { color: strong ? Colors.primary : ORANGE }]}>
-          %{pct}
-        </Text>
-        <Text style={[styles.badgeLabel, { color: strong ? Colors.primaryDark : ORANGE }]}>
+        <Text style={[styles.percentBadge, { color: accent }]}>%{pct}</Text>
+        <Text style={[styles.badgeLabel, { color: Colors.textSecondary }]}>
           tutarlılık
         </Text>
       </View>
@@ -58,14 +57,17 @@ export default function ConsistencyBadge({ last14Days }: ConsistencyBadgeProps) 
       </Text>
 
       <Text style={styles.hint}>
-        Tutarlılık &gt; Mükemmellik. 1 gün kaçırmak süreci durdurmaz.
+        Tutarlılık &gt; mükemmellik. 1 gün kaçırmak süreci durdurmaz.
       </Text>
 
       <View style={styles.dotsRow}>
         {days.map((d, i) => (
           <View
             key={`${d.dayNumber}-${i}`}
-            style={[styles.dot, d.completed ? styles.dotOn : styles.dotOff]}
+            style={[
+              styles.dot,
+              d.completed ? [styles.dotOn, { backgroundColor: accent }] : styles.dotOff,
+            ]}
             accessibilityLabel={d.completed ? "Tamamlandı" : "Yok"}
           />
         ))}
@@ -76,43 +78,48 @@ export default function ConsistencyBadge({ last14Days }: ConsistencyBadgeProps) 
 
 const styles = StyleSheet.create({
   card: {
+    backgroundColor: Colors.surface,
     borderRadius: Radii.card,
-    borderWidth: 1.5,
-    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderLeftWidth: 4,
+    padding: Spacing.lg,
     gap: Spacing.xs,
+    marginBottom: Spacing.lg,
   },
-  headerRow: { flexDirection: "row", alignItems: "baseline", gap: 6 },
+  headerRow: { flexDirection: "row", alignItems: "baseline", gap: 8 },
   percentBadge: {
-    fontSize: FontSizes.xxl,
+    fontSize: FontSizes.xl,
     fontFamily: "Inter_500Medium",
+    letterSpacing: -0.5,
   },
   badgeLabel: {
-    fontSize: FontSizes.lg,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
   },
   title: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
-    marginTop: Spacing.xs,
+    marginTop: Spacing.sm,
+    lineHeight: 20,
   },
   hint: {
     fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
-    fontStyle: "italic",
     lineHeight: 18,
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.xs,
+    marginTop: 4,
+    marginBottom: Spacing.sm,
   },
   dotsRow: {
     flexDirection: "row",
     flexWrap: "nowrap",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: Spacing.xs,
+    paddingTop: Spacing.xs,
   },
   dot: { width: 6, height: 6, borderRadius: 3 },
-  dotOn: { backgroundColor: Colors.primary },
-  dotOff: { backgroundColor: Colors.borderStrong },
+  dotOn: {},
+  dotOff: { backgroundColor: "rgba(20, 32, 48, 0.12)" },
 });

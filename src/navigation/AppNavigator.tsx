@@ -50,10 +50,19 @@ function createMainTabStyles(colors: AppColors) {
       backgroundColor: colors.bg,
     },
     tabBar: {
-      backgroundColor: colors.surface,
-      borderTopWidth: 1,
-      borderTopColor: colors.border,
-      shadowOpacity: 0,
+      backgroundColor: Colors.surface,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: Colors.border,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#071018",
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.07,
+          shadowRadius: 12,
+        },
+        default: {},
+      }),
+      ...(Platform.OS === "android" ? { elevation: 10 } : {}),
     },
     tabBarItem: {
       flex: 1,
@@ -85,7 +94,6 @@ function MainTabNavigator() {
               paddingBottom: bottomInset,
               paddingTop: 10,
               minHeight: 52 + bottomInset,
-              ...(Platform.OS === "android" ? { elevation: 12 } : {}),
             },
           ],
           tabBarItemStyle: styles.tabBarItem,

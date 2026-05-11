@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import {
   View,
   Text,
@@ -7,22 +13,32 @@ import {
   ScrollView,
   TouchableOpacity,
   Animated,
-  useWindowDimensions,
   Modal,
+  Platform,
+  KeyboardAvoidingView,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
-import { Search, X, Trash2, Lock, Sparkles, Footprints } from "lucide-react-native";
-import { format } from "date-fns";
+import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
+import { Trash2, Lock, Sparkles, Footprints } from "lucide-react-native";
+import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
+import { useBehaviorStore } from "../store/useBehaviorStore";
+import { getActionById } from "../engine/actions";
+import { useHabitStore, type JourneyReflection } from "../store/habitStore";
 import {
-  Colors, Spacing, Radii, FontSizes,
+  Colors,
+  Spacing,
+  Radii,
+  FontSizes,
+  Shadows,
 } from "../constants/theme";
 import {
-  MIND_DUMP_ENGINE_MICROCOPY,
   MIND_DUMP_FREE_LIMIT_EXPLAIN,
   MIND_DUMP_APPROACHING_LIMIT,
 } from "../constants/purposeCopy";
@@ -44,16 +60,369 @@ const FIVE_FROM_MIND: FiveSecondScenario = {
 
 type Props = BottomTabScreenProps<MainTabParamList, "MindDump">;
 
-const WRITING_PROMPTS = [
-  "Bugün kafamı en çok meşgul eden şey…",
-  "Şu an içimden geçen ama sesli söylemediğim…",
-  "Minnettar olduğum küçük bir detay…",
-  "Yarın için tek bir net niyet…",
+const MODAL_MAX_CHARS = 500;
+const MODAL_START_PHRASES = [
+  "Bugün kafamı en çok meşgul eden şey...",
+  "Şu an içimden geçen ama sesli söylemediğim...",
+  "Minnettar olduğum küçük bir detay...",
+  "Yarın için tek bir net niyet...",
 ] as const;
 
+const PAGE_BG = "#F8FAFC";
+
+const STAGGER_MS = 100;
+const ENTRANCE_SECTIONS = 5;
+
+const cardShadow = {
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.04,
+  shadowRadius: 12,
+  elevation: 3,
+} as const;
+
+const weekDayLabels = ["pzt", "sal", "çar", "per", "cum", "cmt", "paz"] as const;
+
+function useEntranceAnims() {
+  const opacity = useRef(
+    Array.from({ length: ENTRANCE_SECTIONS }, () => new Animated.Value(0))
+  ).current;
+  const translateY = useRef(
+    Array.from({ length: ENTRANCE_SECTIONS }, () => new Animated.Value(16))
+  ).current;
+
+  useEffect(() => {
+    const perSection = opacity.map((o, i) =>
+      Animated.parallel([
+        Animated.timing(o, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY[i]!, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    Animated.stagger(STAGGER_MS, perSection).start();
+  }, [opacity, translateY]);
+
+  return { opacity, translateY };
+}
+
+function useWeekProgress(checkins: Record<string, { completed?: boolean }>) {
+  return useMemo(() => {
+    const now = new Date();
+    const monday = startOfWeek(now, { weekStartsOn: 1 });
+    const weekDates = Array.from({ length: 7 }, (_, i) =>
+      format(addDays(monday, i), "yyyy-MM-dd")
+    );
+    const doneFlags = weekDates.map((d) => checkins[d]?.completed === true);
+    const completedCount = doneFlags.filter(Boolean).length;
+    const pct = Math.round((completedCount / 7) * 100);
+    return { weekDates, doneFlags, completedCount, pct };
+  }, [checkins]);
+}
+
+function ReflectionHistoryRow({
+  item,
+  identityIcon,
+  highlightDate,
+  onAnimatedEnd,
+}: {
+  item: JourneyReflection;
+  identityIcon: string | null;
+  highlightDate: string | null;
+  onAnimatedEnd: () => void;
+}) {
+  const slide = useRef(new Animated.Value(0)).current;
+  const fade = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (highlightDate !== null && item.date === highlightDate) {
+      slide.setValue(-28);
+      fade.setValue(0);
+      Animated.parallel([
+        Animated.spring(slide, {
+          toValue: 0,
+          tension: 80,
+          friction: 12,
+          useNativeDriver: true,
+        }),
+        Animated.timing(fade, {
+          toValue: 1,
+          duration: 280,
+          useNativeDriver: true,
+        }),
+      ]).start(() => onAnimatedEnd());
+    }
+  }, [highlightDate, item.date, slide, fade, onAnimatedEnd]);
+
+  let dateLabel = item.date;
+  try {
+    dateLabel = format(parseISO(item.date), "d MMM yyyy", { locale: tr });
+  } catch {
+    /* keep raw */
+  }
+
+  return (
+    <Animated.View
+      style={[
+        styles.reflectionCard,
+        { transform: [{ translateY: slide }], opacity: fade },
+      ]}
+    >
+      <Text style={styles.reflectionDayLabel}>Gün {item.day}</Text>
+      <Text style={styles.reflectionBody}>{item.comment}</Text>
+      <View style={styles.reflectionMeta}>
+        <Text style={styles.reflectionDate}>{dateLabel}</Text>
+        {identityIcon ? <Text style={styles.reflectionIcon}>{identityIcon}</Text> : null}
+      </View>
+    </Animated.View>
+  );
+}
+
 export default function MindDumpScreen(_: Props) {
-  const { height: windowHeight } = useWindowDimensions();
-  const editorMinH = Math.round(Math.max(260, windowHeight * 0.34));
+  const currentDay = useUserStore((s) => s.dayNumber());
+
+  const journalScrollRef = useRef<ScrollView>(null);
+  const historySectionY = useRef(0);
+
+  const checkins = useCheckinsStore((s) => s.checkins);
+  const habit = useHabitStore((s) => s.habit);
+  const reflections = useHabitStore((s) => s.reflections);
+  const addJourneyReflection = useHabitStore((s) => s.addJourneyReflection);
+
+  const { weekDates, doneFlags, completedCount: weekDone, pct: weekPct } =
+    useWeekProgress(checkins);
+
+  const sortedReflections = useMemo(
+    () =>
+      [...reflections].sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+      ),
+    [reflections]
+  );
+
+  const [todayReflectionDraft, setTodayReflectionDraft] = useState("");
+  const [savingReflection, setSavingReflection] = useState(false);
+  const [highlightDate, setHighlightDate] = useState<string | null>(null);
+
+  const [mindModalOpen, setMindModalOpen] = useState(false);
+
+  const { opacity: entO, translateY: entY } = useEntranceAnims();
+
+  const canSaveToday =
+    todayReflectionDraft.trim().length > 0 && !savingReflection;
+
+  const saveTodayReflection = async () => {
+    const text = todayReflectionDraft.trim();
+    if (!text) return;
+    setSavingReflection(true);
+    try {
+      const iso = new Date().toISOString();
+      await addJourneyReflection({
+        day: currentDay,
+        comment: text,
+        date: iso,
+      });
+      setHighlightDate(iso);
+      setTodayReflectionDraft("");
+    } finally {
+      setSavingReflection(false);
+    }
+  };
+
+  const clearHighlight = useCallback(() => setHighlightDate(null), []);
+
+  const openMindDump = () => setMindModalOpen(true);
+
+  return (
+    <SafeAreaView style={styles.journalRoot} edges={["top"]}>
+      <ScrollView
+        ref={journalScrollRef}
+        style={styles.journalScroll}
+        contentContainerStyle={styles.journalScrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <Animated.View
+          style={[
+            styles.journalHeaderBlock,
+            {
+              opacity: entO[0],
+              transform: [{ translateY: entY[0]! }],
+            },
+          ]}
+        >
+          <View style={styles.journalHeaderRow}>
+            <View style={styles.journalTitleCol}>
+              <Text style={styles.journalTitle}>Zihin</Text>
+              <Text style={styles.journalSubtitle}>Yolculuk günlüğün</Text>
+              <Text style={styles.journalDayLine}>Şu an · Gün {currentDay}/66</Text>
+            </View>
+            <TouchableOpacity
+              style={[styles.yeniBtn, mindModalOpen && styles.yeniBtnDisabled]}
+              onPress={openMindDump}
+              activeOpacity={0.85}
+              disabled={mindModalOpen}
+            >
+              <Text style={[styles.yeniBtnText, mindModalOpen && styles.yeniBtnTextDisabled]}>
+                📝 Yeni
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          style={{
+            opacity: entO[1],
+            transform: [{ translateY: entY[1]! }],
+          }}
+        >
+          <View style={styles.weekCard}>
+            <Text style={styles.sectionLabelMuted}>BU HAFTA</Text>
+            <Text style={styles.weekBig}>{weekDone}/7 gün</Text>
+            <Text style={styles.weekPct}>%{weekPct} tamamlandı</Text>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFillClip, { width: `${weekPct}%` }]}>
+                <LinearGradient
+                  colors={["#34D399", "#10B981"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.progressGradient}
+                />
+              </View>
+            </View>
+            <View style={styles.weekDotsRow}>
+              {weekDayLabels.map((lbl, i) => (
+                <View key={weekDates[i]} style={styles.weekDayCol}>
+                  <View
+                    style={[
+                      styles.weekDot,
+                      doneFlags[i] ? styles.weekDotOn : styles.weekDotOff,
+                    ]}
+                  />
+                  <Text style={styles.weekDayText}>{lbl}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          style={{
+            opacity: entO[2],
+            transform: [{ translateY: entY[2]! }],
+          }}
+        >
+          <View style={styles.todayCard}>
+            <Text style={styles.sectionLabelMuted}>BUGÜNÜN YANSIMASI</Text>
+            <TextInput
+              style={styles.todayInput}
+              value={todayReflectionDraft}
+              onChangeText={setTodayReflectionDraft}
+              placeholder="Bugün için bir cümle yaz..."
+              placeholderTextColor="#94A3B8"
+              multiline
+              textAlignVertical="top"
+            />
+            <TouchableOpacity
+              style={[styles.saveTodayBtn, !canSaveToday && styles.saveTodayBtnDisabled]}
+              onPress={() => void saveTodayReflection()}
+              disabled={!canSaveToday}
+              activeOpacity={0.85}
+            >
+              <Text
+                style={[
+                  styles.saveTodayBtnText,
+                  !canSaveToday && styles.saveTodayBtnTextDisabled,
+                ]}
+              >
+                Kaydet
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+
+        <Animated.View
+          onLayout={(e) => {
+            historySectionY.current = e.nativeEvent.layout.y;
+          }}
+          style={{
+            opacity: entO[3],
+            transform: [{ translateY: entY[3]! }],
+          }}
+        >
+          <View style={styles.historyHeaderRow}>
+            <Text style={styles.sectionLabelMuted}>GEÇMİŞ YANSIMA</Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                const y = Math.max(0, historySectionY.current - 12);
+                journalScrollRef.current?.scrollTo({ y, animated: true });
+              }}
+            >
+              <Text style={styles.tumuLink}>Tümü →</Text>
+            </TouchableOpacity>
+          </View>
+          {sortedReflections.length === 0 ? (
+            <Text style={styles.emptyReflections}>
+              Henüz yansıma yok. İlk yansımanı bugün yaz.
+            </Text>
+          ) : (
+            <View style={styles.reflectionListWrap}>
+              {sortedReflections.map((item) => (
+              <ReflectionHistoryRow
+                key={`${item.date}-${item.day}-${item.comment.slice(0, 12)}`}
+                item={item}
+                identityIcon={habit?.identityIcon ?? null}
+                highlightDate={highlightDate}
+                onAnimatedEnd={clearHighlight}
+              />
+            ))}
+            </View>
+          )}
+        </Animated.View>
+
+        <Animated.View
+          style={{
+            opacity: entO[4],
+            transform: [{ translateY: entY[4]! }],
+          }}
+        >
+          <TouchableOpacity
+            style={styles.mindDumpPromo}
+            onPress={openMindDump}
+            activeOpacity={0.88}
+          >
+            <Ionicons name="leaf" size={24} color="#10B981" style={styles.mindDumpIcon} />
+            <Text style={styles.mindDumpTitle}>Zihin Boşalt</Text>
+            <Text style={styles.mindDumpDesc}>
+              Stres, uyku öncesi veya kafa doluyken — yazdığın sadece bu cihazda kalır.
+            </Text>
+            <Text style={styles.mindDumpCta}>Başla →</Text>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <View style={{ height: 32 }} />
+      </ScrollView>
+
+      <MindDumpLegacyModal visible={mindModalOpen} onClose={() => setMindModalOpen(false)} />
+    </SafeAreaView>
+  );
+}
+
+/** Zihin Boşalt — alt sayfa modal; otomatik kayıt + manuel Kaydet aynı mantık. */
+function MindDumpLegacyModal({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
   const { entries, load, createEntry, updateEntry, deleteEntry } = useMindDumpStore();
   const profile = useUserStore((s) => s.profile);
   const isPremium = profile?.isPremium ?? false;
@@ -61,39 +430,40 @@ export default function MindDumpScreen(_: Props) {
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [text, setText] = useState("");
   const [savingLabel, setSavingLabel] = useState<"" | "kaydediliyor..." | "kaydedildi">("");
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showGate, setShowGate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MindDumpEntry | null>(null);
   const [journeyOnly, setJourneyOnly] = useState(false);
   const [reflection, setReflection] = useState<MindDumpReflectionState | null>(null);
   const [showFiveSecond, setShowFiveSecond] = useState(false);
-  const searchAnim = useRef(new Animated.Value(0)).current;
+  const [inputFocused, setInputFocused] = useState(false);
+  const [selectedPromptIdx, setSelectedPromptIdx] = useState<number | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    void load();
+  }, []);
 
-  // ─── Auto-save with 2-second debounce ──────────────────────────────────
-
-  const triggerAutoSave = useCallback(
-    (value: string, id: string | null) => {
-      if (saveTimer.current) clearTimeout(saveTimer.current);
+  const runPersist = useCallback(
+    async (raw: string, id: string | null) => {
+      if (!raw.trim()) {
+        setSavingLabel("");
+        return;
+      }
+      const v = raw.trim();
       setSavingLabel("kaydediliyor...");
-      saveTimer.current = setTimeout(async () => {
-        if (!value.trim()) {
-          setSavingLabel("");
-          return;
-        }
-        const v = value.trim();
+      try {
         if (id) {
           await updateEntry(id, v);
-          setSavingLabel("kaydedildi");
         } else {
           const { entry, hitLimit } = await createEntry(v);
           setCurrentId(entry.id);
-          setSavingLabel("kaydedildi");
           if (hitLimit && !isPremium) setShowGate(true);
+          const mindAction = getActionById("tpl-clear-mind-write");
+          if (mindAction) {
+            void useBehaviorStore.getState().recordAction(mindAction);
+          }
         }
+        setSavingLabel("kaydedildi");
         const latest = useMindDumpStore.getState().entries;
         const chk = useCheckinsStore.getState().checkins;
         const prof = useUserStore.getState().profile;
@@ -101,46 +471,53 @@ export default function MindDumpScreen(_: Props) {
           const ref = buildMindDumpReflection(v, latest, chk, prof.habitName, prof.startDate);
           setReflection(ref.showBanner ? ref : null);
         }
-        setTimeout(() => setSavingLabel(""), 1500);
-      }, 2000);
+      } catch {
+        setSavingLabel("");
+        return;
+      }
+      setTimeout(() => setSavingLabel(""), 1500);
     },
     [createEntry, updateEntry, isPremium]
   );
 
+  const triggerAutoSave = useCallback(
+    (value: string, id: string | null) => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      setSavingLabel("kaydediliyor...");
+      saveTimer.current = setTimeout(() => {
+        void runPersist(value, id);
+      }, 2000);
+    },
+    [runPersist]
+  );
+
   const handleTextChange = (value: string) => {
-    setText(value);
-    triggerAutoSave(value, currentId);
+    const next = value.slice(0, MODAL_MAX_CHARS);
+    setText(next);
+    setSelectedPromptIdx(null);
+    triggerAutoSave(next, currentId);
   };
 
-  const appendPrompt = (prompt: string) => {
-    const next = text.trim()
-      ? `${text.trim()}\n\n${prompt} `
-      : `${prompt} `;
+  const applyStartPhrase = (phrase: string, idx: number) => {
+    setSelectedPromptIdx(idx);
+    const nextBase = text.trim()
+      ? `${text.trim()}\n\n${phrase} `
+      : `${phrase} `;
+    const next = nextBase.slice(0, MODAL_MAX_CHARS);
     setText(next);
     triggerAutoSave(next, currentId);
   };
 
-  const handleNewEntry = () => {
-    if (!isPremium && entries.length >= 10) {
-      setShowGate(true);
-      return;
+  const handleManualSave = () => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current);
+      saveTimer.current = null;
     }
-    setText("");
-    setCurrentId(null);
-    setSavingLabel("");
-    setReflection(null);
-    if (saveTimer.current) clearTimeout(saveTimer.current);
+    void runPersist(text, currentId);
   };
 
   const handleDelete = (entry: MindDumpEntry) => {
     setDeleteTarget(entry);
-  };
-
-  const toggleSearch = () => {
-    const toValue = searchVisible ? 0 : 1;
-    Animated.timing(searchAnim, { toValue, duration: 250, useNativeDriver: false }).start();
-    setSearchVisible(!searchVisible);
-    if (searchVisible) setSearchQuery("");
   };
 
   const journeyMindCount = useMemo(
@@ -149,203 +526,206 @@ export default function MindDumpScreen(_: Props) {
   );
 
   const filtered = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
-    const searched = q
-      ? entries.filter((e) => e.content.toLowerCase().includes(q))
-      : entries;
     if (journeyOnly && journeyMindCount > 0) {
-      return searched.filter((e) => isJourneyMindContent(e.content));
+      return entries.filter((e) => isJourneyMindContent(e.content));
     }
-    return searched;
-  }, [entries, searchQuery, journeyOnly, journeyMindCount]);
+    return entries;
+  }, [entries, journeyOnly, journeyMindCount]);
 
-  const searchHeight = searchAnim.interpolate({
-    inputRange: [0, 1], outputRange: [0, 52],
-  });
+  const headerDate = format(new Date(), "d MMMM yyyy, EEEE", { locale: tr });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <View style={styles.headerTitleBlock}>
-            <Text style={styles.headerTitle}>Zihin Boşalt</Text>
-            <Text style={styles.headerSubtitle}>
-              Stres, uyku öncesi veya kafa doluyken bile — yazdığın sadece bu cihazda kalır.
-            </Text>
-            {savingLabel ? (
-              <Text style={[styles.saveLabel, styles.saveLabelBelow]}>{savingLabel}</Text>
-            ) : null}
-          </View>
-        </View>
-        <View style={styles.headerRight}>
-          <TouchableOpacity style={styles.headerBtn} onPress={toggleSearch}>
-            {searchVisible
-              ? <X size={18} color={Colors.textSecondary} strokeWidth={1.5} />
-              : <Search size={18} color={Colors.textSecondary} strokeWidth={1.5} />}
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.newBtn} onPress={handleNewEntry}>
-            <Text style={styles.newBtnText}>+ Yeni</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Search bar (animated height) */}
-      <Animated.View style={[styles.searchBar, { height: searchHeight }]}>
-        <TextInput
-          style={styles.searchInput}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          placeholder="Notlarda ara..."
-          placeholderTextColor={Colors.textTertiary}
-          returnKeyType="search"
-        />
-      </Animated.View>
-
-      <ScrollView
-        contentContainerStyle={[styles.scroll, { backgroundColor: Colors.bg }]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={mindModalStyles.kbRoot}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {/* Current-session editor */}
-        <View style={styles.editorSection}>
-          {!isPremium && entries.length >= 8 && entries.length < 10 && (
-            <View style={styles.approachingBanner}>
-              <Text style={styles.approachingText}>{MIND_DUMP_APPROACHING_LIMIT}</Text>
-            </View>
-          )}
-          <Text style={styles.editorDate}>
-            {format(new Date(), "d MMMM yyyy, EEEE", { locale: tr })}
-          </Text>
-          <Text style={styles.editorHint}>
-            Yazmayı bıraktığında birkaç saniye içinde otomatik kaydedilir — gün özeti de olsa,
-            boşalmak için de olsa kullanır. Sadece bu cihazda; kimse okumaz.
-          </Text>
-          <Text style={styles.editorEngine}>{MIND_DUMP_ENGINE_MICROCOPY}</Text>
-          <TextInput
-            style={[styles.editor, { minHeight: editorMinH }]}
-            value={text}
-            onChangeText={handleTextChange}
-            placeholder="Aklına ne gelirse yaz. Kimse okumayacak. Yargılanmayacaksın."
-            placeholderTextColor={Colors.textTertiary}
-            multiline
-            textAlignVertical="top"
-            autoCorrect={false}
-          />
-          {reflection?.showBanner ? (
-            <View style={styles.reflectionBanner}>
-              <View style={styles.reflectionIconRow}>
-                <Sparkles size={20} color="#C0392B" strokeWidth={1.8} />
-                <Text style={styles.reflectionTitle}>{reflection.bannerTitle}</Text>
-              </View>
-              <Text style={styles.reflectionBody}>{reflection.bannerBody}</Text>
-              {reflection.quote ? (
-                <Text style={styles.reflectionQuote}>{reflection.quote}</Text>
-              ) : null}
+        <View style={mindModalStyles.overlay}>
+          <Pressable style={mindModalStyles.backdrop} onPress={onClose} />
+          <SafeAreaView edges={["bottom"]} style={mindModalStyles.sheetOuter}>
+            <View style={mindModalStyles.sheet}>
               <TouchableOpacity
-                style={styles.reflectionCta}
-                onPress={() => setShowFiveSecond(true)}
-                activeOpacity={0.88}
+                style={mindModalStyles.closeBtn}
+                onPress={onClose}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                accessibilityLabel="Kapat"
               >
-                <Text style={styles.reflectionCtaText}>5 saniye kuralı ile devam et?</Text>
+                <Ionicons name="close" size={24} color="#64748B" />
               </TouchableOpacity>
-            </View>
-          ) : null}
-        </View>
 
-        {entries.length === 0 && !searchQuery.trim() && (
-          <View style={styles.emptyPanel}>
-            <View style={styles.emptyIconWrap}>
-              <Sparkles size={22} color={Colors.primary} strokeWidth={1.8} />
-            </View>
-            <Text style={styles.emptyTitle}>Başlamak için bir cümle yeter</Text>
-            <Text style={styles.emptyBody}>
-              Stres, yoğun gün uyku öncesi veya kafanın fazla yüklendiği anlar için. Bir cümleyle başla;
-              yazdıkça genelde daha hafif hissedilir.
-            </Text>
-            <Text style={styles.promptsLabel}>Bir başlangıç cümlesi seç (veya kendi cümleni yaz)</Text>
-            <View style={styles.promptChips}>
-              {WRITING_PROMPTS.map((p) => (
-                <TouchableOpacity
-                  key={p}
-                  style={styles.promptChip}
-                  onPress={() => appendPrompt(p)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.promptChipText}>{p}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Past entries */}
-        {filtered.length > 0 && (
-          <View style={styles.historySection}>
-            <Text style={styles.historyLabel}>
-              Önceki notlar
-              {!isPremium ? ` (${entries.length}/10)` : ""}
-            </Text>
-            <Text style={styles.historyHint}>
-              Açmak için dokun. Silmek için satıra uzun bas, sonra çöp kutusuna dokun.
-            </Text>
-            {journeyMindCount > 0 ? (
-              <TouchableOpacity
-                style={[styles.filterChip, journeyOnly && styles.filterChipOn]}
-                onPress={() => setJourneyOnly((v) => !v)}
-                activeOpacity={0.85}
+              <ScrollView
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={mindModalStyles.scrollContent}
+                bounces={false}
               >
-                <Footprints size={14} color={journeyOnly ? Colors.primaryDark : Colors.textSecondary} strokeWidth={2} />
-                <Text style={[styles.filterChipText, journeyOnly && styles.filterChipTextOn]}>
-                  Sadece Yolculuk ({journeyMindCount})
+                <View style={mindModalStyles.handleWrap}>
+                  <View style={mindModalStyles.handle} />
+                </View>
+
+                <Text style={mindModalStyles.modalTitle}>📝 Zihin Boşalt</Text>
+                <Text style={mindModalStyles.modalSubtitle}>Yaz, kaydet, rahatla</Text>
+                <Text style={mindModalStyles.modalDate}>{headerDate}</Text>
+
+                {!isPremium && entries.length >= 8 && entries.length < 10 ? (
+                  <View style={[legacyStyles.approachingBanner, mindModalStyles.bannerMargin]}>
+                    <Text style={legacyStyles.approachingText}>{MIND_DUMP_APPROACHING_LIMIT}</Text>
+                  </View>
+                ) : null}
+
+                <TextInput
+                  style={[
+                    mindModalStyles.textInput,
+                    inputFocused && mindModalStyles.textInputFocused,
+                  ]}
+                  value={text}
+                  onChangeText={handleTextChange}
+                  placeholder="Aklına ne gelirse yaz. Kimse okumayacak. Yargılanmayacaksın."
+                  placeholderTextColor="#94A3B8"
+                  multiline
+                  textAlignVertical="top"
+                  autoCorrect={false}
+                  onFocus={() => setInputFocused(true)}
+                  onBlur={() => setInputFocused(false)}
+                  maxLength={MODAL_MAX_CHARS}
+                />
+
+                <View style={mindModalStyles.saveRow}>
+                  <Text style={mindModalStyles.charCount}>
+                    {text.length}/{MODAL_MAX_CHARS}
+                  </Text>
+                  <TouchableOpacity
+                    style={[
+                      mindModalStyles.saveBtn,
+                      !text.trim() && mindModalStyles.saveBtnDisabled,
+                    ]}
+                    onPress={handleManualSave}
+                    disabled={!text.trim()}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={mindModalStyles.saveBtnText}>Kaydet</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {savingLabel ? (
+                  <Text style={mindModalStyles.savingHint}>{savingLabel}</Text>
+                ) : null}
+
+                <View style={mindModalStyles.promptsBlock}>
+                  <Text style={mindModalStyles.promptsLabel}>💡 BAŞLANGIÇ CÜMLELERİ</Text>
+                  {MODAL_START_PHRASES.map((phrase, idx) => (
+                    <TouchableOpacity
+                      key={phrase}
+                      style={[
+                        mindModalStyles.promptCard,
+                        selectedPromptIdx === idx && mindModalStyles.promptCardSelected,
+                      ]}
+                      onPress={() => applyStartPhrase(phrase, idx)}
+                      activeOpacity={0.88}
+                    >
+                      <Text style={mindModalStyles.promptCardText}>{phrase}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+
+                <Text style={mindModalStyles.footerNote}>
+                  🕐 Yazmayı bıraktığında birkaç saniye içinde otomatik kaydedilir.
                 </Text>
-              </TouchableOpacity>
-            ) : null}
-            {filtered.map((entry) => (
-              <EntryRow
-                key={entry.id}
-                entry={entry}
-                active={currentId === entry.id}
-                onSelect={() => {
-                  setText(entry.content);
-                  setCurrentId(entry.id);
-                }}
-                onDelete={() => handleDelete(entry)}
-              />
-            ))}
-          </View>
-        )}
 
-        {/* Free limit banner */}
-        {!isPremium && entries.length >= 10 && (
-          <TouchableOpacity
-            style={styles.limitCard}
-            onPress={() => setShowGate(true)}
-          >
-            <Lock size={18} color={Colors.coral} strokeWidth={1.5} />
-            <Text style={styles.limitText}>
-              {MIND_DUMP_FREE_LIMIT_EXPLAIN}
-            </Text>
-          </TouchableOpacity>
-        )}
+                {reflection?.showBanner ? (
+                  <View style={[legacyStyles.reflectionBanner, mindModalStyles.reflectionMargin]}>
+                    <View style={legacyStyles.reflectionIconRow}>
+                      <Sparkles size={20} color="#C0392B" strokeWidth={1.8} />
+                      <Text style={legacyStyles.reflectionTitle}>{reflection.bannerTitle}</Text>
+                    </View>
+                    <Text style={legacyStyles.reflectionBody}>{reflection.bannerBody}</Text>
+                    {reflection.quote ? (
+                      <Text style={legacyStyles.reflectionQuote}>{reflection.quote}</Text>
+                    ) : null}
+                    <TouchableOpacity
+                      style={legacyStyles.reflectionCta}
+                      onPress={() => setShowFiveSecond(true)}
+                      activeOpacity={0.88}
+                    >
+                      <Text style={legacyStyles.reflectionCtaText}>5 saniye kuralı ile devam et?</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : null}
 
-        {searchQuery.trim() && filtered.length === 0 && entries.length > 0 ? (
-          <Text style={styles.searchEmpty}>“{searchQuery}” için sonuç yok.</Text>
-        ) : null}
-        {!searchQuery.trim() && journeyOnly && filtered.length === 0 && entries.length > 0 ? (
-          <Text style={styles.searchEmpty}>
-            Aradığın Yolculuk satırı yok; filtreyi kapatıp tüm notlara dönebilirsin.
-          </Text>
-        ) : null}
+                {filtered.length > 0 ? (
+                  <View style={[legacyStyles.historySection, mindModalStyles.historyMargin]}>
+                    <Text style={legacyStyles.historyLabel}>
+                      Önceki notlar
+                      {!isPremium ? ` (${entries.length}/10)` : ""}
+                    </Text>
+                    <Text style={legacyStyles.historyHint}>
+                      Açmak için dokun. Silmek için satıra uzun bas, sonra çöp kutusuna dokun.
+                    </Text>
+                    {journeyMindCount > 0 ? (
+                      <TouchableOpacity
+                        style={[legacyStyles.filterChip, journeyOnly && legacyStyles.filterChipOn]}
+                        onPress={() => setJourneyOnly((v) => !v)}
+                        activeOpacity={0.85}
+                      >
+                        <Footprints
+                          size={14}
+                          color={journeyOnly ? Colors.primaryDark : Colors.textSecondary}
+                          strokeWidth={2}
+                        />
+                        <Text
+                          style={[legacyStyles.filterChipText, journeyOnly && legacyStyles.filterChipTextOn]}
+                        >
+                          Sadece Yolculuk ({journeyMindCount})
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                    {filtered.map((entry) => (
+                      <LegacyEntryRow
+                        key={entry.id}
+                        entry={entry}
+                        active={currentId === entry.id}
+                        onSelect={() => {
+                          const c = entry.content.slice(0, MODAL_MAX_CHARS);
+                          setText(c);
+                          setCurrentId(entry.id);
+                          setSelectedPromptIdx(null);
+                        }}
+                        onDelete={() => handleDelete(entry)}
+                      />
+                    ))}
+                  </View>
+                ) : null}
 
-        <View style={{ height: Spacing.xl }} />
-      </ScrollView>
+                {!isPremium && entries.length >= 10 ? (
+                  <TouchableOpacity
+                    style={[legacyStyles.limitCard, mindModalStyles.limitCardMargin]}
+                    onPress={() => setShowGate(true)}
+                  >
+                    <Lock size={18} color={Colors.coral} strokeWidth={1.5} />
+                    <Text style={legacyStyles.limitText}>{MIND_DUMP_FREE_LIMIT_EXPLAIN}</Text>
+                  </TouchableOpacity>
+                ) : null}
+
+                {journeyOnly && filtered.length === 0 && entries.length > 0 ? (
+                  <Text style={legacyStyles.searchEmpty}>
+                    Aradığın Yolculuk satırı yok; filtreyi kapatıp tüm notlara dönebilirsin.
+                  </Text>
+                ) : null}
+              </ScrollView>
+            </View>
+          </SafeAreaView>
+        </View>
+      </KeyboardAvoidingView>
 
       <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
-        <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
+        <SafeAreaView style={legacyStyles.trainerRoot} edges={["top", "bottom"]}>
           <FiveSecondTrainer
             scenario={FIVE_FROM_MIND}
             onComplete={async (_s, _ms, reward) => {
+              const micro = getActionById("deep-breath");
+              if (micro) {
+                await useBehaviorStore.getState().recordAction(micro);
+              }
               if (reward && profile) {
                 await useUserStore.getState().addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);
               }
@@ -356,11 +736,7 @@ export default function MindDumpScreen(_: Props) {
         </SafeAreaView>
       </Modal>
 
-      <PremiumGateModal
-        visible={showGate}
-        onClose={() => setShowGate(false)}
-        trigger="minddump"
-      />
+      <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="minddump" />
 
       <ConfirmDialog
         visible={deleteTarget !== null}
@@ -390,20 +766,18 @@ export default function MindDumpScreen(_: Props) {
           },
         ]}
       />
-    </SafeAreaView>
+    </Modal>
   );
 }
 
-// ─── Entry row with long-press swipe to reveal delete ─────────────────────
-
-interface EntryRowProps {
+interface LegacyEntryRowProps {
   entry: MindDumpEntry;
   active: boolean;
   onSelect: () => void;
   onDelete: () => void;
 }
 
-function EntryRow({ entry, active, onSelect, onDelete }: EntryRowProps) {
+function LegacyEntryRow({ entry, active, onSelect, onDelete }: LegacyEntryRowProps) {
   const translateX = useRef(new Animated.Value(0)).current;
   const [swiped, setSwiped] = useState(false);
   const fromJourney = isJourneyMindContent(entry.content);
@@ -411,7 +785,10 @@ function EntryRow({ entry, active, onSelect, onDelete }: EntryRowProps) {
   const handleSwipe = () => {
     const toValue = swiped ? 0 : -72;
     Animated.spring(translateX, {
-      toValue, useNativeDriver: true, speed: 20, bounciness: 4,
+      toValue,
+      useNativeDriver: true,
+      speed: 20,
+      bounciness: 4,
     }).start();
     setSwiped(!swiped);
   };
@@ -422,7 +799,6 @@ function EntryRow({ entry, active, onSelect, onDelete }: EntryRowProps) {
 
   return (
     <View style={entryS.wrap}>
-      {/* Revealed delete button */}
       <TouchableOpacity style={entryS.deleteArea} onPress={onDelete}>
         <Trash2 size={18} color="#fff" strokeWidth={1.5} />
       </TouchableOpacity>
@@ -460,7 +836,9 @@ const entryS = StyleSheet.create({
   },
   deleteArea: {
     position: "absolute",
-    right: 0, top: 0, bottom: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
     width: 72,
     backgroundColor: Colors.coral,
     alignItems: "center",
@@ -472,6 +850,7 @@ const entryS = StyleSheet.create({
     borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: Colors.border,
+    ...Shadows.soft,
   },
   rowActive: {
     borderColor: Colors.primary,
@@ -520,50 +899,462 @@ const entryS = StyleSheet.create({
 });
 
 const styles = StyleSheet.create({
+  journalRoot: {
+    flex: 1,
+    backgroundColor: PAGE_BG,
+  },
+  journalScroll: {
+    flex: 1,
+    backgroundColor: PAGE_BG,
+  },
+  journalScrollContent: {
+    paddingBottom: Spacing.lg,
+  },
+  journalHeaderBlock: {
+    paddingHorizontal: 16,
+    paddingTop: Spacing.sm,
+  },
+  journalHeaderRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  journalTitleCol: {
+    flex: 1,
+    marginRight: 12,
+  },
+  journalTitle: {
+    fontSize: 26,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  journalSubtitle: {
+    fontSize: 14,
+    color: "#64748B",
+    marginTop: 4,
+  },
+  journalDayLine: {
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 2,
+    fontWeight: "600",
+  },
+  yeniBtn: {
+    backgroundColor: "#ECFDF5",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  yeniBtnDisabled: {
+    opacity: 0.45,
+  },
+  yeniBtnText: {
+    color: "#059669",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  yeniBtnTextDisabled: {
+    color: "#059669",
+  },
+  sectionLabelMuted: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  weekCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    ...cardShadow,
+  },
+  weekBig: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  weekPct: {
+    fontSize: 13,
+    color: "#059669",
+    fontWeight: "600",
+    marginTop: 4,
+    marginBottom: 12,
+  },
+  progressTrack: {
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: "#E2E8F0",
+    overflow: "hidden",
+  },
+  progressFillClip: {
+    height: "100%",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  progressGradient: {
+    flex: 1,
+    height: "100%",
+  },
+  weekDotsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+    paddingHorizontal: 2,
+  },
+  weekDayCol: {
+    alignItems: "center",
+    flex: 1,
+  },
+  weekDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginBottom: 6,
+  },
+  weekDotOn: {
+    backgroundColor: "#10B981",
+  },
+  weekDotOff: {
+    backgroundColor: "#E2E8F0",
+  },
+  weekDayText: {
+    fontSize: 10,
+    color: "#64748B",
+    textTransform: "lowercase",
+  },
+  todayCard: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    ...cardShadow,
+  },
+  todayInput: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    padding: 12,
+    minHeight: 80,
+    fontSize: 15,
+    color: "#0F172A",
+    backgroundColor: "#FFFFFF",
+    marginBottom: 12,
+  },
+  saveTodayBtn: {
+    alignSelf: "flex-end",
+    backgroundColor: "#10B981",
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  saveTodayBtnDisabled: {
+    backgroundColor: "#A7F3D0",
+  },
+  saveTodayBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+    fontSize: 14,
+  },
+  saveTodayBtnTextDisabled: {
+    color: "#ECFDF5",
+  },
+  historyHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  tumuLink: {
+    color: "#10B981",
+    fontWeight: "600",
+    fontSize: 13,
+  },
+  reflectionListWrap: {
+    marginTop: 8,
+  },
+  emptyReflections: {
+    textAlign: "center",
+    color: "#94A3B8",
+    marginTop: 20,
+    marginHorizontal: 24,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  reflectionCard: {
+    marginHorizontal: 16,
+    marginTop: 0,
+    marginBottom: 10,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 14,
+    borderLeftWidth: 3,
+    borderLeftColor: "#10B981",
+    ...cardShadow,
+  },
+  reflectionDayLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#059669",
+    marginBottom: 6,
+  },
+  reflectionBody: {
+    fontSize: 14,
+    color: "#334155",
+    lineHeight: 20,
+  },
+  reflectionMeta: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  reflectionDate: {
+    fontSize: 12,
+    color: "#94A3B8",
+  },
+  reflectionIcon: {
+    fontSize: 16,
+  },
+  mindDumpPromo: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
+    backgroundColor: "#F0FDF4",
+    borderRadius: 16,
+    padding: 16,
+  },
+  mindDumpIcon: {
+    marginBottom: 8,
+  },
+  mindDumpTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#065F46",
+    marginBottom: 6,
+  },
+  mindDumpDesc: {
+    fontSize: 13,
+    color: "#059669",
+    lineHeight: 19,
+    marginBottom: 10,
+  },
+  mindDumpCta: {
+    color: "#059669",
+    fontWeight: "600",
+    fontSize: 14,
+  },
+});
+
+const mindModalStyles = StyleSheet.create({
+  kbRoot: { flex: 1 },
+  overlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+  },
+  sheetOuter: {
+    maxHeight: "90%",
+    width: "100%",
+  },
+  sheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingBottom: 20,
+    maxHeight: "100%",
+    position: "relative",
+    ...Platform.select({
+      android: { elevation: 12 },
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 16,
+      },
+    }),
+  },
+  closeBtn: {
+    position: "absolute",
+    top: 16,
+    right: 16,
+    zIndex: 10,
+  },
+  scrollContent: {
+    paddingBottom: 24,
+  },
+  handleWrap: {
+    alignItems: "center",
+    marginTop: 8,
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#CBD5E1",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#0F172A",
+    textAlign: "center",
+    marginTop: 12,
+    paddingHorizontal: 48,
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    marginTop: 4,
+    paddingHorizontal: 24,
+  },
+  modalDate: {
+    fontSize: 12,
+    color: "#94A3B8",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  bannerMargin: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  textInput: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    minHeight: 150,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#FAFAFA",
+    padding: 16,
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#334155",
+  },
+  textInputFocused: {
+    borderColor: "#10B981",
+    backgroundColor: "#FFFFFF",
+  },
+  saveRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  charCount: {
+    fontSize: 11,
+    color: "#94A3B8",
+  },
+  saveBtn: {
+    backgroundColor: "#10B981",
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  saveBtnDisabled: {
+    opacity: 0.45,
+  },
+  saveBtnText: {
+    color: "#FFFFFF",
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  savingHint: {
+    textAlign: "center",
+    fontSize: 12,
+    color: "#94A3B8",
+    marginTop: 6,
+  },
+  promptsBlock: {
+    marginHorizontal: 16,
+    marginTop: 20,
+  },
+  promptsLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    marginBottom: 10,
+  },
+  promptCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 8,
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+  },
+  promptCardSelected: {
+    borderColor: "#10B981",
+    backgroundColor: "#ECFDF5",
+  },
+  promptCardText: {
+    fontSize: 14,
+    color: "#475569",
+    fontStyle: "italic",
+  },
+  footerNote: {
+    marginTop: 16,
+    marginBottom: 20,
+    textAlign: "center",
+    fontSize: 12,
+    color: "#94A3B8",
+    paddingHorizontal: 20,
+  },
+  reflectionMargin: {
+    marginHorizontal: 16,
+  },
+  historyMargin: {
+    marginHorizontal: 16,
+    marginTop: 8,
+  },
+  limitCardMargin: {
+    marginHorizontal: 16,
+  },
+});
+
+const legacyStyles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  header: {
+  modalHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Colors.border,
   },
-  headerLeft: {
-    flex: 1,
-    marginRight: Spacing.sm,
-  },
-  headerTitleBlock: {
-    gap: 4,
-  },
-  headerTitle: {
-    fontSize: FontSizes.xl,
-    fontFamily: "Inter_500Medium",
+  modalHeaderLeft: { flex: 1, marginRight: Spacing.sm },
+  modalHeaderTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
     color: Colors.textPrimary,
   },
-  headerSubtitle: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    lineHeight: 18,
-    marginTop: 2,
-  },
-  saveLabel: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-  },
-  saveLabelBelow: {
-    marginTop: 4,
-  },
-  headerRight: {
+  modalHeaderRight: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.sm,
-    paddingTop: 2,
+  },
+  saveLabelBelow: {
+    marginTop: 4,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
   headerBtn: {
-    width: 34, height: 34,
+    width: 34,
+    height: 34,
     borderRadius: Radii.button,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -594,10 +1385,11 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textPrimary,
     marginTop: Spacing.xs,
+    ...Shadows.soft,
   },
   scroll: {
     paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.lg,
   },
   editorSection: { marginBottom: Spacing.lg },
@@ -608,6 +1400,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(212, 160, 23, 0.35)",
     padding: Spacing.md,
     marginBottom: Spacing.md,
+    ...Shadows.soft,
   },
   approachingText: {
     fontSize: FontSizes.sm,
@@ -650,6 +1443,7 @@ const styles = StyleSheet.create({
     color: Colors.textPrimary,
     lineHeight: 28,
     textAlignVertical: "top",
+    ...Shadows.soft,
   },
   reflectionBanner: {
     marginTop: Spacing.md,
@@ -659,6 +1453,7 @@ const styles = StyleSheet.create({
     borderColor: "rgba(230, 126, 34, 0.35)",
     padding: Spacing.md,
     gap: Spacing.sm,
+    ...Shadows.soft,
   },
   reflectionIconRow: {
     flexDirection: "row",
@@ -697,7 +1492,7 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: "#fff",
   },
-  trainerRoot: { flex: 1, backgroundColor: "#1a1a2e" },
+  trainerRoot: { flex: 1, backgroundColor: "#141C26" },
   emptyPanel: {
     backgroundColor: Colors.primaryLight,
     borderRadius: Radii.card,
@@ -706,6 +1501,7 @@ const styles = StyleSheet.create({
     padding: Spacing.lg,
     marginBottom: Spacing.xl,
     gap: Spacing.sm,
+    ...Shadows.soft,
   },
   emptyIconWrap: {
     width: 44,

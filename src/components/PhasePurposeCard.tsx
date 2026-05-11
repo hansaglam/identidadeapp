@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Colors, Radii, Spacing, FontSizes, JOURNEY_PHASES } from "../constants/theme";
+import { Colors, Radii, Spacing, FontSizes, JOURNEY_PHASES, Shadows } from "../constants/theme";
 import {
   PHASE_ONE_IDEA,
   phaseIdFromDay,
@@ -35,9 +35,10 @@ const styles = StyleSheet.create({
     borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: Colors.border,
-    borderLeftWidth: 4,
+    borderLeftWidth: 3,
     padding: Spacing.md,
     marginBottom: Spacing.md,
+    ...Shadows.soft,
   },
   kicker: {
     fontSize: FontSizes.sm,

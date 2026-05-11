@@ -12,7 +12,8 @@ import { ArrowRight } from "lucide-react-native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import {
-  Colors, Spacing, Radii, FontSizes, FontWeights,
+  Colors, Spacing, Radii, FontSizes,
+  Shadows,
 } from "../constants/theme";
 import {
   APP_PROMISE_WELCOME_HEADLINE,
@@ -116,6 +117,7 @@ const styles = StyleSheet.create({
     borderRadius: Radii.pill,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
+    ...Shadows.soft,
   },
   brandText: {
     fontSize: FontSizes.sm,
@@ -148,6 +150,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.md,
     paddingVertical: 6,
     backgroundColor: Colors.surface,
+    ...Shadows.soft,
   },
   tagText: {
     fontSize: FontSizes.xs,
@@ -170,6 +173,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
+    ...Shadows.card,
   },
   ctaText: {
     fontSize: FontSizes.lg,

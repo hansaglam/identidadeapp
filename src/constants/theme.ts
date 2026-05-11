@@ -1,4 +1,9 @@
-/** Uygulama tek açık (light) renk kümesini kullanır. */
+/**
+ * Görsel dil: sakin, premium (TIDE benzeri derinlik) + kimlik/disiplin markası.
+ * Tek açık tema (light); tüm ekranlar Colors / Shadows / Radii üzerinden hizalanır.
+ */
+
+import { Platform, ViewStyle } from "react-native";
 
 export interface AppColors {
   primary: string;
@@ -10,8 +15,12 @@ export interface AppColors {
   coralLight: string;
   gold: string;
   goldLight: string;
+  /** Ana ekran arka planı — hafif soğuk gri-mavi */
   bg: string;
+  /** Kart / modal yüzeyi */
   surface: string;
+  /** İkincil bloklar (satır arka planı, çok hafif vurgu) */
+  surfaceMuted: string;
   border: string;
   borderStrong: string;
   textPrimary: string;
@@ -20,44 +29,74 @@ export interface AppColors {
   success: string;
   error: string;
   overlay: string;
+  /** Yumuşak nötr CTA arka planı (Tide-benzeri slate) */
+  ink: string;
+  inkMuted: string;
 }
 
 export const Colors: AppColors = {
-  primary: "#1D9E75",
-  primaryLight: "#E1F5EE",
-  primaryDark: "#0F6E56",
-  purple: "#534AB7",
-  purpleLight: "#EEEDFE",
-  coral: "#D85A30",
-  coralLight: "#FAECE7",
-  gold: "#D4A017",
-  goldLight: "#FDF3D9",
-  bg: "#FAFAF9",
+  primary: "#2F9C86",
+  primaryLight: "#E8F5F1",
+  primaryDark: "#0F6B56",
+  purple: "#5C5C9A",
+  purpleLight: "#F0EFFC",
+  coral: "#C86B5A",
+  coralLight: "#F7EEEB",
+  gold: "#B8892E",
+  goldLight: "#F7F0E2",
+  bg: "#F3F6F9",
   surface: "#FFFFFF",
-  border: "rgba(0,0,0,0.08)",
-  borderStrong: "rgba(0,0,0,0.14)",
-  textPrimary: "#1A1A18",
-  textSecondary: "#6B6B67",
-  textTertiary: "#9E9E9A",
-  success: "#1D9E75",
-  error: "#D85A30",
-  overlay: "rgba(0,0,0,0.5)",
+  surfaceMuted: "#F6F8FB",
+  border: "rgba(20, 32, 48, 0.06)",
+  borderStrong: "rgba(20, 32, 48, 0.10)",
+  textPrimary: "#1C2834",
+  textSecondary: "#5D6773",
+  textTertiary: "#909AA5",
+  success: "#2F9C86",
+  error: "#C86B5A",
+  overlay: "rgba(12, 22, 32, 0.45)",
+  ink: "#4A6678",
+  inkMuted: "#6B8294",
 };
+
+/** Kart ve yüzen bölgeler — iOS gölge / Android elevation */
+export const Shadows = {
+  card: Platform.select<ViewStyle>({
+    ios: {
+      shadowColor: "#071018",
+      shadowOffset: { width: 0, height: 10 },
+      shadowOpacity: 0.055,
+      shadowRadius: 24,
+    },
+    android: { elevation: 4 },
+    default: {},
+  }),
+  soft: Platform.select<ViewStyle>({
+    ios: {
+      shadowColor: "#071018",
+      shadowOffset: { width: 0, height: 5 },
+      shadowOpacity: 0.04,
+      shadowRadius: 16,
+    },
+    android: { elevation: 2 },
+    default: {},
+  }),
+} as const;
 
 export const Spacing = {
   xs: 4,
-  sm: 8,
+  sm: 10,
   md: 16,
-  lg: 24,
-  xl: 32,
+  lg: 28,
+  xl: 36,
   xxl: 48,
 } as const;
 
 export const Radii = {
-  sm: 6,
-  button: 8,
-  card: 12,
-  pill: 24,
+  sm: 8,
+  button: 12,
+  card: 16,
+  pill: 26,
   full: 9999,
 } as const;
 
@@ -65,11 +104,11 @@ export const FontSizes = {
   xs: 11,
   sm: 13,
   md: 15,
-  lg: 17,
-  xl: 20,
-  xxl: 24,
-  xxxl: 30,
-  hero: 38,
+  lg: 18,
+  xl: 21,
+  xxl: 26,
+  xxxl: 32,
+  hero: 40,
 } as const;
 
 export const FontWeights = {

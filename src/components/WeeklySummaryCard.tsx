@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Share } from "react-native";
 import { Share2 } from "lucide-react-native";
 import { CheckinRecord } from "../types";
 import { buildWeeklyDigest, type WeeklyDigest } from "../utils/weeklySummary";
-import { Spacing, Radii, FontSizes, Colors } from "../constants/theme";
+import { Spacing, Radii, FontSizes, Colors, Shadows } from "../constants/theme";
 
 function formatDigestShare(digest: WeeklyDigest, habitName: string): string {
   const h = habitName.trim() || "alışkanlık";
@@ -45,7 +45,7 @@ export default function WeeklySummaryCard({ startDate, checkins, habitName }: Pr
   };
 
   return (
-    <View style={[styles.card, { backgroundColor: Colors.surface, borderColor: Colors.border }]}>
+    <View style={[styles.card, { backgroundColor: Colors.surface, borderColor: Colors.border }, Shadows.card]}>
       <Text style={[styles.title, { color: Colors.textPrimary }]}>Haftalık özet</Text>
       <Text style={[styles.sub, { color: Colors.textTertiary }]}>{digest.windowLabel}</Text>
       <Text style={[styles.line, { color: Colors.textSecondary }]}>

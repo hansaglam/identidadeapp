@@ -30,6 +30,29 @@ export const IDENTITY_TAG_IDS = [
 
 export type IdentityTagId = (typeof IDENTITY_TAG_IDS)[number];
 
+/**
+ * Şablon kimliği → kebab-case slug (check-in teyidi soru seti, analitik, vb.).
+ * Özel / şablonsuz onboarding için `custom` kullanılır.
+ */
+export const IDENTITY_SLUG_BY_TAG_ID: Record<IdentityTagId, string> = {
+  clear_mind: "mental-clarity",
+  moving_person: "moving-body",
+  learner: "lifelong-learner",
+  self_care: "self-care",
+  creator: "creator",
+  focused_worker: "deep-focus",
+  night_owl: "night-owl",
+  social_builder: "social-builder",
+};
+
+export function getIdentitySlugForTag(
+  tagId: string | null | undefined
+): string {
+  if (tagId == null) return "custom";
+  const slug = IDENTITY_SLUG_BY_TAG_ID[tagId as IdentityTagId];
+  return slug ?? "custom";
+}
+
 export type Pillar = "mental" | "body" | "career" | "self";
 
 export interface TemplatePhase {

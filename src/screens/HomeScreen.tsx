@@ -1,73 +1,60 @@
 import React, { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  Animated, ScrollView, Modal, Pressable,
-  Share,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  ScrollView,
+  Modal,
+  Platform,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
+import {
+  BottomTabScreenProps,
+  useBottomTabBarHeight,
+} from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
-import { PenLine, X, AlertTriangle, Zap, ArrowRight, Share2 } from "lucide-react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { format, parseISO, startOfDay } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useFocusEffect } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
-import ConfettiAnimation from "../components/ConfettiAnimation";
-import FirstWeekGuideCard from "../components/FirstWeekGuideCard";
-import WeeklySummaryCard from "../components/WeeklySummaryCard";
-import DisciplineButton from "../components/DisciplineButton";
-import ConsistencyBadge from "../components/ConsistencyBadge";
-import AutomaticitySlider from "../components/AutomaticitySlider";
-import DailyPrincipleCard from "../components/DailyPrincipleCard";
+import { useHabitStore } from "../store/habitStore";
 import FiveSecondTrainer, { FiveSecondScenario } from "../components/FiveSecondTrainer";
 import {
   cancelEveningReminderToday,
-  scheduleEveningReminderToday,
+  setupNotifications,
 } from "../utils/notifications";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import { IDENTITY_MESSAGES, pickMessage } from "../constants/identity-copy";
-import { RootStackParamList, MainTabParamList } from "../types";
-import {
-  buildLast14Days,
-  isMissedYesterday,
-  countConsecutiveMissesFromYesterday,
-} from "../utils/journeyHome";
+import { IDENTITY_TEMPLATES, getIdentitySlugForTag } from "../constants/identityTemplates";
+import { RootStackParamList, MainTabParamList, UserProfile } from "../types";
+import { buildCalendarWeekAroundToday, countConsecutiveMissesFromYesterday, type CalendarWeekDayCell } from "../utils/journeyHome";
 import { getMissedDayMessage } from "../utils/missProtocol";
-import {
-  evaluateBehavior,
-  buildNudge,
-  getSurfaceStatus,
-  SURFACE_EMOJI,
-  SURFACE_LABEL,
-  type UserBehaviorState,
-  type BehaviorNudge,
-} from "../utils/behaviorEngine";
-import { getUserState, type UserState, type Action } from "../engine";
-import { useBehaviorStore } from "../store/useBehaviorStore";
-import BehaviorActionCard from "../components/BehaviorActionCard";
-import LiveActionModal from "../components/LiveActionModal";
-import InterruptModal from "../components/InterruptModal";
-import GoalProgressCard from "../components/GoalProgressCard";
-import PhasePurposeCard from "../components/PhasePurposeCard";
 import { trackEvent } from "../utils/analytics";
-import { ENGINE_MUSCLE_TO_DISCIPLINE, xpForLiveAction } from "../utils/disciplineProgress";
-import { APP_PROMISE_LINE, HOME_MIND_DUMP_CTA_MICROCOPY, pickAfterLiveActionToast } from "../constants/purposeCopy";
-import { isRestModeActive } from "../utils/restMode";
-import { buildAutomaticitySeriesLastDays } from "../utils/automaticityChart";
 import { shouldTriggerProactiveIntervention } from "../utils/interventionEngine";
-import MiniAutoTrend from "../components/MiniAutoTrend";
 import ProactiveInterventionModal from "../components/ProactiveInterventionModal";
+import CheckInConfirmationSheet from "../components/CheckInConfirmationSheet";
 import HabitStackingModal from "../components/HabitStackingModal";
 import { getAverageAutomaticity } from "../utils/profileMetrics";
-import { setupNotifications } from "../utils/notifications";
 import {
   shouldOpenStackingModalOnFocus,
   getStackingModalCopyVariant,
 } from "../utils/stackingModalRules";
+import { useBehaviorStore } from "../store/useBehaviorStore";
+import { getUserState } from "../engine/behaviorEngine";
+import { getActionById } from "../engine/actions";
+import { buildUserBehaviorData } from "../utils/buildUserBehaviorData";
+import BehaviorActionCard from "../components/BehaviorActionCard";
+import FirstWeekGuideCard from "../components/FirstWeekGuideCard";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -83,16 +70,156 @@ const FIVE_DEFAULT: FiveSecondScenario = {
   disciplineMuscle: "karar",
 };
 
-const FIVE_INTERVENTION: FiveSecondScenario = {
-  id: "home-intervention",
-  type: "micro",
-  trigger: "Düşüş yakalandı. Şimdi en küçük adımı at — düşünme, sadece başla.",
-  countdownDuration: 5,
-  difficulty: 2,
-  disciplineMuscle: "direnc",
-};
+const CONFETTI_PALETTE = ["#10B981", "#34D399", "#FBBF24", "#F59E0B", "#60A5FA"] as const;
+const CONFETTI_COUNT = 11;
+
+function getTimeGreeting(hour: number): string {
+  if (hour >= 5 && hour < 12) return "Günaydın ☀️";
+  if (hour >= 12 && hour < 17) return "İyi günler";
+  if (hour >= 17 && hour < 21) return "İyi akşamlar 🌙";
+  return "İyi geceler 🌙";
+}
+
+function DoneSparkles() {
+  const rotations = useRef([0, 1, 2, 3].map(() => new Animated.Value(0))).current;
+
+  useEffect(() => {
+    const loops = rotations.map((r, i) =>
+      Animated.loop(
+        Animated.timing(r, {
+          toValue: 1,
+          duration: 3200 + i * 400,
+          useNativeDriver: true,
+        })
+      )
+    );
+    loops.forEach((l) => l.start());
+    return () => {
+      loops.forEach((l) => l.stop());
+    };
+  }, [rotations]);
+
+  const spots = [
+    { top: -8, left: 18 },
+    { top: 12, right: -4 },
+    { bottom: 14, left: -2 },
+    { bottom: -6, right: 14 },
+  ] as const;
+
+  return (
+    <View style={styles.sparkleHost} pointerEvents="none">
+      {spots.map((pos, i) => (
+        <Animated.View
+          key={i}
+          style={[
+            styles.sparkleOrb,
+            pos,
+            {
+              transform: [
+                {
+                  rotate: rotations[i]!.interpolate({
+                    inputRange: [0, 1],
+                    outputRange: ["0deg", "360deg"],
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <Ionicons name="star" size={13} color="#FFFBEB" />
+        </Animated.View>
+      ))}
+    </View>
+  );
+}
+
+function CheckinConfettiBurst() {
+  const particles = useRef(
+    Array.from({ length: CONFETTI_COUNT }, () => ({
+      tx: new Animated.Value(0),
+      ty: new Animated.Value(0),
+      op: new Animated.Value(1),
+    }))
+  ).current;
+
+  useEffect(() => {
+    const particleRuns = particles.map((p) => {
+      const txTo = Math.random() * 100 - 50;
+      const tyTo = -100 - Math.random() * 55;
+      return Animated.parallel([
+        Animated.timing(p.tx, { toValue: txTo, duration: 800, useNativeDriver: true }),
+        Animated.timing(p.ty, { toValue: tyTo, duration: 800, useNativeDriver: true }),
+        Animated.timing(p.op, { toValue: 0, duration: 800, useNativeDriver: true }),
+      ]);
+    });
+    Animated.parallel([Animated.stagger(45, particleRuns)]).start();
+  }, [particles]);
+
+  return (
+    <View style={styles.burstHost} pointerEvents="none">
+      {particles.map((p, idx) => {
+        const size = 6 + ((idx * 5 + 3) % 5);
+        const br = Math.round(size / 2);
+        return (
+          <Animated.View
+            key={idx}
+            style={[
+              styles.confettiDot,
+              {
+                width: size,
+                height: size,
+                borderRadius: br,
+                marginLeft: -size / 2,
+                marginTop: -size / 2,
+                backgroundColor: CONFETTI_PALETTE[idx % CONFETTI_PALETTE.length],
+                opacity: p.op,
+                transform: [{ translateX: p.tx }, { translateY: p.ty }],
+              },
+            ]}
+          />
+        );
+      })}
+    </View>
+  );
+}
+
+const DAILY_TIP_POOL: string[] = [
+  ...Object.values(IDENTITY_MESSAGES.coachNotes),
+  ...Object.values(IDENTITY_MESSAGES.phaseDescriptions),
+  "İstikrar, ilhamdan uzun yaşar.",
+  "Küçük tekrar, görünmez inşaat.",
+  "Bugünkü adım yarının devamını kolaylaştırır.",
+];
+
+const RESTART_CARD_BODY = getMissedDayMessage(3).body;
+
+function getIdentityLine(profile: UserProfile): string {
+  const tmpl = profile.identityTagId
+    ? IDENTITY_TEMPLATES.find((t) => t.id === profile.identityTagId)
+    : null;
+  const fromTemplate = tmpl?.identityStatement?.trim();
+  const why = profile.habitWhy?.trim();
+  if (fromTemplate) return fromTemplate;
+  if (why) return why;
+  return `${profile.habitName} yolunda ilerliyorsun.`;
+}
+
+function weekBarColor(cell: CalendarWeekDayCell, todayKey: string): string {
+  const isToday = cell.dateKey === todayKey;
+  if (cell.beforeJourney || cell.isFuture) {
+    return "#E2E8F0";
+  }
+  if (cell.completed) {
+    return isToday ? "#059669" : "#10B981";
+  }
+  if (isToday) {
+    return "#059669";
+  }
+  return "#E2E8F0";
+}
 
 export default function HomeScreen({ navigation }: Props) {
+  const tabBarHeight = useBottomTabBarHeight();
   const profile = useUserStore((s) => s.profile);
   const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
   const loadProfileAgain = useUserStore((s) => s.loadProfile);
@@ -102,125 +229,57 @@ export default function HomeScreen({ navigation }: Props) {
   const updateProfile = useUserStore((s) => s.updateProfile);
 
   const checkins = useCheckinsStore((s) => s.checkins);
-  const { completeTodayWithRatings, getTodayCheckin, toggleToday, getStreakState, isStreakReset, completionRate } =
-    useCheckinsStore();
+  const { completeTodayWithRatings, getTodayCheckin, getStreakState } = useCheckinsStore();
   const mindDumpEntries = useMindDumpStore((s) => s.entries);
 
-  const [showAutoInput, setShowAutoInput] = useState(false);
+  const behaviorMuscles = useBehaviorStore((s) => s.muscles);
+  const behaviorRecent = useBehaviorStore((s) => s.recentActions);
+  const behaviorLastAt = useBehaviorStore((s) => s.lastActionAt);
+  const behaviorTotalActions = useBehaviorStore((s) => s.totalActions);
+
   const [showFiveSecond, setShowFiveSecond] = useState(false);
-  const [interventionDismissed, setInterventionDismissed] = useState(false);
   const [showProactiveModal, setShowProactiveModal] = useState(false);
   const [showStackingModal, setShowStackingModal] = useState(false);
-  const [confetti, setConfetti] = useState(false);
-  const [liveAction, setLiveAction] = useState<Action | null>(null);
-  /** Her canlı aksiyon oturumunda modal state'ini sıfırlamak için */
-  const [liveActionSession, setLiveActionSession] = useState(0);
 
-  // ── Behavior Operating System (engine/) ─────────────────────────────────
-  const muscles = useBehaviorStore((s) => s.muscles);
-  const recentActions = useBehaviorStore((s) => s.recentActions);
-  const lastActionAt = useBehaviorStore((s) => s.lastActionAt);
-  const recordAction = useBehaviorStore((s) => s.recordAction);
+  const [checkInAnimating, setCheckInAnimating] = useState(false);
+  const [burstKey, setBurstKey] = useState(0);
+  const [streakRoll, setStreakRoll] = useState<{ from: number; to: number } | null>(null);
+  const [calendarToday, setCalendarToday] = useState(() =>
+    format(new Date(), "yyyy-MM-dd")
+  );
+  const habit = useHabitStore((s) => s.habit);
+  const [showTaskSheet, setShowTaskSheet] = useState(false);
+  const [showCheckInSheet, setShowCheckInSheet] = useState(false);
+  const [clockHour, setClockHour] = useState(() => new Date().getHours());
+
+  const confirmationSlug = useMemo(
+    () =>
+      habit?.identitySlug ??
+      (profile ? getIdentitySlugForTag(profile.identityTagId) : "custom"),
+    [habit?.identitySlug, profile, profile?.identityTagId]
+  );
+
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastY = useRef(new Animated.Value(20)).current;
   const [toastMsg, setToastMsg] = useState("");
+  const tickScale = useRef(new Animated.Value(1)).current;
+  const ctaPressScale = useRef(new Animated.Value(1)).current;
+  const streakSlide = useRef(new Animated.Value(0)).current;
+  const iconDonePulse = useRef(new Animated.Value(1)).current;
+  const entranceHeader = useRef(new Animated.Value(0)).current;
+  const entranceButton = useRef(new Animated.Value(0)).current;
+  const entranceCards = useRef(
+    [0, 1, 2].map(() => new Animated.Value(0))
+  ).current;
+
+  const checkingRef = useRef(false);
+  const scrollRef = useRef<ScrollView>(null);
 
   const todayCheckin = getTodayCheckin();
   const todayDone = todayCheckin?.completed ?? false;
   const streakState = getStreakState();
-  const { totalDays66, rescueDaysUsedThisWeek } = streakState;
-  const progress66 = Math.min(totalDays66 / 66, 1);
-  const streakWasReset = isStreakReset();
-
-  // ── Behavior Engine ─────────────────────────────────────────────────────
-  const behaviorState: UserBehaviorState | null = useMemo(() => {
-    if (!profile) return null;
-    return evaluateBehavior(
-      dayNumber,
-      profile.startDate,
-      checkins,
-      mindDumpEntries,
-      todayDone,
-      totalDays66,
-      completionRate(profile.startDate),
-      streakState.currentStreak
-    );
-  }, [profile, dayNumber, checkins, mindDumpEntries, todayDone, totalDays66, streakState.currentStreak]);
-
-  const currentNudge: BehaviorNudge | null = useMemo(() => {
-    if (!behaviorState || !profile) return null;
-    return buildNudge(behaviorState, profile.habitName);
-  }, [behaviorState, profile]);
-
-  const surfaceStatus = behaviorState ? getSurfaceStatus(behaviorState.riskLevel) : "on_track";
-
-  // Behavior OS: kullanıcının ANKİ durumu + ne yapacağı
-  const userState: UserState | null = useMemo(() => {
-    if (!profile) return null;
-    return getUserState({
-      startDate: profile.startDate,
-      habitName: profile.habitName,
-      habitAnchor: profile.habitAnchor,
-      dayNumber,
-      checkins,
-      mindDumps: mindDumpEntries,
-      todayDone,
-      muscles,
-      recentActions,
-      lastActionAt,
-      identityTagId: profile.identityTagId ?? null,
-      contextPreset: profile.contextPreset ?? null,
-    });
-  }, [
-    profile,
-    dayNumber,
-    checkins,
-    mindDumpEntries,
-    todayDone,
-    muscles,
-    recentActions,
-    lastActionAt,
-  ]);
-
-  const handleLiveAction = useCallback(() => {
-    if (!userState || liveAction != null) return;
-    if (profile?.hapticsEnabled) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
-    trackEvent("action_started", {
-      actionId: userState.suggestedAction.id,
-      identityTagId: userState.identityTagId,
-      scaledDown: userState.scaledDown,
-    });
-    setLiveActionSession((s) => s + 1);
-    setLiveAction(userState.suggestedAction);
-  }, [userState, liveAction, profile?.hapticsEnabled]);
-
-  const last14Days = useMemo(
-    () => (profile ? buildLast14Days(profile.startDate, checkins) : []),
-    [profile, checkins]
-  );
-  const missedYesterday = useMemo(
-    () => (profile ? isMissedYesterday(profile.startDate, checkins) : false),
-    [profile, checkins]
-  );
-  const consecutiveMiss = useMemo(
-    () => (profile ? countConsecutiveMissesFromYesterday(profile.startDate, checkins) : 0),
-    [profile, checkins]
-  );
-  const missInfo = !todayDone && consecutiveMiss > 0
-    ? getMissedDayMessage(consecutiveMiss)
-    : null;
 
   const proactiveHandledRef = useRef<string | null>(null);
-
-  const miniAutoSeries = useMemo(
-    () =>
-      profile
-        ? buildAutomaticitySeriesLastDays(profile.startDate, checkins, 7)
-        : [],
-    [profile, checkins]
-  );
 
   const stackingMindEvolution = useMemo(() => {
     if (!profile?.startDate) return null;
@@ -248,16 +307,159 @@ export default function HomeScreen({ navigation }: Props) {
       count: inJourney.length,
     };
   }, [profile?.startDate, mindDumpEntries]);
-  const dateStr = format(new Date(), "d MMMM, EEEE", { locale: tr });
-  const seed = new Date().getDate() + dayNumber;
-  const identityMsg = pickMessage(IDENTITY_MESSAGES.morningGreeting(dayNumber), seed);
+
+  const weekCells = useMemo(
+    () =>
+      profile ? buildCalendarWeekAroundToday(profile.startDate, checkins) : [],
+    [profile, checkins]
+  );
+
+  const weekDoneCount = useMemo(
+    () =>
+      weekCells.filter((c) => !c.beforeJourney && !c.isFuture && c.completed).length,
+    [weekCells]
+  );
+
+  const consecutiveMiss = useMemo(() => {
+    if (!profile?.startDate) return 0;
+    return countConsecutiveMissesFromYesterday(profile.startDate, checkins);
+  }, [profile?.startDate, checkins]);
+
+  const showRestartCard = consecutiveMiss >= 3 && !todayDone;
+
+  const dateTitle = format(new Date(), "EEEE, d MMMM", { locale: tr });
+
+  const displayFirstName = useMemo(() => {
+    const n = profile?.name?.trim();
+    if (!n) return "dostum";
+    return n.split(/\s+/)[0] ?? n;
+  }, [profile?.name]);
+
+  const dailyTip = useMemo(() => {
+    const seed = dayNumber + new Date().getDate();
+    return pickMessage(DAILY_TIP_POOL, seed);
+  }, [dayNumber]);
+
+  const behaviorData = useMemo(() => {
+    if (!profile) return null;
+    return buildUserBehaviorData({
+      profile,
+      habitName: profile.habitName,
+      habitAnchor: profile.habitAnchor,
+      dayNumber,
+      checkins,
+      mindDumps: mindDumpEntries,
+      todayDone,
+      muscles: behaviorMuscles,
+      recentActions: behaviorRecent,
+      lastActionAt: behaviorLastAt,
+    });
+  }, [
+    profile,
+    dayNumber,
+    checkins,
+    mindDumpEntries,
+    todayDone,
+    behaviorMuscles,
+    behaviorRecent,
+    behaviorLastAt,
+  ]);
+
+  const userBehaviorState = useMemo(() => {
+    if (!behaviorData) return null;
+    return getUserState(behaviorData);
+  }, [behaviorData]);
+
+  useEffect(() => {
+    const id = setInterval(() => setClockHour(new Date().getHours()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const timeGreeting = useMemo(() => getTimeGreeting(clockHour), [clockHour]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!profile) return;
+      entranceHeader.setValue(0);
+      entranceButton.setValue(0);
+      entranceCards.forEach((c) => c.setValue(0));
+      Animated.parallel([
+        Animated.timing(entranceHeader, {
+          toValue: 1,
+          duration: 400,
+          delay: 0,
+          useNativeDriver: true,
+        }),
+        Animated.timing(entranceButton, {
+          toValue: 1,
+          duration: 500,
+          delay: 100,
+          useNativeDriver: true,
+        }),
+        Animated.sequence([
+          Animated.delay(200),
+          Animated.stagger(
+            100,
+            entranceCards.map((v) =>
+              Animated.timing(v, { toValue: 1, duration: 400, useNativeDriver: true })
+            )
+          ),
+        ]),
+      ]).start();
+    }, [profile, entranceHeader, entranceButton, entranceCards])
+  );
+
+  useEffect(() => {
+    if (!todayDone) {
+      iconDonePulse.setValue(1);
+      return;
+    }
+    iconDonePulse.setValue(0.82);
+    Animated.spring(iconDonePulse, {
+      toValue: 1,
+      friction: 5,
+      tension: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [todayDone, iconDonePulse]);
 
   useEffect(() => {
     if (!profile || profile.isPremium) return;
     if (dayNumber >= 22 && !profile.premiumGateDay22Shown) {
       markPremiumGateShown("day22");
     }
-  }, [dayNumber]);
+  }, [dayNumber, profile, markPremiumGateShown]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const t = format(new Date(), "yyyy-MM-dd");
+      setCalendarToday(t);
+      void useHabitStore.getState().rollDayIfNeeded();
+      void useHabitStore.getState().reconcileFromCheckin(
+        useCheckinsStore.getState().getTodayCheckin()?.completed ?? false
+      );
+    }, [])
+  );
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const n = format(new Date(), "yyyy-MM-dd");
+      setCalendarToday((prev) => {
+        if (prev !== n) {
+          void useHabitStore.getState().rollDayIfNeeded();
+          return n;
+        }
+        return prev;
+      });
+    }, 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    void useHabitStore.getState().reconcileFromCheckin(todayDone);
+  }, [todayDone, checkins]);
+
+  const showDoneShell = todayDone && !checkInAnimating;
 
   const showToast = useCallback(
     (msg: string) => {
@@ -279,120 +481,52 @@ export default function HomeScreen({ navigation }: Props) {
     [toastOpacity, toastY]
   );
 
-  const handleLiveActionComplete = useCallback(async () => {
-    if (!liveAction) return;
-    await recordAction(liveAction);
-    const dMuscle = ENGINE_MUSCLE_TO_DISCIPLINE[liveAction.type];
-    const xpGain = xpForLiveAction(liveAction);
-    await addDisciplineMuscleXp(dMuscle, xpGain);
-    trackEvent("action_completed", {
-      actionId: liveAction.id,
-      muscle: liveAction.type,
-      identityTagId: profile?.identityTagId ?? null,
-    });
-    setLiveAction(null);
-    if (profile?.hapticsEnabled) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    }
-    showToast(
-      pickAfterLiveActionToast(dayNumber + (recentActions?.length ?? 0) * 7)
-    );
-  }, [
-    liveAction,
-    recordAction,
-    addDisciplineMuscleXp,
-    profile?.hapticsEnabled,
-    profile?.identityTagId,
-    showToast,
-    dayNumber,
-    recentActions.length,
-  ]);
-
-  const runCompleteFlow = useCallback(
+  const afterCheckInFollowUp = useCallback(
     async (automaticity: number, effort: number) => {
       if (!profile) return;
-      if (profile.hapticsEnabled) {
-        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      }
-      await completeTodayWithRatings(dayNumber, automaticity, effort);
-      await cancelEveningReminderToday();
-      setConfetti(true);
-      setTimeout(() => setConfetti(false), 1200);
-
       if (dayNumber === 66) {
         await updateProfile({ stackingOfferPending: true });
         setShowStackingModal(true);
         trackEvent("journey_66_complete", {});
         return;
       }
-
+      const streakJustReset = useCheckinsStore.getState().isStreakReset();
       if (automaticity < 5 || effort > 7) {
         setShowFiveSecond(true);
       } else {
         const messages = IDENTITY_MESSAGES.checkInComplete(profile.habitName, dayNumber);
-        const msg = streakWasReset
+        const msg = streakJustReset
           ? IDENTITY_MESSAGES.streakReset
           : pickMessage(messages, dayNumber);
         showToast(msg);
       }
     },
-    [profile, dayNumber, completeTodayWithRatings, showToast, streakWasReset, updateProfile]
+    [profile, dayNumber, showToast, updateProfile]
   );
 
-  const handleAutoSubmit = useCallback(
-    async (automaticity: number, effort: number) => {
-      setShowAutoInput(false);
-      await runCompleteFlow(automaticity, effort);
+  const finalizeStackingJourney = useCallback(
+    async (nextHabitName: string, nextHabitAnchor: string) => {
+      const preStackDay = useUserStore.getState().dayNumber();
+      const snapAvg = getAverageAutomaticity(useCheckinsStore.getState().checkins);
+      const snapDays = useCheckinsStore.getState().getStreakState().totalDays66;
+      await useCheckinsStore.getState().clearAllCheckins();
+      await useHabitStore.getState().resetWithJourney();
+      await useUserStore.getState().stackNewJourney({
+        snapshotAvgAuto: snapAvg,
+        snapshotCompletedDays: snapDays,
+        nextHabitName,
+        nextHabitAnchor,
+      });
+      await useBehaviorStore.getState().reset();
+      const fresh = useUserStore.getState().profile;
+      if (fresh) await setupNotifications(fresh, false);
+      setShowStackingModal(false);
+      void trackEvent("journey_stacked", {
+        tone: getStackingModalCopyVariant(preStackDay),
+        dayNumber: preStackDay,
+      });
     },
-    [runCompleteFlow]
-  );
-
-  const handleDisciplinePress = useCallback(async () => {
-    if (!profile) return;
-    if (todayDone) {
-      await toggleToday(dayNumber);
-      await scheduleEveningReminderToday(profile);
-      return;
-    }
-    setShowAutoInput(true);
-  }, [profile, todayDone, toggleToday, dayNumber]);
-
-  const shareTodayProgress = useCallback(() => {
-    if (!profile) return;
-    const name = profile.habitName?.trim() || "alışkanlık";
-    Share.share({
-      message: `${dayNumber}. gün (${name}) — bugün kutusunu kapattım. Küçük adım.`,
-    }).catch(() => {});
-  }, [profile, dayNumber]);
-
-  const handleNudgeAction = useCallback(() => {
-    if (!currentNudge?.action) return;
-    switch (currentNudge.action.type) {
-      case "five_second":
-        setShowFiveSecond(true);
-        break;
-      case "checkin":
-        setShowAutoInput(true);
-        break;
-      case "minddump":
-        navigation.navigate("MindDump" as any);
-        break;
-      case "dismiss":
-        setInterventionDismissed(true);
-        break;
-    }
-  }, [currentNudge, navigation]);
-
-  const dismissAutoSheet = useCallback(
-    (userSkipped: boolean) => {
-      setShowAutoInput(false);
-      if (userSkipped) {
-        showToast(
-          "Otomatikliğini kaydetmezsen ilerleme grafiğin oluşmaz. 66 gün sonunda otomatikleşmeyi görmek için her gün birkaç saniye ayırman yeter."
-        );
-      }
-    },
-    [showToast]
+    []
   );
 
   const markProactiveHandled = useCallback(() => {
@@ -400,26 +534,140 @@ export default function HomeScreen({ navigation }: Props) {
     setShowProactiveModal(false);
   }, []);
 
-  const finalizeStackingJourney = useCallback(async (nextHabitName: string, nextHabitAnchor: string) => {
-    const preStackDay = useUserStore.getState().dayNumber();
-    const snapAvg = getAverageAutomaticity(useCheckinsStore.getState().checkins);
-    const snapDays = useCheckinsStore.getState().getStreakState().totalDays66;
-    await useCheckinsStore.getState().clearAllCheckins();
-    await useUserStore.getState().stackNewJourney({
-      snapshotAvgAuto: snapAvg,
-      snapshotCompletedDays: snapDays,
-      nextHabitName,
-      nextHabitAnchor,
-    });
-    await useBehaviorStore.getState().reset();
-    const fresh = useUserStore.getState().profile;
-    if (fresh) await setupNotifications(fresh, false);
-    setShowStackingModal(false);
-    void trackEvent("journey_stacked", {
-      tone: getStackingModalCopyVariant(preStackDay),
-      dayNumber: preStackDay,
-    });
-  }, []);
+  const handleBehaviorActionComplete = useCallback(async () => {
+    if (!userBehaviorState || !profile) return;
+    if (profile.hapticsEnabled !== false) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    }
+    await useBehaviorStore.getState().recordAction(userBehaviorState.suggestedAction);
+    showToast("Küçük adım kaydedildi.");
+  }, [userBehaviorState, profile, showToast]);
+
+  const handleMainCtaPress = useCallback(async () => {
+    if (!profile || todayDone || checkingRef.current) return;
+    checkingRef.current = true;
+
+    const prevStreak = getStreakState().currentStreak;
+    const automaticity = 7;
+    const effort = 5;
+
+    try {
+      setCheckInAnimating(true);
+      tickScale.setValue(0);
+      setBurstKey((k) => k + 1);
+
+      const conf = useHabitStore.getState().todayCheckIn;
+      const todayKey = format(new Date(), "yyyy-MM-dd");
+      if (conf?.date === todayKey) {
+        await completeTodayWithRatings(
+          dayNumber,
+          automaticity,
+          effort,
+          conf.note,
+          conf.detail
+        );
+      } else {
+        await completeTodayWithRatings(dayNumber, automaticity, effort);
+      }
+      await cancelEveningReminderToday();
+      await useHabitStore.getState().markCheckedInToday();
+
+      const nextStreak = useCheckinsStore.getState().getStreakState().currentStreak;
+
+      Animated.spring(tickScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 160,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setTimeout(() => setCheckInAnimating(false), 40);
+        }
+      });
+
+      setStreakRoll({ from: prevStreak, to: nextStreak });
+      streakSlide.setValue(0);
+      Animated.timing(streakSlide, {
+        toValue: 1,
+        duration: 450,
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) setStreakRoll(null);
+      });
+
+      void afterCheckInFollowUp(automaticity, effort);
+    } finally {
+      checkingRef.current = false;
+    }
+  }, [
+    profile,
+    todayDone,
+    completeTodayWithRatings,
+    dayNumber,
+    tickScale,
+    streakSlide,
+    getStreakState,
+    afterCheckInFollowUp,
+  ]);
+
+  const handleConfirmationSave = useCallback(
+    async (note: string, detail: string | null) => {
+      const dayKey = format(new Date(), "yyyy-MM-dd");
+      await useHabitStore.getState().saveTodayCheckInConfirmation({
+        date: dayKey,
+        note,
+        detail,
+      });
+      setShowCheckInSheet(false);
+      void handleMainCtaPress();
+    },
+    [handleMainCtaPress]
+  );
+
+  const onCheckInPress = useCallback(() => {
+    if (!profile || todayDone || checkingRef.current) return;
+    const dayKey = format(new Date(), "yyyy-MM-dd");
+    const pending = useHabitStore.getState().todayCheckIn;
+    if (pending?.date === dayKey) {
+      if (profile.hapticsEnabled !== false) {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      Animated.sequence([
+        Animated.spring(ctaPressScale, {
+          toValue: 0.92,
+          friction: 5,
+          tension: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(ctaPressScale, {
+          toValue: 1,
+          friction: 6,
+          tension: 220,
+          useNativeDriver: true,
+        }),
+      ]).start();
+      void handleMainCtaPress();
+      return;
+    }
+    if (profile.hapticsEnabled !== false) {
+      void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    Animated.sequence([
+      Animated.spring(ctaPressScale, {
+        toValue: 0.92,
+        friction: 5,
+        tension: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(ctaPressScale, {
+        toValue: 1,
+        friction: 6,
+        tension: 220,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    setShowCheckInSheet(true);
+  }, [profile, todayDone, ctaPressScale, handleMainCtaPress]);
 
   useFocusEffect(
     useCallback(() => {
@@ -461,7 +709,7 @@ export default function HomeScreen({ navigation }: Props) {
   if (!profile) {
     if (profileLoadFailed) {
       return (
-        <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+        <SafeAreaView style={[styles.safeLoad, { backgroundColor: "#F8FAFC" }]} edges={["top"]}>
           <View style={styles.profileErrorWrap}>
             <Text style={styles.profileErrorTitle}>Profil dosyası açılamadı</Text>
             <Text style={styles.profileErrorBody}>
@@ -479,7 +727,7 @@ export default function HomeScreen({ navigation }: Props) {
       );
     }
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+      <SafeAreaView style={[styles.safeLoad, { backgroundColor: "#F8FAFC" }]} edges={["top"]}>
         <View style={styles.center}>
           <Text style={styles.emptyText}>Yükleniyor...</Text>
         </View>
@@ -487,268 +735,329 @@ export default function HomeScreen({ navigation }: Props) {
     );
   }
 
-  const showInterventionCard =
-    currentNudge &&
-    !todayDone &&
-    !interventionDismissed &&
-    (currentNudge.type === "proactive_intervention" ||
-     currentNudge.type === "comeback" ||
-     currentNudge.type === "micro_commitment");
+  const streakDisplay = streakState.currentStreak;
 
-  const showReflectionStrip =
-    !!userState &&
-    currentNudge?.type === "reflection_prompt" &&
-    !todayDone &&
-    !interventionDismissed;
+  const streakSlideY = streakSlide.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -26],
+  });
+
+  const weekProgressPct = Math.round((weekDoneCount / 7) * 100);
+
+  const headerEnterStyle = {
+    opacity: entranceHeader,
+    transform: [
+      {
+        translateY: entranceHeader.interpolate({
+          inputRange: [0, 1],
+          outputRange: [25, 0],
+        }),
+      },
+    ],
+  };
+
+  const buttonEnterStyle = {
+    opacity: entranceButton,
+    transform: [
+      {
+        translateY: entranceButton.interpolate({
+          inputRange: [0, 1],
+          outputRange: [25, 0],
+        }),
+      },
+      {
+        scale: entranceButton.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0.8, 1],
+        }),
+      },
+    ],
+  };
+
+  const cardEnterStyle = (cardIdx: number) => ({
+    opacity: entranceCards[cardIdx]!,
+    transform: [
+      {
+        translateY: entranceCards[cardIdx]!.interpolate({
+          inputRange: [0, 1],
+          outputRange: [25, 0],
+        }),
+      },
+    ],
+  });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: Colors.bg }]} edges={["top"]}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={[styles.scroll, { backgroundColor: Colors.bg }]}
+        ref={scrollRef}
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]}
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.dayLabel}>Gün {dayNumber}</Text>
-            <Text style={styles.date}>{dateStr}</Text>
-          </View>
-          <View style={styles.headerRight}>
-            <View style={[
-              styles.statusPill,
-              surfaceStatus === "at_risk" && styles.statusPillYellow,
-              surfaceStatus === "needs_intervention" && styles.statusPillRed,
-            ]}>
-              <Text style={styles.statusEmoji}>{SURFACE_EMOJI[surfaceStatus]}</Text>
-              <Text style={[
-                styles.statusText,
-                surfaceStatus === "at_risk" && styles.statusTextYellow,
-                surfaceStatus === "needs_intervention" && styles.statusTextRed,
-              ]}>{SURFACE_LABEL[surfaceStatus]}</Text>
+        <Animated.View style={[styles.header, headerEnterStyle]}>
+          <View style={styles.headerRow}>
+            <View style={styles.greetingCol}>
+              <Text style={styles.greetingLead}>
+                {timeGreeting}
+                <Text style={styles.greetingNamePart}>, {displayFirstName}</Text>
+              </Text>
             </View>
-          </View>
-        </View>
-
-        <Text style={styles.purposeKicker}>{APP_PROMISE_LINE}</Text>
-        <PhasePurposeCard dayNumber={dayNumber} />
-
-        {dayNumber >= 60 && dayNumber <= 65 ? (
-          <View style={styles.finishLineBanner}>
-            <Text style={styles.finishLineTitle}>Bitiş çizgisine yaklaşıyorsun</Text>
-            <Text style={styles.finishLineBody}>
-              Son günlerde çabayı küçült, tekrarı koru. 66 tamamlanınca bir sonraki kimlik katmanı için
-              seçenekler sunacağız.
-            </Text>
-          </View>
-        ) : null}
-
-        {/* Behavior Operating System — TEK aksiyon, BÜYÜK buton */}
-        {userState && (
-          <BehaviorActionCard
-            state={userState}
-            onPress={handleLiveAction}
-            disabled={liveAction != null}
-          />
-        )}
-
-        {showReflectionStrip && currentNudge && (
-          <View style={[styles.nudgeCard, styles.nudgeCardWarm]}>
-            <View style={styles.nudgeHeader}>
-              <Zap size={18} color={Colors.primary} strokeWidth={1.5} />
-              <Text style={styles.nudgeHeadline}>{currentNudge.headline}</Text>
-            </View>
-            <Text style={styles.nudgeBody}>{currentNudge.body}</Text>
-            <View style={styles.nudgeActions}>
-              {currentNudge.action && (
-                <TouchableOpacity
-                  style={styles.nudgeCta}
-                  onPress={handleNudgeAction}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.nudgeCtaText}>{currentNudge.action.label}</Text>
-                  <ArrowRight size={14} color="#fff" strokeWidth={2} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() => setInterventionDismissed(true)}
-                style={styles.nudgeDismiss}
-              >
-                <Text style={styles.nudgeDismissText}>Şimdi değil</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        <DailyPrincipleCard day={dayNumber} />
-
-        <Text style={styles.motivationLine}>{identityMsg}</Text>
-
-        {/* Proactive Intervention Card (legacy) — yalnız Behavior OS yokken */}
-        {!userState && showInterventionCard && currentNudge && (
-          <View style={[
-            styles.nudgeCard,
-            currentNudge.tone === "urgent" && styles.nudgeCardUrgent,
-            currentNudge.tone === "warm" && styles.nudgeCardWarm,
-          ]}>
-            <View style={styles.nudgeHeader}>
-              {currentNudge.tone === "urgent" ? (
-                <AlertTriangle size={18} color={Colors.coral} strokeWidth={1.5} />
+            <View style={styles.streakBadge}>
+              {streakRoll ? (
+                <View style={styles.streakRollClip}>
+                  <Animated.View style={{ transform: [{ translateY: streakSlideY }] }}>
+                    <Text style={styles.streakBadgeText}>🔥 {streakRoll.from}</Text>
+                    <Text style={styles.streakBadgeText}>🔥 {streakRoll.to}</Text>
+                  </Animated.View>
+                </View>
               ) : (
-                <Zap size={18} color={Colors.primary} strokeWidth={1.5} />
+                <Text style={styles.streakBadgeText}>🔥 {streakDisplay}</Text>
               )}
-              <Text style={[
-                styles.nudgeHeadline,
-                currentNudge.tone === "urgent" && { color: Colors.coral },
-              ]}>{currentNudge.headline}</Text>
             </View>
-            <Text style={styles.nudgeBody}>{currentNudge.body}</Text>
-            <View style={styles.nudgeActions}>
-              {currentNudge.action && (
-                <TouchableOpacity
-                  style={[
-                    styles.nudgeCta,
-                    currentNudge.tone === "urgent" && styles.nudgeCtaUrgent,
-                  ]}
-                  onPress={handleNudgeAction}
-                  activeOpacity={0.8}
-                >
-                  <Text style={styles.nudgeCtaText}>{currentNudge.action.label}</Text>
-                  <ArrowRight size={14} color="#fff" strokeWidth={2} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity
-                onPress={() => setInterventionDismissed(true)}
-                style={styles.nudgeDismiss}
+          </View>
+          <Text style={styles.dateLine}>{dateTitle}</Text>
+        </Animated.View>
+
+        <View style={styles.actionBlock}>
+          <Animated.View style={buttonEnterStyle}>
+            <Animated.View style={{ transform: [{ scale: ctaPressScale }] }}>
+              <View
+                style={[
+                  styles.ctaGlowShell,
+                  showDoneShell ? styles.ctaGlowDone : styles.ctaGlowActive,
+                ]}
               >
-                <Text style={styles.nudgeDismissText}>Şimdi değil</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+                <View style={styles.ctaWrap}>
+                  {burstKey > 0 ? (
+                    <View style={styles.burstLayer} key={burstKey}>
+                      <CheckinConfettiBurst />
+                    </View>
+                  ) : null}
 
-        {/* Habit Card */}
-        <View style={styles.habitCard}>
-          <Text style={styles.habitName}>{profile.habitName}</Text>
-          {profile.habitAnchor ? (
-            <Text style={styles.anchorLine}>📌 {profile.habitAnchor}</Text>
-          ) : null}
+                  {showDoneShell ? (
+                    <View style={styles.ctaDoneDecor}>
+                      <LinearGradient
+                        colors={["#FCD34D", "#F59E0B"]}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={[
+                          styles.ctaCircle,
+                          StyleSheet.absoluteFillObject,
+                          { alignItems: "center", justifyContent: "center" },
+                        ]}
+                      >
+                        <Animated.View style={{ transform: [{ scale: iconDonePulse }] }}>
+                          <Ionicons name="checkmark-circle" size={56} color="#FFFFFF" />
+                        </Animated.View>
+                      </LinearGradient>
+                      <DoneSparkles />
+                    </View>
+                  ) : checkInAnimating ? (
+                    <TouchableOpacity activeOpacity={1} disabled style={styles.ctaTouchable}>
+                      <LinearGradient
+                        colors={["#34D399", "#059669"]}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={styles.ctaCircle}
+                      >
+                        <Animated.View style={{ transform: [{ scale: tickScale }] }}>
+                          <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+                        </Animated.View>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  ) : (
+                    <TouchableOpacity
+                      activeOpacity={0.92}
+                      onPress={onCheckInPress}
+                      style={styles.ctaTouchable}
+                    >
+                      <LinearGradient
+                        colors={["#34D399", "#059669"]}
+                        start={{ x: 0.5, y: 0 }}
+                        end={{ x: 0.5, y: 1 }}
+                        style={styles.ctaCircle}
+                      >
+                        <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              </View>
+            </Animated.View>
+          </Animated.View>
 
-          {missInfo && (
-            <View
-              style={[
-                styles.missBanner,
-                missInfo.type === "warning" && styles.missBannerWarn,
-                missInfo.type === "reframe" && styles.missBannerRef,
-              ]}
-            >
-              <Text style={styles.missTitle}>{missInfo.title}</Text>
-              <Text style={styles.missBody}>{missInfo.body}</Text>
-            </View>
-          )}
-
-          <DisciplineButton
-            onPress={handleDisciplinePress}
-            isCompleted={todayDone}
-            isMissedYesterday={!todayDone && missedYesterday}
-            todayAutoRating={todayCheckin?.automaticityRating}
-          />
-
-          <View style={styles.miniBarWrap}>
-            <View style={styles.miniBarTrack}>
-              <View style={[styles.miniBarFill, { width: `${progress66 * 100}%` }]} />
-            </View>
-            <View style={styles.progressLabels}>
-              <Text style={styles.progressLabel}>{totalDays66}/66 gün</Text>
-              {rescueDaysUsedThisWeek > 0 && !streakWasReset && todayDone && (
-                <Text style={styles.rescueBadge}>🛡️ Kurtarma kullanıldı</Text>
-              )}
-            </View>
-          </View>
+          <Animated.View
+            style={[
+              styles.captionEnter,
+              {
+                opacity: entranceButton,
+                transform: [
+                  {
+                    translateY: entranceButton.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [25, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            {showDoneShell ? (
+              <Text style={styles.ctaDoneCaption}>Bugün tamamlandı 🎉</Text>
+            ) : streakRoll ? (
+              <View style={styles.streakCaptionClip}>
+                <Animated.View style={{ transform: [{ translateY: streakSlideY }] }}>
+                  <Text style={styles.streakCaptionStrong}>
+                    🔥 {streakRoll.from} gün üst üste
+                  </Text>
+                  <Text style={styles.streakCaptionStrong}>
+                    🔥 {streakRoll.to} gün üst üste
+                  </Text>
+                </Animated.View>
+              </View>
+            ) : streakDisplay > 0 ? (
+              <Text style={styles.streakCaptionStrong}>🔥 {streakDisplay} gün üst üste</Text>
+            ) : (
+              <Text style={styles.streakCaptionZero}>Başlamak için dokun</Text>
+            )}
+          </Animated.View>
         </View>
 
-        {/* Post-completion nudge (celebration / identity) */}
-        {todayDone && currentNudge && currentNudge.tone === "celebratory" && (
-          <View style={styles.celebrationCard}>
-            <Text style={styles.celebrationHeadline}>{currentNudge.headline}</Text>
-            <Text style={styles.celebrationBody}>{currentNudge.body}</Text>
-            <TouchableOpacity
-              style={styles.celebrationShareRow}
-              onPress={shareTodayProgress}
-              activeOpacity={0.85}
-              hitSlop={8}
-            >
-              <Share2 size={16} color={Colors.primary} strokeWidth={1.8} />
-              <Text style={styles.celebrationShareText}>Metin paylaş (partner)</Text>
-            </TouchableOpacity>
-          </View>
-        )}
+        <Animated.View style={cardEnterStyle(0)}>
+          <TouchableOpacity
+            style={styles.taskCard}
+            activeOpacity={0.9}
+            onPress={() => setShowTaskSheet(true)}
+          >
+            <Text style={styles.cardLabel}>BUGÜNÜN GÖREVİ</Text>
+            <Text style={styles.habitTitle}>{profile.habitName}</Text>
+            <Text style={styles.identityLine}>{getIdentityLine(profile)}</Text>
+            <Text style={styles.taskCardHint}>Detaylar için dokun →</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
-        <MiniAutoTrend series={miniAutoSeries} />
-
-        <ConsistencyBadge last14Days={last14Days} />
-
-        {/* 66 Gün İlerleme */}
-        <GoalProgressCard dayNumber={dayNumber} startDate={profile.startDate} />
-
-        <FirstWeekGuideCard
-          dayNumber={dayNumber}
-          dismissed={profile.firstWeekGuideDismissed ?? false}
-          onDismiss={() => void updateProfile({ firstWeekGuideDismissed: true })}
-          todayDone={todayDone}
-          recentActionsCount={recentActions.length}
-          mindDumpCount={mindDumpEntries.length}
-          journeyOpened={profile.hasOpenedJourneyTab ?? false}
-        />
-
-        {isRestModeActive(profile) ? (
-          <View style={styles.restHint}>
-            <Text style={styles.restHintText}>
-              Mola modu: {profile.restModeUntilISO?.slice(0, 10)} tarihine kadar bildirimler hafifletildi; Bugün yine seninle.
-            </Text>
+        {dayNumber <= 7 && profile.firstWeekGuideDismissed !== true ? (
+          <View style={styles.firstWeekWrap}>
+            <FirstWeekGuideCard
+              dayNumber={dayNumber}
+              dismissed={false}
+              onDismiss={() => void updateProfile({ firstWeekGuideDismissed: true })}
+              todayDone={todayDone}
+              recentActionsCount={behaviorTotalActions}
+              mindDumpCount={mindDumpEntries.length}
+              journeyOpened={profile.hasOpenedJourneyTab === true}
+            />
           </View>
         ) : null}
 
-        <WeeklySummaryCard
-          startDate={profile.startDate}
-          checkins={checkins}
-          habitName={profile.habitName}
-        />
-
-        {/* Mind Dump CTA */}
-        <TouchableOpacity
-          style={styles.mindDumpCard}
-          onPress={() => navigation.navigate("MindDump" as any)}
-          activeOpacity={0.8}
-        >
-          <PenLine size={18} color={Colors.textSecondary} strokeWidth={1.5} />
-          <View style={styles.mindDumpTextCol}>
-            <Text style={styles.mindDumpText}>Kafanda ne var? Bırak gitsin →</Text>
-            <Text style={styles.mindDumpSub}>{HOME_MIND_DUMP_CTA_MICROCOPY}</Text>
+        {!todayDone && userBehaviorState ? (
+          <View style={styles.behaviorCardWrap}>
+            <BehaviorActionCard
+              state={userBehaviorState}
+              onPress={() => void handleBehaviorActionComplete()}
+              compact
+            />
           </View>
-        </TouchableOpacity>
+        ) : null}
 
-        <View style={{ height: 100 }} />
+        {showRestartCard ? (
+          <Animated.View style={[styles.tipSection, cardEnterStyle(1)]}>
+            <Text style={styles.cardLabel}>YENİDEN BAŞLA</Text>
+            <View style={styles.restartCard}>
+              <Text style={styles.restartBody}>{RESTART_CARD_BODY}</Text>
+              <TouchableOpacity
+                style={styles.restartBtn}
+                activeOpacity={0.9}
+                onPress={() => {
+                  if (profile.hapticsEnabled !== false) {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  }
+                  scrollRef.current?.scrollTo({ y: 0, animated: true });
+                }}
+              >
+                <Text style={styles.restartBtnText}>Devam Et</Text>
+              </TouchableOpacity>
+            </View>
+          </Animated.View>
+        ) : (
+          <Animated.View style={[styles.tipSection, cardEnterStyle(1)]}>
+            <Text style={styles.cardLabel}>GÜNLÜK İPUCU</Text>
+            <View style={styles.tipCard}>
+              <Ionicons name="bulb" style={styles.tipBulb} size={16} color="#F59E0B" />
+              <Text style={styles.tipBody}>{dailyTip}</Text>
+            </View>
+          </Animated.View>
+        )}
+
+        <Animated.View style={[styles.weekSection, cardEnterStyle(2)]}>
+          <Text style={styles.cardLabel}>HAFTALIK ÖZET</Text>
+          <View style={styles.weekBarsRow}>
+            {weekCells.map((cell) => {
+              const barColor = weekBarColor(cell, calendarToday);
+              return (
+                <View key={cell.dateKey} style={styles.weekBarCell}>
+                  <View style={[styles.weekBar, { backgroundColor: barColor }]} />
+                  <Text style={styles.weekDayLabelUnder}>{cell.shortLabel}</Text>
+                </View>
+              );
+            })}
+          </View>
+          <Text style={styles.weekMetaLine}>Bu hafta {weekDoneCount}/7</Text>
+          <View style={styles.weekProgressTrack}>
+            <View style={[styles.weekProgressFill, { width: `${weekProgressPct}%` }]} />
+          </View>
+        </Animated.View>
       </ScrollView>
 
-      {confetti && (
-        <View style={StyleSheet.absoluteFill} pointerEvents="none">
-          <ConfettiAnimation trigger={confetti} />
-        </View>
-      )}
+      <CheckInConfirmationSheet
+        visible={showCheckInSheet}
+        onRequestClose={() => setShowCheckInSheet(false)}
+        identitySlug={confirmationSlug}
+        hapticsEnabled={profile.hapticsEnabled !== false}
+        onSave={handleConfirmationSave}
+      />
 
-      {/* Automaticity Modal */}
-      <Modal visible={showAutoInput} animationType="slide" transparent onRequestClose={() => dismissAutoSheet(true)}>
-        <Pressable style={styles.autoOverlay} onPress={() => dismissAutoSheet(true)}>
-          <Pressable style={styles.autoSheet} onPress={(e) => e.stopPropagation()}>
-            <View style={styles.autoHeader}>
-              <Text style={styles.autoTitle}>Değerlendirme</Text>
-              <TouchableOpacity onPress={() => dismissAutoSheet(true)} hitSlop={12}>
-                <X size={22} color={Colors.textTertiary} />
+      <Modal
+        visible={showTaskSheet}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowTaskSheet(false)}
+      >
+        <View style={styles.taskSheetRoot}>
+          <Pressable style={styles.taskSheetBackdrop} onPress={() => setShowTaskSheet(false)} />
+          <SafeAreaView edges={["bottom"]} style={styles.taskSheetSafe}>
+            <View style={styles.taskSheetPanel}>
+              <View style={styles.taskSheetHandle} />
+              <Text style={styles.taskSheetTitle}>{profile.habitName}</Text>
+              <Text style={styles.taskSheetLabel}>Kimlik cümlen</Text>
+              <Text style={styles.taskSheetBody}>{getIdentityLine(profile)}</Text>
+              <Text style={styles.taskSheetLabel}>Bugünün durumu</Text>
+              <Text style={styles.taskSheetBody}>
+                {todayDone
+                  ? "Bugün tamamlandı."
+                  : "Henüz tamamlanmadı — hazır olduğunda check-in ile işaretle."}
+              </Text>
+              <TouchableOpacity
+                style={styles.taskSheetCta}
+                activeOpacity={0.9}
+                onPress={() => {
+                  setShowTaskSheet(false);
+                  navigation.navigate("Journey");
+                }}
+              >
+                <Text style={styles.taskSheetCtaText}>Yolculuğa Git</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.taskSheetClose}
+                activeOpacity={0.85}
+                onPress={() => setShowTaskSheet(false)}
+              >
+                <Text style={styles.taskSheetCloseText}>Kapat</Text>
               </TouchableOpacity>
             </View>
-            <AutomaticitySlider dayNumber={dayNumber} onSubmit={handleAutoSubmit} />
-          </Pressable>
-        </Pressable>
+          </SafeAreaView>
+        </View>
       </Modal>
 
       <ProactiveInterventionModal
@@ -792,43 +1101,16 @@ export default function HomeScreen({ navigation }: Props) {
         }}
       />
 
-      {/* Interrupt Modal — forcedAction=true (kırmızı + düşen momentum) */}
-      <InterruptModal
-        visible={liveAction != null && userState?.forcedAction === true}
-        action={liveAction}
-        forced
-        onDone={handleLiveActionComplete}
-        onClose={() => {
-          if (liveAction) trackEvent("action_cancelled", { actionId: liveAction.id });
-          setLiveAction(null);
-        }}
-      />
-
-      {/* Live Action — normal akış (forced değilken) */}
-      <LiveActionModal
-        key={liveAction ? `live-${liveActionSession}` : "live-closed"}
-        visible={liveAction != null && userState?.forcedAction !== true}
-        action={liveAction}
-        onComplete={handleLiveActionComplete}
-        onCancel={() => {
-          if (liveAction) {
-            trackEvent("action_cancelled", { actionId: liveAction.id });
-          }
-          setLiveAction(null);
-        }}
-      />
-
-      {/* Five Second Trainer Modal */}
       <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
         <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
           <FiveSecondTrainer
-            scenario={
-              currentNudge?.type === "proactive_intervention"
-                ? FIVE_INTERVENTION
-                : FIVE_DEFAULT
-            }
+            scenario={FIVE_DEFAULT}
             onComplete={async (_success, _ms, reward) => {
               showToast("Antrenman kaydedildi. Disiplin kası güçleniyor.");
+              const micro = getActionById("deep-breath");
+              if (micro) {
+                await useBehaviorStore.getState().recordAction(micro);
+              }
               if (reward) {
                 await addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);
               }
@@ -838,11 +1120,10 @@ export default function HomeScreen({ navigation }: Props) {
         </SafeAreaView>
       </Modal>
 
-      {/* Toast */}
       <Animated.View
         style={[
           styles.toast,
-          { opacity: toastOpacity, transform: [{ translateY: toastY }] },
+          { opacity: toastOpacity, transform: [{ translateY: toastY }], bottom: tabBarHeight + 16 },
         ]}
         pointerEvents="none"
       >
@@ -853,309 +1134,430 @@ export default function HomeScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1 },
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  emptyText: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  profileErrorWrap: {
+  safe: {
     flex: 1,
-    paddingHorizontal: Spacing.lg,
-    justifyContent: "center",
-    gap: Spacing.md,
+    backgroundColor: "#F8FAFC",
   },
+  safeLoad: {
+    flex: 1,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+  },
+  header: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+  },
+  greetingCol: {
+    flex: 1,
+    paddingRight: 12,
+  },
+  greetingLead: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+    lineHeight: 26,
+  },
+  greetingNamePart: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  streakBadge: {
+    backgroundColor: "#FFEDD5",
+    borderRadius: 16,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    minWidth: 56,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  streakRollClip: {
+    height: 24,
+    overflow: "hidden",
+    justifyContent: "center",
+  },
+  streakBadgeText: {
+    color: "#EA580C",
+    fontWeight: "700",
+    fontSize: 14,
+    height: 24,
+    lineHeight: 24,
+  },
+  dateLine: {
+    marginTop: 8,
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  actionBlock: {
+    alignItems: "center",
+    marginVertical: 32,
+  },
+  ctaGlowShell: {
+    borderRadius: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ctaGlowActive: {
+    ...Platform.select({
+      ios: {
+        shadowColor: "#10B981",
+        shadowOpacity: 0.3,
+        shadowRadius: 30,
+        shadowOffset: { width: 0, height: 10 },
+      },
+      android: {
+        elevation: 18,
+        shadowColor: "#10B981",
+      },
+    }),
+  },
+  ctaGlowDone: {
+    ...Platform.select({
+      ios: {
+        shadowColor: "#FBBF24",
+        shadowOpacity: 0.35,
+        shadowRadius: 28,
+        shadowOffset: { width: 0, height: 10 },
+      },
+      android: {
+        elevation: 18,
+        shadowColor: "#FBBF24",
+      },
+    }),
+  },
+  ctaDoneDecor: {
+    width: 160,
+    height: 160,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sparkleHost: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 3,
+    pointerEvents: "none",
+  },
+  sparkleOrb: {
+    position: "absolute",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  ctaWrap: {
+    position: "relative",
+    width: 160,
+    height: 160,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  burstLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  burstHost: {
+    width: 160,
+    height: 160,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  confettiDot: {
+    position: "absolute",
+    left: "50%",
+    top: "50%",
+  },
+  ctaTouchable: {
+    borderRadius: 80,
+    overflow: "hidden",
+  },
+  ctaCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 80,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  captionEnter: {
+    marginTop: 16,
+    alignItems: "center",
+    minHeight: 24,
+  },
+  streakCaptionStrong: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#EA580C",
+    lineHeight: 22,
+  },
+  streakCaptionZero: {
+    fontSize: 15,
+    fontWeight: "500",
+    color: "#64748B",
+    lineHeight: 22,
+  },
+  streakCaptionClip: {
+    marginTop: 4,
+    height: 22,
+    overflow: "hidden",
+    alignItems: "center",
+  },
+  ctaDoneCaption: {
+    marginTop: 4,
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#059669",
+    lineHeight: 22,
+  },
+  taskCard: {
+    marginHorizontal: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: "#10B981",
+    ...Platform.select({
+      ios: {
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.04,
+        shadowRadius: 12,
+      },
+      android: { elevation: 2 },
+    }),
+  },
+  firstWeekWrap: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  behaviorCardWrap: {
+    marginHorizontal: 16,
+    marginTop: 12,
+  },
+  cardLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.5,
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    marginBottom: 8,
+  },
+  habitTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  identityLine: {
+    fontSize: 14,
+    fontStyle: "italic",
+    color: "#475569",
+    marginTop: 4,
+    lineHeight: 20,
+  },
+  taskCardHint: {
+    marginTop: 12,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#10B981",
+    alignSelf: "flex-end",
+  },
+  tipSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  tipCard: {
+    position: "relative",
+    backgroundColor: "#ECFDF5",
+    borderRadius: 16,
+    padding: 16,
+    paddingLeft: 38,
+    borderLeftWidth: 3,
+    borderLeftColor: "#10B981",
+  },
+  tipBulb: {
+    position: "absolute",
+    top: 16,
+    left: 14,
+  },
+  tipBody: {
+    fontSize: 14,
+    color: "#065F46",
+    lineHeight: 20,
+  },
+  taskSheetRoot: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  taskSheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+  },
+  taskSheetSafe: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    width: "100%",
+  },
+  taskSheetPanel: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  taskSheetHandle: {
+    alignSelf: "center",
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E2E8F0",
+    marginBottom: 16,
+  },
+  taskSheetTitle: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 16,
+  },
+  taskSheetLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    letterSpacing: 1.2,
+    color: "#94A3B8",
+    textTransform: "uppercase",
+    marginTop: 12,
+    marginBottom: 6,
+  },
+  taskSheetBody: {
+    fontSize: 15,
+    color: "#334155",
+    lineHeight: 22,
+  },
+  taskSheetCta: {
+    marginTop: 24,
+    backgroundColor: "#059669",
+    paddingVertical: 14,
+    borderRadius: 14,
+    alignItems: "center",
+  },
+  taskSheetCtaText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  taskSheetClose: {
+    marginTop: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  taskSheetCloseText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  restartCard: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: 16,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: "#EF4444",
+  },
+  restartBody: {
+    fontSize: 14,
+    color: "#991B1B",
+    lineHeight: 20,
+  },
+  restartBtn: {
+    marginTop: 16,
+    alignSelf: "stretch",
+    backgroundColor: "#EF4444",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  restartBtnText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "600",
+  },
+  weekSection: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  weekBarsRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginTop: 8,
+  },
+  weekBarCell: {
+    width: 32,
+    alignItems: "center",
+    gap: 6,
+  },
+  weekBar: {
+    width: 32,
+    height: 8,
+    borderRadius: 4,
+  },
+  weekDayLabelUnder: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#94A3B8",
+  },
+  weekMetaLine: {
+    marginTop: 14,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#64748B",
+  },
+  weekProgressTrack: {
+    marginTop: 8,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#E2E8F0",
+    overflow: "hidden",
+  },
+  weekProgressFill: {
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#10B981",
+  },
+  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  emptyText: { fontSize: 16, color: "#64748B" },
+  profileErrorWrap: { padding: Spacing.xl, gap: 12 },
   profileErrorTitle: {
     fontSize: FontSizes.lg,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Inter_600SemiBold",
     color: Colors.textPrimary,
-    textAlign: "center",
   },
   profileErrorBody: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 20,
   },
   profileErrorBtn: {
-    alignSelf: "center",
+    alignSelf: "flex-start",
     backgroundColor: Colors.primary,
-    borderRadius: Radii.button,
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    marginTop: Spacing.sm,
+    paddingVertical: 12,
+    borderRadius: Radii.button,
   },
   profileErrorBtnText: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
     color: "#fff",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    paddingTop: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  purposeKicker: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    lineHeight: 17,
-    marginBottom: Spacing.sm,
-    paddingRight: Spacing.xs,
-  },
-  headerRight: { alignItems: "flex-end", gap: Spacing.xs },
-  dayLabel: {
-    fontSize: FontSizes.xxl,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
-  },
-  date: {
+    fontFamily: "Inter_600SemiBold",
     fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    marginTop: 2,
-    textTransform: "capitalize",
-  },
-  statusPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-    marginTop: 4,
-  },
-  statusPillYellow: { backgroundColor: "rgba(243, 156, 18, 0.12)" },
-  statusPillRed: { backgroundColor: Colors.coralLight },
-  statusEmoji: { fontSize: 10 },
-  statusText: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-  },
-  statusTextYellow: { color: "#D4A017" },
-  statusTextRed: { color: Colors.coral },
-  motivationLine: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-    fontStyle: "italic",
-  },
-  // ── Nudge Card ────────────────────────────────────────────────────────
-  nudgeCard: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: "rgba(29, 158, 117, 0.2)",
-    padding: Spacing.md,
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  nudgeCardUrgent: {
-    backgroundColor: Colors.coralLight,
-    borderColor: "rgba(216, 90, 48, 0.25)",
-  },
-  nudgeCardWarm: {
-    backgroundColor: "rgba(243, 156, 18, 0.08)",
-    borderColor: "rgba(243, 156, 18, 0.2)",
-  },
-  nudgeHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-  },
-  nudgeHeadline: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-    flex: 1,
-  },
-  nudgeBody: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  nudgeActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.xs,
-  },
-  nudgeCta: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    backgroundColor: Colors.primary,
-    borderRadius: Radii.button,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 10,
-  },
-  nudgeCtaUrgent: { backgroundColor: Colors.coral },
-  nudgeCtaText: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: "#fff",
-  },
-  nudgeDismiss: { paddingHorizontal: Spacing.sm, paddingVertical: 10 },
-  nudgeDismissText: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-  },
-  finishLineBanner: {
-    backgroundColor: Colors.purpleLight,
-    borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: "rgba(83, 74, 183, 0.2)",
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    gap: Spacing.xs,
-  },
-  finishLineTitle: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: Colors.purple,
-  },
-  finishLineBody: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  // ── Habit Card ────────────────────────────────────────────────────────
-  habitCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  missBanner: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.button,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: "rgba(29, 158, 117, 0.25)",
-  },
-  missBannerWarn: { backgroundColor: "rgba(243, 156, 18, 0.12)" },
-  missBannerRef: { backgroundColor: Colors.purpleLight, borderColor: "rgba(83, 74, 183, 0.2)" },
-  missTitle: { fontSize: FontSizes.md, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
-  missBody: { fontSize: FontSizes.sm, color: Colors.textSecondary, lineHeight: 20, marginTop: 4 },
-  habitName: {
-    fontSize: FontSizes.xl,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
-  },
-  anchorLine: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  miniBarWrap: { gap: Spacing.xs, marginTop: Spacing.xs },
-  miniBarTrack: {
-    height: 3,
-    backgroundColor: Colors.border,
-    borderRadius: 9999,
-    overflow: "hidden",
-  },
-  miniBarFill: {
-    height: "100%",
-    backgroundColor: Colors.primary,
-    borderRadius: 9999,
-  },
-  progressLabels: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  progressLabel: { fontSize: FontSizes.xs, color: Colors.textTertiary },
-  rescueBadge: { fontSize: FontSizes.xs, color: Colors.textTertiary },
-  // ── Celebration ───────────────────────────────────────────────────────
-  celebrationCard: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.card,
-    padding: Spacing.md,
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-    alignItems: "center",
-  },
-  celebrationHeadline: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-    textAlign: "center",
-  },
-  celebrationBody: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  celebrationShareRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.borderStrong,
-  },
-  celebrationShareText: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-  },
-  // ── Other ─────────────────────────────────────────────────────────────
-  mindDumpCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-    borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.md,
-  },
-  mindDumpTextCol: { flex: 1, gap: 4 },
-  mindDumpText: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-  },
-  mindDumpSub: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    lineHeight: 17,
-  },
-  restHint: {
-    backgroundColor: "rgba(243, 156, 18, 0.08)",
-    borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: "rgba(243, 156, 18, 0.2)",
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  restHintText: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 20,
   },
   toast: {
     position: "absolute",
-    bottom: 96,
     left: Spacing.lg,
     right: Spacing.lg,
     backgroundColor: Colors.textPrimary,
@@ -1170,24 +1572,5 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: "center",
   },
-  autoOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: "flex-end" },
-  autoSheet: {
-    width: "100%",
-    maxHeight: "92%",
-    flexShrink: 1,
-    backgroundColor: Colors.bg,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingBottom: Spacing.lg,
-  },
-  autoHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.xs,
-  },
-  autoTitle: { fontSize: FontSizes.lg, fontFamily: "Inter_500Medium", color: Colors.textPrimary },
-  trainerRoot: { flex: 1, backgroundColor: "#1a1a2e" },
+  trainerRoot: { flex: 1, backgroundColor: "#141C26" },
 });
