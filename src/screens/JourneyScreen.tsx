@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { addDays, format, startOfWeek } from "date-fns";
 import {
   View,
   Text,
@@ -10,6 +11,8 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
+  Keyboard,
   useWindowDimensions,
   Animated,
   Easing,
@@ -34,10 +37,12 @@ import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useSDTStore } from "../store/sdtStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
+import {
+  TomorrowTodoInput,
+  TomorrowTodoItem,
+  useTomorrowPlanStore,
+} from "../store/tomorrowPlanStore";
 import PremiumGateModal from "../components/PremiumGateModal";
-import SVGTree from "../components/tree/SVGTree";
-import TimeMachineCard from "../components/journey/TimeMachineCard";
-import JourneyGrid from "../components/habit-detail/JourneyGrid";
 import JourneyPhaseEducationModal from "../components/JourneyPhaseEducationModal";
 import JourneyMindSentenceModal from "../components/JourneyMindSentenceModal";
 import {
@@ -56,16 +61,26 @@ import { getJourneyMomentLine } from "../constants/journeyMoments";
 import { estimateAutomationFromFirst14Linear, getAverageAutomaticity } from "../utils/profileMetrics";
 import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs";
 import { loadJourneyEducationPrefs } from "../utils/journeyEducationPrefs";
-import { MainTabParamList } from "../types";
+import type { MainTabParamList } from "../types";
+import { requestNotificationPermissions } from "../utils/notifications";
 
 const JOURNEY_PAGE_BG = "#F8FAFC";
 
 const ACTION_ICON = "#10B981";
 const ACTION_ICON_BG = "rgba(16, 185, 129, 0.1)";
 
-const ENTRANCE_COUNT = 7;
+const ENTRANCE_COUNT = 5;
 const ENTRANCE_STAGGER_MS = 80;
 const ENTRANCE_INITIAL_DELAY_MS = 100;
+const WEEKDAY_LABELS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
+
+const MAX_TOMORROW_TODOS = 3;
+
+const EMPTY_TODO_DRAFT: TomorrowTodoInput = {
+  text: "",
+  time: "",
+  context: "",
+};
 
 function useJourneyEntrance(isPremium: boolean) {
   const opacity = useRef(
@@ -198,6 +213,7 @@ export default function JourneyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const journeyScrollY = useRef(new Animated.Value(0)).current;
+  const planScrollRef = useRef<ScrollView>(null);
   const profile = useUserStore((s) => s.profile);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const markPremiumGateShown = useUserStore((s) => s.markPremiumGateShown);
@@ -215,12 +231,13 @@ export default function JourneyScreen({ navigation }: Props) {
   const { scores, load: loadSDT, saveScore, needsSurvey, latestScore } = useSDTStore();
 
   const checkins = useCheckinsStore((s) => s.checkins);
-  const completedCheckinCount = useMemo(
-    () => Object.values(checkins).filter((r) => r.completed).length,
-    [checkins]
-  );
   const { completionRate } = useCheckinsStore();
   const createMindEntry = useMindDumpStore((s) => s.createEntry);
+  const listsByDate = useTomorrowPlanStore((s) => s.listsByDate);
+  const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
+  const addTomorrowTodo = useTomorrowPlanStore((s) => s.addItem);
+  const updateTomorrowTodo = useTomorrowPlanStore((s) => s.updateItem);
+  const deleteTomorrowTodo = useTomorrowPlanStore((s) => s.deleteItem);
 
   const isPremium = profile?.isPremium ?? false;
   const { entranceOpacity, entranceY } = useJourneyEntrance(isPremium);
@@ -228,6 +245,10 @@ export default function JourneyScreen({ navigation }: Props) {
   const [showSurvey, setShowSurvey] = useState(false);
   const [showPhaseEdu, setShowPhaseEdu] = useState(false);
   const [showMindSentence, setShowMindSentence] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [editingTodoId, setEditingTodoId] = useState<string | null>(null);
+  const [todoDraft, setTodoDraft] = useState<TomorrowTodoInput>(EMPTY_TODO_DRAFT);
+  const [planModalKeyboardHeight, setPlanModalKeyboardHeight] = useState(0);
   const [answers, setAnswers] = useState({ autonomy: 3, competence: 3, relatedness: 3 });
 
   const linearEstimate = useMemo(() => {
@@ -272,7 +293,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
   useEffect(() => {
     loadSDT();
-  }, []);
+    loadTomorrowPlans();
+  }, [loadTomorrowPlans]);
 
   useEffect(() => {
     if (!profile || isPremium) return;
@@ -289,16 +311,90 @@ export default function JourneyScreen({ navigation }: Props) {
   }, [isPremium, scores.length]);
 
   const grid = profile ? last66Days(profile.startDate) : [];
-  const gridCompletionPct = useMemo(
-    () => Math.min(100, Math.round((grid.filter(Boolean).length / 66) * 100)),
-    [grid]
-  );
+  const tomorrowDate = useMemo(() => format(addDays(new Date(), 1), "yyyy-MM-dd"), []);
+  const tomorrowList = listsByDate[tomorrowDate] ?? null;
+  const tomorrowTodos = tomorrowList?.items ?? [];
+  const primaryTodo = tomorrowTodos.find((item) => item.isPrimary) ?? tomorrowTodos[0] ?? null;
+  const supportTodos = tomorrowTodos.filter((item) => item.id !== primaryTodo?.id);
+  const plannedTodoCount = tomorrowTodos.length;
+  const isAtTodoLimit = plannedTodoCount >= MAX_TOMORROW_TODOS;
+  const weekPlanDays = useMemo(() => {
+    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
+    return WEEKDAY_LABELS.map((label, index) => {
+      const date = format(addDays(start, index), "yyyy-MM-dd");
+      return {
+        label,
+        date,
+        hasPlan: Boolean(listsByDate[date]?.items.length),
+      };
+    });
+  }, [listsByDate]);
   const latest = latestScore();
   const journeyProgress = Math.min(1, Math.max(0, dayNumber / 66));
   const coachNoteText = coachNote;
 
   const phaseCardWidth = Math.round(windowWidth * 0.8);
   const phaseSnapInterval = phaseCardWidth + 10;
+
+  const scrollPlanFormToEnd = useCallback(() => {
+    requestAnimationFrame(() => {
+      planScrollRef.current?.scrollToEnd({ animated: true });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showPlanModal) {
+      setPlanModalKeyboardHeight(0);
+      return;
+    }
+    const showEvent = Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow";
+    const hideEvent = Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide";
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setPlanModalKeyboardHeight(e.endCoordinates.height);
+      setTimeout(scrollPlanFormToEnd, 80);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setPlanModalKeyboardHeight(0);
+    });
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, [showPlanModal, scrollPlanFormToEnd]);
+
+  const openTodoEditor = (item?: TomorrowTodoItem) => {
+    setEditingTodoId(item?.id ?? null);
+    setTodoDraft(
+      item
+        ? {
+            text: item.text,
+            time: item.time,
+            context: item.context,
+          }
+        : {
+            ...EMPTY_TODO_DRAFT,
+            text: tomorrowTodos.length === 0 ? profile?.habitName ?? "" : "",
+            context: tomorrowTodos.length === 0 ? profile?.habitAnchor ?? "" : "",
+          }
+    );
+    setShowPlanModal(true);
+  };
+
+  const handleSaveTodo = async () => {
+    if (!todoDraft.text.trim()) return;
+    await requestNotificationPermissions();
+    if (editingTodoId) {
+      await updateTomorrowTodo(tomorrowDate, editingTodoId, todoDraft);
+    } else {
+      await addTomorrowTodo(tomorrowDate, todoDraft);
+    }
+    setShowPlanModal(false);
+  };
+
+  const handleDeleteTodo = async (id: string) => {
+    await deleteTomorrowTodo(tomorrowDate, id);
+    setShowPlanModal(false);
+  };
 
   if (!isPremium) {
     return (
@@ -383,8 +479,126 @@ export default function JourneyScreen({ navigation }: Props) {
             transform: [{ translateY: entranceY[0] }],
           }}
         >
-          <View style={styles.treeAreaWrap}>
-            <SVGTree day={dayNumber} />
+          <View style={styles.planStack}>
+            <View style={styles.sectionLabelRow}>
+              <Text style={styles.sectionLabel}>YARININ KÜÇÜK LİSTESİ</Text>
+            </View>
+            <View style={styles.tomorrowPlanCard}>
+              {primaryTodo ? (
+                <>
+                  <View style={styles.planCardHeader}>
+                    <View>
+                      <Text style={styles.planKicker}>Yarın otomatikleşsin diye</Text>
+                      <Text style={styles.planAction}>1 ana adımı netleştir</Text>
+                    </View>
+                    <View style={styles.planStatusPill}>
+                      <Text style={styles.planStatusText}>Yarın</Text>
+                    </View>
+                  </View>
+
+                  <Text style={styles.planScheduleHint}>
+                    Check-in yarın yapılır. Uygulama plan gününde sabah hatırlatır.
+                  </Text>
+
+                  <View style={styles.todoList}>
+                    <View style={styles.primaryTodoRow}>
+                      <View style={styles.todoCheckPlanned} />
+                      <View style={styles.todoTextWrap}>
+                        <Text style={styles.primaryTodoText}>{primaryTodo.text}</Text>
+                        {primaryTodo.time || primaryTodo.context ? (
+                          <Text style={styles.todoMeta} numberOfLines={2}>
+                            {[primaryTodo.time, primaryTodo.context].filter(Boolean).join(" · ")}
+                          </Text>
+                        ) : (
+                          <Text style={styles.todoMeta}>Saat veya tetikleyici ekleyebilirsin</Text>
+                        )}
+                      </View>
+                      <TouchableOpacity
+                        style={styles.todoEditChip}
+                        onPress={() => openTodoEditor(primaryTodo)}
+                        hitSlop={8}
+                      >
+                        <Text style={styles.todoEditText}>Düzenle</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    {supportTodos.map((item) => (
+                      <View key={item.id} style={styles.supportTodoRow}>
+                        <View style={styles.todoCheckSmallPlanned} />
+                        <View style={styles.todoTextWrap}>
+                          <Text style={styles.supportTodoText}>{item.text}</Text>
+                          {item.time || item.context ? (
+                            <Text style={styles.todoMeta} numberOfLines={1}>
+                              {[item.time, item.context].filter(Boolean).join(" · ")}
+                            </Text>
+                          ) : null}
+                        </View>
+                        <TouchableOpacity
+                          style={styles.todoEditChip}
+                          onPress={() => openTodoEditor(item)}
+                          hitSlop={8}
+                        >
+                          <Text style={styles.todoEditText}>Düzenle</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+
+                  <View style={styles.todoFooter}>
+                    {!isAtTodoLimit ? (
+                      <TouchableOpacity
+                        style={styles.planAddSmallBtn}
+                        onPress={() => openTodoEditor()}
+                        activeOpacity={0.85}
+                      >
+                        <Text style={styles.planAddSmallText}>+ Küçük madde ekle</Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <Text style={styles.todoLimitText}>Yarın için 3 küçük madde yeterli.</Text>
+                    )}
+                    <TouchableOpacity
+                      style={styles.planDeleteBtn}
+                      onPress={() => primaryTodo && handleDeleteTodo(primaryTodo.id)}
+                    >
+                      <Text style={styles.planDeleteText}>Ana maddeyi sil</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.planEmptyTitle}>Yarın için küçük liste kur</Text>
+                  <Text style={styles.planEmptySub}>
+                    Önce tek ana mikro adımı seç. Yarın sabah hatırlatma gelir; check-in Bugün
+                    ekranından yapılır.
+                  </Text>
+                  <TouchableOpacity style={styles.planAddBtn} onPress={() => openTodoEditor()}>
+                    <Text style={styles.planAddText}>İlk maddeyi ekle</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+
+            <View style={styles.weekPlanCard}>
+              <View style={styles.weekPlanHeader}>
+                <Text style={styles.weekPlanTitle}>BU HAFTANIN PLANI</Text>
+                <Text style={styles.weekPlanMeta}>
+                  {weekPlanDays.filter((d) => d.hasPlan).length}/7 planlı
+                </Text>
+              </View>
+              <View style={styles.weekPlanGrid}>
+                {weekPlanDays.map((day) => (
+                  <View key={day.date} style={styles.weekPlanDay}>
+                    <Text style={styles.weekPlanLabel}>{day.label}</Text>
+                    <View
+                      style={[
+                        styles.weekPlanDot,
+                        day.hasPlan ? styles.weekPlanDotActive : styles.weekPlanDotEmpty,
+                      ]}
+                    />
+                  </View>
+                ))}
+              </View>
+            </View>
           </View>
         </Animated.View>
 
@@ -392,19 +606,6 @@ export default function JourneyScreen({ navigation }: Props) {
           style={{
             opacity: entranceOpacity[1],
             transform: [{ translateY: entranceY[1] }],
-          }}
-        >
-          <TimeMachineCard
-            dayNumber={dayNumber}
-            checkins={checkins}
-            completedCount={completedCheckinCount}
-          />
-        </Animated.View>
-
-        <Animated.View
-          style={{
-            opacity: entranceOpacity[2],
-            transform: [{ translateY: entranceY[2] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -474,8 +675,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[3],
-            transform: [{ translateY: entranceY[3] }],
+            opacity: entranceOpacity[2],
+            transform: [{ translateY: entranceY[2] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -551,25 +752,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[4],
-            transform: [{ translateY: entranceY[4] }],
-          }}
-        >
-        {profile ? (
-          <JourneyGrid
-            startDate={profile.startDate}
-            dayNumber={dayNumber}
-            completedByDay={grid}
-            completionPercent={gridCompletionPct}
-            style={[styles.cardStackGap, styles.journeyMapBlock]}
-          />
-        ) : null}
-        </Animated.View>
-
-        <Animated.View
-          style={{
-            opacity: entranceOpacity[5],
-            transform: [{ translateY: entranceY[5] }],
+            opacity: entranceOpacity[3],
+            transform: [{ translateY: entranceY[3] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -625,8 +809,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[6],
-            transform: [{ translateY: entranceY[6] }],
+            opacity: entranceOpacity[4],
+            transform: [{ translateY: entranceY[4] }],
           }}
         >
           <View style={styles.shareBlock}>
@@ -661,6 +845,132 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      <Modal
+        visible={showPlanModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowPlanModal(false)}
+        statusBarTranslucent
+      >
+        <View style={styles.planModalOverlay}>
+          <Pressable
+            style={styles.planModalBackdrop}
+            onPress={() => setShowPlanModal(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Kapat"
+          />
+          <View
+            style={[
+              styles.surveySheet,
+              styles.planModalSheet,
+              {
+                marginBottom: planModalKeyboardHeight,
+                maxHeight: Math.round(windowHeight * 0.78),
+                paddingBottom: Math.max(Spacing.lg, insets.bottom + Spacing.sm),
+              },
+            ]}
+          >
+            <View style={styles.surveyHandle} />
+            <View style={styles.surveyHeader}>
+              <View style={styles.surveyHeaderLeft}>
+                <View style={styles.surveyIconWrap}>
+                  <ClipboardList size={20} color={Colors.primary} strokeWidth={1.8} />
+                </View>
+                <View>
+                  <Text style={styles.surveyTitle}>
+                    {editingTodoId ? "Maddeyi düzenle" : "Küçük madde ekle"}
+                  </Text>
+                  <Text style={styles.surveyMeta}>Yarın için net ve kısa tut</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.surveyClose}
+                onPress={() => setShowPlanModal(false)}
+                hitSlop={12}
+                accessibilityLabel="Kapat"
+              >
+                <X size={22} color={Colors.textTertiary} strokeWidth={2} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              ref={planScrollRef}
+              style={styles.planModalScroll}
+              contentContainerStyle={[
+                styles.planModalScrollContent,
+                planModalKeyboardHeight > 0 && {
+                  paddingBottom: Spacing.md,
+                },
+              ]}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              bounces={false}
+              nestedScrollEnabled
+            >
+              <View style={styles.planForm}>
+                <View style={styles.planField}>
+                  <Text style={styles.planFieldLabel}>Madde</Text>
+                  <TextInput
+                    style={styles.planInput}
+                    value={todoDraft.text}
+                    onChangeText={(text) => setTodoDraft((prev) => ({ ...prev, text }))}
+                    onFocus={scrollPlanFormToEnd}
+                    placeholder={profile?.habitName || "2 sayfa kitap"}
+                    placeholderTextColor="#94A3B8"
+                  />
+                </View>
+                <View style={styles.planField}>
+                  <Text style={styles.planFieldLabel}>Zaman (opsiyonel)</Text>
+                  <TextInput
+                    style={styles.planInput}
+                    value={todoDraft.time}
+                    onChangeText={(time) => setTodoDraft((prev) => ({ ...prev, time }))}
+                    onFocus={scrollPlanFormToEnd}
+                    placeholder="Sabah 07:00-08:00"
+                    placeholderTextColor="#94A3B8"
+                  />
+                </View>
+                <View style={styles.planField}>
+                  <Text style={styles.planFieldLabel}>Bağlam (opsiyonel)</Text>
+                  <TextInput
+                    style={styles.planInput}
+                    value={todoDraft.context}
+                    onChangeText={(context) => setTodoDraft((prev) => ({ ...prev, context }))}
+                    onFocus={scrollPlanFormToEnd}
+                    placeholder={profile?.habitAnchor || "Kahvemi içtikten sonra"}
+                    placeholderTextColor="#94A3B8"
+                  />
+                </View>
+
+                <TouchableOpacity
+                  style={[
+                    styles.planSaveBtn,
+                    !todoDraft.text.trim() && styles.planSaveBtnDisabled,
+                  ]}
+                  onPress={handleSaveTodo}
+                  disabled={!todoDraft.text.trim()}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.planSaveText}>
+                    {editingTodoId ? "Maddeyi kaydet" : "Listeye ekle"}
+                  </Text>
+                </TouchableOpacity>
+
+                {editingTodoId ? (
+                  <TouchableOpacity
+                    style={styles.planModalDeleteBtn}
+                    onPress={() => handleDeleteTodo(editingTodoId)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.planModalDeleteText}>Maddeyi sil</Text>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={showSurvey}
@@ -1000,17 +1310,341 @@ const styles = StyleSheet.create({
   cardStackGap: {
     marginBottom: 10,
   },
-  journeyMapBlock: {
-    marginTop: 24,
-  },
   sectionHint: {
     fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
   },
-  treeAreaWrap: {
-    marginBottom: 16,
-    alignItems: "stretch",
+  planStack: {
+    gap: 10,
+  },
+  tomorrowPlanCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.14)",
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
+  },
+  planCardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  planKicker: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.primary,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  planAction: {
+    fontSize: FontSizes.xl,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    lineHeight: 26,
+  },
+  planStatusPill: {
+    backgroundColor: "#ECFDF5",
+    borderRadius: Radii.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+  },
+  planStatusText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#059669",
+  },
+  todoList: {
+    marginTop: 14,
+    gap: 8,
+  },
+  primaryTodoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+    borderRadius: 14,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.18)",
+    gap: 10,
+  },
+  supportTodoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: 10,
+  },
+  todoRowCompleted: {
+    opacity: 0.72,
+  },
+  todoCheck: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  todoCheckSmall: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+  },
+  todoCheckDone: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  todoCheckPlanned: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: "#A7F3D0",
+    backgroundColor: "#FFFFFF",
+  },
+  todoCheckSmallPlanned: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#FFFFFF",
+  },
+  planScheduleHint: {
+    marginTop: 10,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 17,
+  },
+  todoTextWrap: {
+    flex: 1,
+    minWidth: 0,
+  },
+  primaryTodoText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.textPrimary,
+    lineHeight: 21,
+  },
+  supportTodoText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    lineHeight: 19,
+  },
+  todoTextCompleted: {
+    textDecorationLine: "line-through",
+    color: Colors.textTertiary,
+  },
+  todoMeta: {
+    marginTop: 2,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 17,
+  },
+  todoEditChip: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: Radii.pill,
+    backgroundColor: "#F1F5F9",
+  },
+  todoEditText: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  todoFooter: {
+    gap: 10,
+    marginTop: 14,
+  },
+  planAddSmallBtn: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.button,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  planAddSmallText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.primaryDark,
+  },
+  todoLimitText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textAlign: "center",
+  },
+  planDeleteBtn: {
+    paddingHorizontal: 18,
+    backgroundColor: "#FEF2F2",
+    borderRadius: Radii.button,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  planDeleteText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#DC2626",
+  },
+  planEmptyTitle: {
+    fontSize: FontSizes.xl,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.textPrimary,
+  },
+  planEmptySub: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginTop: 6,
+  },
+  planAddBtn: {
+    marginTop: 14,
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 13,
+    alignItems: "center",
+  },
+  planAddText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  weekPlanCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  weekPlanHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  weekPlanTitle: {
+    fontSize: 11,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#94A3B8",
+    letterSpacing: 1,
+  },
+  weekPlanMeta: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  weekPlanGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 6,
+  },
+  weekPlanDay: {
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  weekPlanLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  weekPlanDot: {
+    width: "100%",
+    maxWidth: 34,
+    height: 28,
+    borderRadius: 8,
+  },
+  weekPlanDotActive: {
+    backgroundColor: Colors.primary,
+  },
+  weekPlanDotEmpty: {
+    backgroundColor: "#E2E8F0",
+  },
+  planForm: {
+    gap: 12,
+  },
+  planField: {
+    gap: 6,
+  },
+  planFieldLabel: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: Colors.textSecondary,
+  },
+  planInput: {
+    minHeight: 48,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    backgroundColor: "#F8FAFC",
+    paddingHorizontal: 14,
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+  },
+  planSaveBtn: {
+    marginTop: 4,
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  planSaveBtnDisabled: {
+    opacity: 0.45,
+  },
+  planSaveText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+  planModalDeleteBtn: {
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  planModalDeleteText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#DC2626",
   },
   milestoneCard: {
     backgroundColor: "#FFFFFF",
@@ -1424,6 +2058,26 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   surveyOverlay: { flex: 1 },
+  planModalOverlay: {
+    flex: 1,
+    justifyContent: "flex-end",
+  },
+  planModalSheet: {
+    width: "100%",
+    flexShrink: 1,
+    maxHeight: undefined,
+  },
+  planModalScroll: {
+    flexGrow: 0,
+    flexShrink: 1,
+  },
+  planModalScrollContent: {
+    paddingBottom: Spacing.sm,
+  },
+  planModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: Colors.overlay,
+  },
   surveyBackdrop: {
     flex: 1,
     width: "100%",

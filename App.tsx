@@ -34,6 +34,7 @@ import { useMindDumpStore } from "./src/store/mindDumpStore";
 import { useSDTStore } from "./src/store/sdtStore";
 import { useBehaviorStore } from "./src/store/useBehaviorStore";
 import { useHabitStore } from "./src/store/habitStore";
+import { useTomorrowPlanStore } from "./src/store/tomorrowPlanStore";
 import AppNavigator from "./src/navigation/AppNavigator";
 import AppErrorBoundary from "./src/components/AppErrorBoundary";
 import { navigateToBugunTab, navigationRef } from "./src/navigation/navigationRef";
@@ -67,6 +68,7 @@ function AppBootstrap() {
   const loadSDT = useSDTStore((s) => s.load);
   const loadBehavior = useBehaviorStore((s) => s.load);
   const loadHabitDaily = useHabitStore((s) => s.load);
+  const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
   const rollHabitDay = useHabitStore((s) => s.rollDayIfNeeded);
 
   const onboardingDone = loadedProfile?.startDate != null;
@@ -117,6 +119,7 @@ function AppBootstrap() {
         loadSDT(),
         loadBehavior(),
         loadHabitDaily(),
+        loadTomorrowPlans(),
       ]);
       const rejected = results.filter((r) => r.status === "rejected");
       if (rejected.length > 0 && __DEV__) {
@@ -135,7 +138,8 @@ function AppBootstrap() {
 
     const sync = () => {
       const todayDone = useCheckinsStore.getState().getTodayCheckin()?.completed ?? false;
-      setupNotifications(loadedProfile, todayDone).catch(console.warn);
+      const listsByDate = useTomorrowPlanStore.getState().listsByDate;
+      setupNotifications(loadedProfile, todayDone, listsByDate).catch(console.warn);
     };
 
     sync();

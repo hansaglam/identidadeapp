@@ -13,9 +13,16 @@ import {
   pickEveningNotificationBody,
   PHASE_MILESTONE_NOTIFICATIONS,
 } from "../constants/purposeCopy";
+import type { TomorrowTodoList } from "../store/tomorrowPlanStore";
 import { UserProfile } from "../types";
 import { isRestModeActive } from "./restMode";
+import * as NotificationPerms from "./notificationPermissions";
 
+function getPrimaryTodoText(list: TomorrowTodoList | undefined): string | null {
+  if (!list?.items.length) return null;
+  const primary = list.items.find((i) => i.isPrimary) ?? list.items[0];
+  return primary?.text?.trim() || null;
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -26,15 +33,6 @@ Notifications.setNotificationHandler({
     shouldShowList: true,
   }),
 });
-
-// ─── Permissions ────────────────────────────────────────────────────────────
-
-export async function requestNotificationPermissions(): Promise<boolean> {
-  const { status: existing } = await Notifications.getPermissionsAsync();
-  if (existing === "granted") return true;
-  const { status } = await Notifications.requestPermissionsAsync();
-  return status === "granted";
-}
 
 // ─── Identifier helpers ──────────────────────────────────────────────────────
 
@@ -63,26 +61,33 @@ function wantsEveningPulse(profile: UserProfile, onDate = new Date()): boolean {
 // ─── Morning "Müdahale" ─────────────────────────────────────────────────────
 
 /** Sabah bildirimi — Welcome / Bugün vaadiyle uyumlu (kart + check-in dilini bağlar). */
-function getMorningCopy(dayN: number, habitName: string): { title: string; body: string } {
+function getMorningCopy(
+  dayN: number,
+  habitName: string,
+  plannedAction: string | null
+): { title: string; body: string } {
   const h = habitName.trim() || "bu alışkanlık";
+  const planHint = plannedAction
+    ? ` Dün planladığın: “${plannedAction}”.`
+    : "";
 
   if (dayN <= 3) {
     return {
       title: `Gün ${dayN} — Beyin yeni yol açıyor.`,
-      body: `Bugün kartında net seçim: ${h} için 1 küçük adım. Düşünmeden başla.`,
+      body: `Bugün kartında net seçim: ${h} için 1 küçük adım.${planHint}`,
     };
   }
   if (dayN <= 7) {
     return {
       title: `Gün ${dayN} — Yol inşa edilirken.`,
-      body: `${h}: Bugün kartındaki mikro-hedefi seç — on saniye bile yeter; sonra dürüst check-in zamanı.`,
+      body: `${h}: Bugün kartındaki mikro-hedefi seç — on saniye bile yeter.${planHint}`,
     };
   }
 
   if (dayN <= 14) {
     return {
       title: `Gün ${dayN} — Alışkanlık kurulurken.`,
-      body: `${h} yapan biri gibi küçük bir adım daha. Bugün ekranındaki kart seni sıkıştırmadan yönlendirir.`,
+      body: `${h} yapan biri gibi küçük bir adım daha.${planHint || " Bugün ekranındaki kart seni sıkıştırmadan yönlendirir."}`,
     };
   }
   if (dayN <= 22) {
@@ -137,9 +142,10 @@ function getMorningCopy(dayN: number, habitName: string): { title: string; body:
 
 export async function scheduleMorningNotifications(
   profile: UserProfile,
-  days = 30
+  days = 30,
+  listsByDate: Record<string, TomorrowTodoList> = {}
 ): Promise<void> {
-  const granted = await requestNotificationPermissions();
+  const granted = await NotificationPerms.requestNotificationPermissions();
   if (!granted) return;
 
   const today = new Date();
@@ -165,7 +171,8 @@ export async function scheduleMorningNotifications(
     await Notifications.cancelScheduledNotificationAsync(morningId(dateStr)).catch(() => {});
     if (!wantsMorningPulse(profile, target)) continue;
 
-    const copy = getMorningCopy(dayN, profile.habitName);
+    const plannedAction = getPrimaryTodoText(listsByDate[dateStr]);
+    const copy = getMorningCopy(dayN, profile.habitName, plannedAction);
 
     await Notifications.scheduleNotificationAsync({
       identifier: morningId(dateStr),
@@ -191,7 +198,7 @@ const EVENING_HOUR = 21;
 const EVENING_MINUTE = 0;
 
 export async function scheduleEveningReminderToday(profile: UserProfile): Promise<void> {
-  const granted = await requestNotificationPermissions();
+  const granted = await NotificationPerms.requestNotificationPermissions();
   if (!granted) return;
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -230,7 +237,7 @@ async function cancelPhaseMilestoneNotifications(): Promise<void> {
 
 /** Faz bildirimi; `notifyPhaseMilestones` kapalıysa hepsini iptal eder. */
 export async function schedulePhaseTransitions(profile: UserProfile): Promise<void> {
-  const granted = await requestNotificationPermissions();
+  const granted = await NotificationPerms.requestNotificationPermissions();
   if (!granted) return;
 
   if (profile.notifyPhaseMilestones === false) {
@@ -259,10 +266,11 @@ export async function schedulePhaseTransitions(profile: UserProfile): Promise<vo
 
 export async function setupNotifications(
   profile: UserProfile,
-  todayCheckedIn: boolean
+  todayCheckedIn: boolean,
+  listsByDate: Record<string, TomorrowTodoList> = {}
 ): Promise<void> {
   await Promise.all([
-    scheduleMorningNotifications(profile),
+    scheduleMorningNotifications(profile, 30, listsByDate),
     schedulePhaseTransitions(profile),
   ]);
   if (!todayCheckedIn) {
@@ -271,3 +279,5 @@ export async function setupNotifications(
     await cancelEveningReminderToday();
   }
 }
+
+export { requestNotificationPermissions } from "./notificationPermissions";

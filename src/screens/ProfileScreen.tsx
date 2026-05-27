@@ -18,6 +18,7 @@ import { format, parseISO, subDays, isBefore, startOfDay } from "date-fns";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useHabitStore } from "../store/habitStore";
+import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
 import {
   cancelAllMorningNotifications,
   scheduleMorningNotifications,
@@ -137,7 +138,13 @@ export default function ProfileScreen() {
       await updateProfile(patch);
       const next = useUserStore.getState().profile;
       const todayDone = getTodayCheckin()?.completed ?? false;
-      if (next) await setupNotifications(next, todayDone).catch(console.warn);
+      if (next) {
+        await setupNotifications(
+          next,
+          todayDone,
+          useTomorrowPlanStore.getState().listsByDate
+        ).catch(console.warn);
+      }
     },
     [updateProfile, getTodayCheckin]
   );
@@ -494,7 +501,11 @@ export default function ProfileScreen() {
           const nextProfile = useUserStore.getState().profile;
           const todayDone = getTodayCheckin()?.completed ?? false;
           if (nextProfile) {
-            await setupNotifications(nextProfile, todayDone).catch(console.warn);
+            await setupNotifications(
+              nextProfile,
+              todayDone,
+              useTomorrowPlanStore.getState().listsByDate
+            ).catch(console.warn);
           }
         }}
       />
@@ -514,7 +525,11 @@ export default function ProfileScreen() {
               setProfileDialog(null);
               if (profile) {
                 await cancelAllMorningNotifications();
-                await scheduleMorningNotifications(profile);
+                await scheduleMorningNotifications(
+                  profile,
+                  30,
+                  useTomorrowPlanStore.getState().listsByDate
+                );
               }
             },
           },

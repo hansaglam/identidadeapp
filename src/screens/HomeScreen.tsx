@@ -28,6 +28,7 @@ import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useHabitStore } from "../store/habitStore";
+import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
 import FiveSecondTrainer, { FiveSecondScenario } from "../components/FiveSecondTrainer";
 import {
   cancelEveningReminderToday,
@@ -231,6 +232,9 @@ export default function HomeScreen({ navigation }: Props) {
   const checkins = useCheckinsStore((s) => s.checkins);
   const { completeTodayWithRatings, getTodayCheckin, getStreakState } = useCheckinsStore();
   const mindDumpEntries = useMindDumpStore((s) => s.entries);
+  const listsByDate = useTomorrowPlanStore((s) => s.listsByDate);
+  const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
+  const markTodayPlanCompleted = useTomorrowPlanStore((s) => s.markDayCompleted);
 
   const behaviorMuscles = useBehaviorStore((s) => s.muscles);
   const behaviorRecent = useBehaviorStore((s) => s.recentActions);
@@ -275,9 +279,21 @@ export default function HomeScreen({ navigation }: Props) {
   const checkingRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      void loadTomorrowPlans();
+    }, [loadTomorrowPlans])
+  );
+
   const todayCheckin = getTodayCheckin();
   const todayDone = todayCheckin?.completed ?? false;
   const streakState = getStreakState();
+  const todayPlanDate = calendarToday;
+  const todayPlanList = listsByDate[todayPlanDate] ?? null;
+  const todayPlanTodos = todayPlanList?.items ?? [];
+  const todayPrimaryTodo =
+    todayPlanTodos.find((item) => item.isPrimary) ?? todayPlanTodos[0] ?? null;
+  const todaySupportTodos = todayPlanTodos.filter((item) => item.id !== todayPrimaryTodo?.id);
 
   const proactiveHandledRef = useRef<string | null>(null);
 
@@ -519,7 +535,13 @@ export default function HomeScreen({ navigation }: Props) {
       });
       await useBehaviorStore.getState().reset();
       const fresh = useUserStore.getState().profile;
-      if (fresh) await setupNotifications(fresh, false);
+      if (fresh) {
+        await setupNotifications(
+          fresh,
+          false,
+          useTomorrowPlanStore.getState().listsByDate
+        );
+      }
       setShowStackingModal(false);
       void trackEvent("journey_stacked", {
         tone: getStackingModalCopyVariant(preStackDay),
@@ -571,6 +593,9 @@ export default function HomeScreen({ navigation }: Props) {
       }
       await cancelEveningReminderToday();
       await useHabitStore.getState().markCheckedInToday();
+      if (todayPlanList?.items.length) {
+        await markTodayPlanCompleted(todayPlanDate);
+      }
 
       const nextStreak = useCheckinsStore.getState().getStreakState().currentStreak;
 
@@ -608,6 +633,9 @@ export default function HomeScreen({ navigation }: Props) {
     streakSlide,
     getStreakState,
     afterCheckInFollowUp,
+    todayPlanList,
+    todayPlanDate,
+    markTodayPlanCompleted,
   ]);
 
   const handleConfirmationSave = useCallback(
@@ -918,6 +946,10 @@ export default function HomeScreen({ navigation }: Props) {
               </View>
             ) : streakDisplay > 0 ? (
               <Text style={styles.streakCaptionStrong}>🔥 {streakDisplay} gün üst üste</Text>
+            ) : todayPrimaryTodo ? (
+              <Text style={styles.planCaption} numberOfLines={2}>
+                Dün planladığın: {todayPrimaryTodo.text}
+              </Text>
             ) : (
               <Text style={styles.streakCaptionZero}>Başlamak için dokun</Text>
             )}
@@ -925,13 +957,40 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
 
         <Animated.View style={cardEnterStyle(0)}>
+          {todayPrimaryTodo ? (
+            <View style={styles.todayPlanCard}>
+              <Text style={styles.cardLabel}>BUGÜNÜN PLANI</Text>
+              <Text style={styles.todayPlanPrimary}>{todayPrimaryTodo.text}</Text>
+              {todayPrimaryTodo.time || todayPrimaryTodo.context ? (
+                <Text style={styles.todayPlanMeta} numberOfLines={2}>
+                  {[todayPrimaryTodo.time, todayPrimaryTodo.context].filter(Boolean).join(" · ")}
+                </Text>
+              ) : null}
+              {todaySupportTodos.length > 0 ? (
+                <View style={styles.todayPlanSupportList}>
+                  {todaySupportTodos.map((item) => (
+                    <Text key={item.id} style={styles.todayPlanSupportItem} numberOfLines={1}>
+                      · {item.text}
+                    </Text>
+                  ))}
+                </View>
+              ) : null}
+              <Text style={styles.todayPlanCheckInHint}>
+                {todayDone
+                  ? "Planın tamamlandı — check-in kaydedildi."
+                  : "Check-in, dün kurduğun bu planın onayıdır."}
+              </Text>
+            </View>
+          ) : null}
           <TouchableOpacity
-            style={styles.taskCard}
+            style={[styles.taskCard, todayPrimaryTodo ? styles.taskCardWithPlan : null]}
             activeOpacity={0.9}
             onPress={() => setShowTaskSheet(true)}
           >
             <Text style={styles.cardLabel}>BUGÜNÜN GÖREVİ</Text>
-            <Text style={styles.habitTitle}>{profile.habitName}</Text>
+            <Text style={styles.habitTitle}>
+              {todayPrimaryTodo?.text ?? profile.habitName}
+            </Text>
             <Text style={styles.identityLine}>{getIdentityLine(profile)}</Text>
             <Text style={styles.taskCardHint}>Detaylar için dokun →</Text>
           </TouchableOpacity>
@@ -1303,6 +1362,15 @@ const styles = StyleSheet.create({
     color: "#64748B",
     lineHeight: 22,
   },
+  planCaption: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#059669",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 12,
+  },
   streakCaptionClip: {
     marginTop: 4,
     height: 22,
@@ -1315,6 +1383,42 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#059669",
     lineHeight: 22,
+  },
+  todayPlanCard: {
+    marginHorizontal: 16,
+    marginBottom: 10,
+    backgroundColor: "#ECFDF5",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "#A7F3D0",
+  },
+  todayPlanPrimary: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#0F172A",
+    lineHeight: 24,
+    marginTop: 4,
+  },
+  todayPlanMeta: {
+    fontSize: 13,
+    color: "#64748B",
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  todayPlanSupportList: {
+    marginTop: 8,
+    gap: 2,
+  },
+  todayPlanSupportItem: {
+    fontSize: 13,
+    color: "#475569",
+  },
+  todayPlanCheckInHint: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#059669",
   },
   taskCard: {
     marginHorizontal: 16,
@@ -1332,6 +1436,9 @@ const styles = StyleSheet.create({
       },
       android: { elevation: 2 },
     }),
+  },
+  taskCardWithPlan: {
+    marginTop: 0,
   },
   firstWeekWrap: {
     marginHorizontal: 16,
