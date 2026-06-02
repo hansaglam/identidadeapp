@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   ActivityIndicator,
@@ -37,8 +37,19 @@ import { useHabitStore } from "./src/store/habitStore";
 import { useTomorrowPlanStore } from "./src/store/tomorrowPlanStore";
 import AppNavigator from "./src/navigation/AppNavigator";
 import AppErrorBoundary from "./src/components/AppErrorBoundary";
-import { navigateToBugunTab, navigationRef } from "./src/navigation/navigationRef";
-import { setupNotifications } from "./src/utils/notifications";
+import {
+  navigateFromNotification,
+  navigateToBugunTab,
+  navigationRef,
+} from "./src/navigation/navigationRef";
+import {
+  setupNotifications,
+  initNotificationSystem,
+  handleNotificationResponseData,
+} from "./src/utils/notifications";
+import { trackEvent } from "./src/utils/analytics";
+import { format } from "date-fns";
+import ExactAlarmPermissionModal from "./src/components/ExactAlarmPermissionModal";
 import { Colors, FontSizes, Radii } from "./src/constants/theme";
 import type { AppColors } from "./src/constants/theme";
 
@@ -50,6 +61,7 @@ export default function App() {
 
 function AppBootstrap() {
   const [dataReady, setDataReady] = useState(false);
+  const sessionTrackedDayRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -134,12 +146,24 @@ function AppBootstrap() {
   }, []);
 
   useEffect(() => {
+    void initNotificationSystem(() => {
+      const p = useUserStore.getState().profile;
+      if (!p) return;
+      const todayDone = useCheckinsStore.getState().getTodayCheckin()?.completed ?? false;
+      const listsByDate = useTomorrowPlanStore.getState().listsByDate;
+      const checkins = useCheckinsStore.getState().checkins;
+      return setupNotifications(p, todayDone, listsByDate, checkins);
+    });
+  }, []);
+
+  useEffect(() => {
     if (!loadedProfile) return;
 
     const sync = () => {
       const todayDone = useCheckinsStore.getState().getTodayCheckin()?.completed ?? false;
       const listsByDate = useTomorrowPlanStore.getState().listsByDate;
-      setupNotifications(loadedProfile, todayDone, listsByDate).catch(console.warn);
+      const checkins = useCheckinsStore.getState().checkins;
+      setupNotifications(loadedProfile, todayDone, listsByDate, checkins).catch(console.warn);
     };
 
     sync();
@@ -153,12 +177,26 @@ function AppBootstrap() {
   }, [loadedProfile, rollHabitDay]);
 
   useEffect(() => {
-    const sub = Notifications.addNotificationResponseReceivedListener(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const p = useUserStore.getState().profile;
-      navigateToBugunTab(p?.startDate != null);
+      const data = handleNotificationResponseData(
+        response.notification.request.content.data as Record<string, unknown> | undefined
+      );
+      void trackEvent("notification_opened", {
+        type: typeof data?.type === "string" ? data.type : "unknown",
+      });
+      navigateFromNotification(p?.startDate != null, data);
     });
     return () => sub.remove();
   }, []);
+
+  useEffect(() => {
+    if (!dataReady || !loadedProfile?.startDate) return;
+    const dayKey = format(new Date(), "yyyy-MM-dd");
+    if (sessionTrackedDayRef.current === dayKey) return;
+    sessionTrackedDayRef.current = dayKey;
+    void trackEvent("app_session_daily", { dayNumber: useUserStore.getState().dayNumber() });
+  }, [dataReady, loadedProfile?.startDate]);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && dataReady && !isUserLoading) {
@@ -221,6 +259,7 @@ function AppBootstrap() {
       <AppErrorBoundary>
         <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.bg }}>
           <SafeAreaProvider>
+            <ExactAlarmPermissionModal />
             <NavigationContainer
               theme={navTheme}
               ref={navigationRef}
@@ -228,7 +267,12 @@ function AppBootstrap() {
                 Notifications.getLastNotificationResponseAsync().then((r) => {
                   if (!r?.notification) return;
                   const p = useUserStore.getState().profile;
-                  navigateToBugunTab(p?.startDate != null);
+                  const data = handleNotificationResponseData(
+                    r.notification.request.content.data as
+                      | Record<string, unknown>
+                      | undefined
+                  );
+                  navigateFromNotification(p?.startDate != null, data);
                 });
               }}
             >

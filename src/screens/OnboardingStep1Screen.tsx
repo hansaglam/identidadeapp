@@ -1,25 +1,56 @@
 import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Check } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
-import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
-import {
-  IDENTITY_TEMPLATES,
-  type IdentityTagId,
-} from "../constants/identityTemplates";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
+import { IDENTITY_TEMPLATES, type IdentityTagId } from "../constants/identityTemplates";
 import { trackEvent } from "../utils/analytics";
-import {
-  ONBOARDING_IDENTITY_LEAD,
-  ONBOARDING_IDENTITY_PANEL_LINES,
-  ONBOARDING_IDENTITY_PANEL_TITLE,
-} from "../constants/purposeCopy";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep1">;
 
 const CUSTOM_ID = "__custom__";
+
+const STEP_LABELS = ["Kimliğin", "Çapan", "Neden"] as const;
+
+function StepBar({ current }: { current: number }) {
+  return (
+    <View style={styles.stepWrap}>
+      {STEP_LABELS.map((label, i) => {
+        const done = i < current - 1;
+        const active = i === current - 1;
+        return (
+          <React.Fragment key={label}>
+            {i > 0 && (
+              <View
+                style={[styles.stepConnector, (done || active) && styles.stepConnectorActive]}
+              />
+            )}
+            <View style={styles.stepItem}>
+              <View style={[styles.stepCircle, done && styles.stepCircleDone, active && styles.stepCircleActive]}>
+                {done ? (
+                  <Check size={10} color="#fff" strokeWidth={3} />
+                ) : (
+                  <Text style={[styles.stepNum, active && styles.stepNumActive]}>{i + 1}</Text>
+                )}
+              </View>
+              <Text style={[styles.stepLabel, active && styles.stepLabelActive]}>{label}</Text>
+            </View>
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
 
 export default function OnboardingStep1Screen({ navigation }: Props) {
   const [selected, setSelected] = useState<string | null>(null);
@@ -28,22 +59,23 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
   const isCustom = selected === CUSTOM_ID;
   const chosenTemplate = IDENTITY_TEMPLATES.find((t) => t.id === selected);
 
-  const habitName = isCustom
-    ? customText.trim()
-    : chosenTemplate?.title ?? "";
+  const habitName = isCustom ? customText.trim() : chosenTemplate?.title ?? "";
   const identityTagId: IdentityTagId | null =
     (chosenTemplate?.id as IdentityTagId | undefined) ?? null;
   const canContinue = habitName.length >= 2;
 
+  const handleSelect = (id: string) => {
+    void Haptics.selectionAsync();
+    setSelected(id);
+  };
+
   const handleContinue = () => {
     if (!canContinue) return;
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     trackEvent("onboarding_template_selected", {
       identityTagId: identityTagId ?? "custom",
     });
-    navigation.navigate("OnboardingStep2", {
-      habitName,
-      identityTagId,
-    });
+    navigation.navigate("OnboardingStep2", { habitName, identityTagId });
   };
 
   return (
@@ -53,26 +85,22 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.stepRow}>
-          {[1, 2, 3].map((s) => (
-            <View key={s} style={[styles.step, s === 1 && styles.stepActive]} />
-          ))}
-        </View>
+        <StepBar current={1} />
 
-        <Text style={styles.title}>66 gün sonunda kim olmak istiyorsun?</Text>
-        <Text style={styles.sub}>{ONBOARDING_IDENTITY_LEAD}</Text>
+        <Text style={styles.title}>66 gün sonunda{"\n"}kim olmak istiyorsun?</Text>
+        <Text style={styles.sub}>
+          Bir kimlik seç ya da kendin yaz. Çapa ve zamanı bir sonraki adımda rutinine bağlayacaksın.
+        </Text>
 
+        {/* Info panel */}
         <View style={styles.infoPanel}>
-          <Text style={styles.infoPanelTitle}>{ONBOARDING_IDENTITY_PANEL_TITLE}</Text>
-          {ONBOARDING_IDENTITY_PANEL_LINES.map((line, i) => (
-            <Text key={i} style={styles.infoPanelLine}>
-              <Text style={styles.bullet}>{"\u2022 "}</Text>
-              {line}
-            </Text>
-          ))}
+          <Text style={styles.infoPanelTitle}>Aynı motor, senin yönün</Text>
+          <Text style={styles.infoPanelBody}>
+            Listede bire bir örtüşen satır olmayabilir — en yakınını seç. Özü çapa ve alışkanlık adınla kendin netleştirirsin.
+          </Text>
         </View>
 
-        {/* Identity Tag cards */}
+        {/* Identity cards */}
         <View style={styles.list}>
           {IDENTITY_TEMPLATES.map((tpl) => {
             const active = selected === tpl.id;
@@ -80,29 +108,34 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
               <TouchableOpacity
                 key={tpl.id}
                 style={[styles.card, active && styles.cardActive]}
-                onPress={() => setSelected(tpl.id)}
+                onPress={() => handleSelect(tpl.id)}
                 activeOpacity={0.85}
               >
                 <View style={styles.cardHeader}>
-                  <Text style={styles.emoji}>{tpl.emoji}</Text>
+                  <View style={[styles.emojiWrap, active && styles.emojiWrapActive]}>
+                    <Text style={styles.emoji}>{tpl.emoji}</Text>
+                  </View>
                   <View style={styles.cardTextWrap}>
-                    <Text
-                      style={[styles.cardTitle, active && styles.cardTitleActive]}
-                    >
+                    <Text style={[styles.cardTitle, active && styles.cardTitleActive]}>
                       {tpl.title}
                     </Text>
-                    <Text style={styles.cardBlurb}>{tpl.blurb}</Text>
+                    <Text style={styles.cardBlurb} numberOfLines={2}>{tpl.blurb}</Text>
                   </View>
-                  {active && <View style={styles.radioDot} />}
+                  <View style={[styles.radioOuter, active && styles.radioOuterActive]}>
+                    {active && <View style={styles.radioDot} />}
+                  </View>
                 </View>
+
                 {active && (
                   <View style={styles.previewBox}>
-                    <Text style={styles.previewLabel}>Kimlik</Text>
-                    <Text style={styles.previewLine}>
-                      “{tpl.identityStatement}”
-                    </Text>
-                    <Text style={styles.previewLabel}>Mikro-aksiyon</Text>
-                    <Text style={styles.previewLine}>{tpl.microActionInitial}</Text>
+                    <View style={styles.previewRow}>
+                      <Text style={styles.previewLabel}>Kimlik ifadesi</Text>
+                      <Text style={styles.previewLine}>"{tpl.identityStatement}"</Text>
+                    </View>
+                    <View style={[styles.previewRow, styles.previewRowBorder]}>
+                      <Text style={styles.previewLabel}>İlk mikro-adım</Text>
+                      <Text style={styles.previewLine}>{tpl.microActionInitial}</Text>
+                    </View>
                   </View>
                 )}
               </TouchableOpacity>
@@ -112,31 +145,33 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
           {/* Custom option */}
           <TouchableOpacity
             style={[styles.card, isCustom && styles.cardActive]}
-            onPress={() => setSelected(CUSTOM_ID)}
+            onPress={() => handleSelect(CUSTOM_ID)}
             activeOpacity={0.85}
           >
             <View style={styles.cardHeader}>
-              <Text style={styles.emoji}>✏️</Text>
+              <View style={[styles.emojiWrap, isCustom && styles.emojiWrapActive]}>
+                <Text style={styles.emoji}>✏️</Text>
+              </View>
               <View style={styles.cardTextWrap}>
-                <Text
-                  style={[styles.cardTitle, isCustom && styles.cardTitleActive]}
-                >
+                <Text style={[styles.cardTitle, isCustom && styles.cardTitleActive]}>
                   Kendi cümlemi yazacağım
                 </Text>
                 <Text style={styles.cardBlurb}>
-                  Kendi kimlik ifadeni yaz; çapa ve zamanı sıradaki adımda netleştirirsin.
-                  Bugün kartı motoru seçilen rota ile uyumlu çalışır.
+                  Özel bir ifade yaz; çapa ve zamanı bir sonraki adımda belirlersin.
                 </Text>
               </View>
-              {isCustom && <View style={styles.radioDot} />}
+              <View style={[styles.radioOuter, isCustom && styles.radioOuterActive]}>
+                {isCustom && <View style={styles.radioDot} />}
+              </View>
             </View>
+
             {isCustom && (
               <View style={styles.customWrap}>
                 <TextInput
                   style={styles.customInput}
                   value={customText}
                   onChangeText={setCustomText}
-                  placeholder="Örn: Her gün su içen biri..."
+                  placeholder="Örn: Her gün su içen, kendine bakan biri…"
                   placeholderTextColor={Colors.textTertiary}
                   autoFocus
                   maxLength={60}
@@ -149,15 +184,19 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
         </View>
       </ScrollView>
 
+      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.cta, !canContinue && styles.ctaDisabled]}
           onPress={handleContinue}
           disabled={!canContinue}
-          activeOpacity={0.8}
+          activeOpacity={0.85}
         >
           <Text style={styles.ctaText}>Devam Et</Text>
         </TouchableOpacity>
+        {!canContinue && (
+          <Text style={styles.footerHint}>Devam etmek için bir kimlik seç</Text>
+        )}
       </View>
     </SafeAreaView>
   );
@@ -171,22 +210,68 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     flexGrow: 1,
   },
-  stepRow: {
+
+  /* Step bar */
+  stepWrap: {
     flexDirection: "row",
-    gap: Spacing.sm,
+    alignItems: "center",
     marginBottom: Spacing.xl,
   },
-  step: {
-    flex: 1,
-    height: 3,
-    borderRadius: Radii.full,
-    backgroundColor: Colors.border,
+  stepItem: {
+    alignItems: "center",
+    gap: 4,
   },
-  stepActive: { backgroundColor: Colors.primary },
+  stepConnector: {
+    flex: 1,
+    height: 2,
+    backgroundColor: Colors.border,
+    marginBottom: 14,
+  },
+  stepConnectorActive: {
+    backgroundColor: Colors.primary,
+  },
+  stepCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  stepCircleActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  stepCircleDone: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primary,
+  },
+  stepNum: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+  },
+  stepNumActive: { color: Colors.primary },
+  stepLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    letterSpacing: 0.3,
+  },
+  stepLabelActive: {
+    color: Colors.primary,
+    fontFamily: "Inter_500Medium",
+  },
+
+  /* Header */
   title: {
     fontSize: FontSizes.xxl,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
+    lineHeight: 34,
+    letterSpacing: -0.3,
     marginBottom: Spacing.sm,
   },
   sub: {
@@ -196,98 +281,129 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Spacing.md,
   },
+
+  /* Info panel */
   infoPanel: {
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.primaryLight,
     borderRadius: Radii.card,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.primary,
     padding: Spacing.md,
     marginBottom: Spacing.lg,
-    borderLeftWidth: 4,
-    borderLeftColor: Colors.primary,
   },
   infoPanelTitle: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
+    color: Colors.primaryDark,
+    marginBottom: 4,
   },
-  infoPanelLine: {
+  infoPanelBody: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: Spacing.sm,
-    paddingRight: Spacing.sm,
+    lineHeight: 19,
   },
-  bullet: {
-    fontFamily: "Inter_500Medium",
-    color: Colors.primaryDark,
-  },
+
+  /* Cards */
   list: { gap: Spacing.sm },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     padding: Spacing.md,
+    ...Shadows.soft,
   },
   cardActive: {
     borderColor: Colors.primary,
-    backgroundColor: Colors.primaryLight,
+    backgroundColor: "#F6FDFB",
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     gap: Spacing.md,
   },
-  emoji: { fontSize: 26 },
+  emojiWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: Radii.sm,
+    backgroundColor: Colors.bg,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emojiWrapActive: {
+    backgroundColor: Colors.primaryLight,
+  },
+  emoji: { fontSize: 22 },
   cardTextWrap: { flex: 1 },
   cardTitle: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
+    marginBottom: 2,
   },
-  cardTitleActive: { color: Colors.primary },
+  cardTitleActive: { color: Colors.primaryDark },
   cardBlurb: {
-    marginTop: 2,
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
+    lineHeight: 18,
   },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  radioOuterActive: { borderColor: Colors.primary },
   radioDot: {
     width: 10,
     height: 10,
     borderRadius: 5,
     backgroundColor: Colors.primary,
   },
+
+  /* Preview box */
   previewBox: {
-    marginTop: Spacing.sm,
+    marginTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(47, 156, 134, 0.15)",
+    paddingTop: Spacing.md,
+    gap: Spacing.sm,
+  },
+  previewRow: { gap: 3 },
+  previewRowBorder: {
     paddingTop: Spacing.sm,
     borderTopWidth: 1,
-    borderTopColor: "rgba(29,158,117,0.2)",
-    gap: 2,
+    borderTopColor: "rgba(47, 156, 134, 0.10)",
   },
   previewLabel: {
     fontSize: FontSizes.xs,
     fontFamily: "Inter_500Medium",
     color: Colors.primaryDark,
-    letterSpacing: 0.5,
     textTransform: "uppercase",
-    marginTop: 6,
+    letterSpacing: 0.6,
   },
   previewLine: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textPrimary,
-    lineHeight: 20,
+    lineHeight: 19,
   },
-  customWrap: { marginTop: Spacing.sm, gap: Spacing.xs },
+
+  /* Custom input */
+  customWrap: {
+    marginTop: Spacing.md,
+    gap: Spacing.xs,
+  },
   customInput: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.button,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
     paddingHorizontal: Spacing.md,
     paddingVertical: 12,
     fontSize: FontSizes.md,
@@ -300,6 +416,8 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     alignSelf: "flex-end",
   },
+
+  /* Footer */
   footer: {
     paddingHorizontal: Spacing.lg,
     paddingBottom: Spacing.xl,
@@ -307,17 +425,26 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
     backgroundColor: Colors.surface,
+    gap: Spacing.sm,
+    alignItems: "center",
   },
   cta: {
+    width: "100%",
     backgroundColor: Colors.primary,
     borderRadius: Radii.button,
     paddingVertical: 15,
     alignItems: "center",
+    ...Shadows.card,
   },
-  ctaDisabled: { opacity: 0.45 },
+  ctaDisabled: { opacity: 0.42 },
   ctaText: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
     color: "#fff",
+  },
+  footerHint: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
 });

@@ -16,6 +16,8 @@ interface Props {
   disabled?: boolean;
   /** Ana ekran: dikey alanı kısalt, metinleri kırp */
   compact?: boolean;
+  /** Bugün sekmesi: beyaz kart, hafif gölge */
+  surface?: boolean;
 }
 
 const STATUS_TINT: Record<
@@ -47,6 +49,7 @@ export default function BehaviorActionCard({
   onPress,
   disabled = false,
   compact = false,
+  surface = false,
 }: Props) {
   const tint = STATUS_TINT[state.status];
   const a = state.suggestedAction;
@@ -56,16 +59,24 @@ export default function BehaviorActionCard({
       : `${MUSCLE_LABELS[a.type]} · ${a.duration} sn`;
   const metaSuffix = state.scaledDown ? " · küçültüldü" : "";
 
-  return (
-    <View
-      style={[
+  const cardSurfaceStyle = surface
+    ? [styles.cardSurface, compact && styles.cardCompact]
+    : [
         styles.card,
         compact && styles.cardCompact,
         { backgroundColor: tint.bg, borderColor: tint.border },
-      ]}
-    >
+      ];
+
+  return (
+    <View style={cardSurfaceStyle}>
       <View style={[styles.headerRow, compact && styles.headerRowCompact]}>
-        <View style={[styles.statusPill, compact && styles.statusPillCompact]}>
+        <View
+          style={[
+            styles.statusPill,
+            surface && styles.statusPillSurface,
+            compact && styles.statusPillCompact,
+          ]}
+        >
           <Text style={styles.statusEmoji}>{STATUS_EMOJI[state.status]}</Text>
           <Text style={[styles.statusLabel, compact && styles.statusLabelCompact, { color: tint.tint }]}>
             {STATUS_LABELS[state.status]}
@@ -106,12 +117,14 @@ export default function BehaviorActionCard({
         style={[
           styles.cta,
           compact && styles.ctaCompact,
-          { backgroundColor: tint.cta },
+          { backgroundColor: surface ? Colors.primary : tint.cta },
           disabled && styles.ctaDisabled,
         ]}
         onPress={onPress}
         activeOpacity={0.88}
         disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={state.recoveryMode ? "Yeniden başla" : "Şimdi yap"}
       >
         <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>
           {state.recoveryMode ? "Yeniden başla" : "Şimdi yap"}
@@ -121,7 +134,7 @@ export default function BehaviorActionCard({
 
       {!compact && state.predictionDays > 0 ? (
         <Text style={styles.prediction}>
-          Otomatikleşmeye tahmini ~{state.predictionDays} gün
+          Otomatikleşmeye tahmini ~{state.predictionDays} gün — her adım seni yaklaştırır.
         </Text>
       ) : null}
     </View>
@@ -135,6 +148,15 @@ const styles = StyleSheet.create({
     padding: Spacing.xl,
     marginBottom: Spacing.xl,
     ...Shadows.soft,
+  },
+  cardSurface: {
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+    marginBottom: 0,
+    ...Shadows.card,
   },
   cardCompact: {
     padding: Spacing.md,
@@ -157,6 +179,11 @@ const styles = StyleSheet.create({
     borderRadius: Radii.pill,
     paddingHorizontal: 12,
     paddingVertical: 6,
+  },
+  statusPillSurface: {
+    backgroundColor: Colors.surfaceMuted,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   statusPillCompact: {
     paddingHorizontal: 10,

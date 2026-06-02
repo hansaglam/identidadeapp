@@ -26,10 +26,11 @@ const TRIGGER_MICRO: Record<
   "journey" | "minddump" | "day22",
   string | null
 > = {
-  journey: null,
+  journey:
+    "Yarın planı ücretsiz. Premium: 66 gün haritası, Kimlik Aynası, SDT nabzı ve bugünün koç paketi.",
   minddump: MIND_DUMP_FREE_LIMIT_EXPLAIN,
   day22:
-    "22. gündeyken harita özeti müdahale sistemi daha net biçimde açılıyor; premium ile tam eriş.",
+    "22. günde tam yolculuk paneli açılır: 3 faz haritası, güne tıklayınca detay, Kimlik Aynası.",
 };
 
 interface Props {
@@ -40,9 +41,9 @@ interface Props {
 
 /** Kısa maddeler — tek ekranda sığsın diye özümsenmiş. */
 const BENEFIT_LINES = [
-  "Otomatikleşme eğrisi ve tahmin (gün 14+)",
-  "Riskli günlerde kısa müdahale + Kimlik Aynası",
-  "66 gün sonunda netlik (koşullu iade veya uzatma)",
+  "Yarın planı her zaman ücretsiz (Ana + Yolculuk)",
+  "66 gün · 3 faz haritası — güne dokun, o günün özeti",
+  "Kimlik Aynası + SDT nabzı + faz eğitimi + koç paketi",
 ];
 
 export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
@@ -251,7 +252,7 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                   Yatırım yapanların sürdürme ihtimali genelde 2–3 kat daha yüksektir (commitment effect).
                 </Text>
                 <Text style={styles.panelFootMuted}>
-                  66 gün boyunca süreci takip et; beklenen otomatikleşme oluşmazsa iade veya süre uzatma.
+                  Beklenen otomatikleşme oluşmazsa destek üzerinden süre uzatma talep edebilirsin.
                 </Text>
               </View>
 

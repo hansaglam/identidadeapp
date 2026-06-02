@@ -62,6 +62,11 @@ export interface UserProfile {
   completedHabits?: CompletedHabit[];
   /** 66. gün kutlaması / stacking seçimi bekliyor */
   stackingOfferPending?: boolean;
+  /**
+   * Check-in öncesi davranış adımı kapısı.
+   * soft = öner, atlanabilir | strict = adım zorunlu | off = eski akış
+   */
+  checkInActionGate?: "soft" | "strict" | "off";
 }
 
 /** key: 'checkins:YYYY-MM-DD' */
@@ -120,8 +125,14 @@ export type AuthStackParamList = {
   };
 };
 
+export type HomeTabParams = {
+  /** Bildirimden gelince görev detay sheet */
+  openTaskSheet?: boolean;
+  habitId?: string;
+};
+
 export type MainTabParamList = {
-  Home: undefined;
+  Home: HomeTabParams | undefined;
   MindDump: undefined;
   Journey: undefined;
   Profile: undefined;

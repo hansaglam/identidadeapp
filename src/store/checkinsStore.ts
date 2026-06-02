@@ -137,8 +137,8 @@ interface CheckinsState {
   /** Otomatiklik + çaba puanlarıyla bugünü tamamla; teyit notları isteğe bağlı. */
   completeTodayWithRatings: (
     dayNumber: number,
-    automaticity: number,
-    effort: number,
+    automaticity: number | null,
+    effort: number | null,
     checkInNote?: string | null,
     checkInDetail?: string | null
   ) => Promise<void>;
@@ -156,17 +156,12 @@ interface CheckinsState {
   isStreakReset: () => boolean;
   /** Habit stacking: yeni tur — tüm günlük kayıtları sil */
   clearAllCheckins: () => Promise<void>;
-  /** Yolculuk ağacı büyüme animasyonu (check-in sonrası); JourneyTree tetikler */
-  journeyTreeGrowthPulse: boolean;
-  acknowledgeJourneyTreeGrowthPulse: () => void;
 }
 
 export const useCheckinsStore = create<CheckinsState>((set, get) => ({
   checkins: {},
   isLoading: false,
   loadFailed: false,
-  journeyTreeGrowthPulse: false,
-
   load: async () => {
     set({ isLoading: true, loadFailed: false });
     try {
@@ -207,10 +202,7 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
         day: dayNumber,
       };
       await saveCheckin(record);
-      set((s) => ({
-        checkins: { ...s.checkins, [date]: record },
-        journeyTreeGrowthPulse: true,
-      }));
+      set((s) => ({ checkins: { ...s.checkins, [date]: record } }));
     }
   },
 
@@ -223,30 +215,25 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
   ) => {
     const date = todayStr();
     const prev = get().checkins[date];
-    const auto = Math.min(10, Math.max(1, Math.round(automaticity)));
-    const eff = Math.min(10, Math.max(1, Math.round(effort)));
     const record: CheckinRecord = {
       ...prev,
       date,
       completed: true,
       completedAt: new Date().toISOString(),
       day: dayNumber,
-      automaticityRating: auto,
-      effortRating: eff,
     };
+    if (automaticity != null && effort != null) {
+      record.automaticityRating = Math.min(10, Math.max(1, Math.round(automaticity)));
+      record.effortRating = Math.min(10, Math.max(1, Math.round(effort)));
+    }
     if (checkInNote !== undefined) {
       record.checkInNote = checkInNote ?? undefined;
       record.checkInDetail =
         checkInDetail === undefined ? undefined : checkInDetail;
     }
     await saveCheckin(record);
-    set((s) => ({
-      checkins: { ...s.checkins, [date]: record },
-      journeyTreeGrowthPulse: true,
-    }));
+    set((s) => ({ checkins: { ...s.checkins, [date]: record } }));
   },
-
-  acknowledgeJourneyTreeGrowthPulse: () => set({ journeyTreeGrowthPulse: false }),
 
   getTodayCheckin: () => {
     const { checkins } = get();
@@ -299,6 +286,6 @@ export const useCheckinsStore = create<CheckinsState>((set, get) => ({
 
   clearAllCheckins: async () => {
     await removeAllCheckins();
-    set({ checkins: {}, journeyTreeGrowthPulse: false });
+    set({ checkins: {} });
   },
 }));

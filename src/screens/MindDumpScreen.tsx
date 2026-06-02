@@ -31,6 +31,7 @@ import { useCheckinsStore } from "../store/checkinsStore";
 import { useBehaviorStore } from "../store/useBehaviorStore";
 import { getActionById } from "../engine/actions";
 import { useHabitStore, type JourneyReflection } from "../store/habitStore";
+import { analyzeMindDump, analyzeRecentMindDumps, MUSCLE_LABELS, type MindDumpAnalysis } from "../engine";
 import {
   Colors,
   Spacing,
@@ -48,6 +49,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import { isJourneyMindContent, stripJourneyMindPrefix } from "../constants/mindDumpJourney";
 import { buildMindDumpReflection, type MindDumpReflectionState } from "../utils/mindDumpReflection";
 import FiveSecondTrainer, { type FiveSecondScenario } from "../components/FiveSecondTrainer";
+import { getDailyMindPrompt, getMindModalStartPhrases } from "../constants/mindDumpPrompts";
 
 const FIVE_FROM_MIND: FiveSecondScenario = {
   id: "mind-dump-nudge",
@@ -61,12 +63,6 @@ const FIVE_FROM_MIND: FiveSecondScenario = {
 type Props = BottomTabScreenProps<MainTabParamList, "MindDump">;
 
 const MODAL_MAX_CHARS = 500;
-const MODAL_START_PHRASES = [
-  "Bugün kafamı en çok meşgul eden şey...",
-  "Şu an içimden geçen ama sesli söylemediğim...",
-  "Minnettar olduğum küçük bir detay...",
-  "Yarın için tek bir net niyet...",
-] as const;
 
 const PAGE_BG = "#F8FAFC";
 
@@ -186,6 +182,10 @@ function ReflectionHistoryRow({
 
 export default function MindDumpScreen(_: Props) {
   const currentDay = useUserStore((s) => s.dayNumber());
+  const todayPromptPlaceholder = useMemo(
+    () => getDailyMindPrompt(currentDay),
+    [currentDay]
+  );
 
   const journalScrollRef = useRef<ScrollView>(null);
   const historySectionY = useRef(0);
@@ -237,6 +237,12 @@ export default function MindDumpScreen(_: Props) {
 
   const clearHighlight = useCallback(() => setHighlightDate(null), []);
 
+  const mindEntries = useMindDumpStore((s) => s.entries);
+  const moodAnalysis = useMemo<MindDumpAnalysis | null>(
+    () => analyzeRecentMindDumps(mindEntries),
+    [mindEntries]
+  );
+
   const openMindDump = () => setMindModalOpen(true);
 
   return (
@@ -270,10 +276,19 @@ export default function MindDumpScreen(_: Props) {
               disabled={mindModalOpen}
             >
               <Text style={[styles.yeniBtnText, mindModalOpen && styles.yeniBtnTextDisabled]}>
-                📝 Yeni
+                + Yeni not
               </Text>
             </TouchableOpacity>
           </View>
+
+          {moodAnalysis?.matchedKeyword ? (
+            <View style={styles.moodPill}>
+              <Sparkles size={13} color={Colors.primary} strokeWidth={2} />
+              <Text style={styles.moodPillText}>
+                Son notlarından: {MUSCLE_LABELS[moodAnalysis.detectedMuscle]} modunda
+              </Text>
+            </View>
+          ) : null}
         </Animated.View>
 
         <Animated.View
@@ -323,27 +338,34 @@ export default function MindDumpScreen(_: Props) {
             <TextInput
               style={styles.todayInput}
               value={todayReflectionDraft}
-              onChangeText={setTodayReflectionDraft}
-              placeholder="Bugün için bir cümle yaz..."
+              onChangeText={(v) => setTodayReflectionDraft(v.slice(0, 280))}
+              placeholder={`${todayPromptPlaceholder} (kısa cevap)`}
               placeholderTextColor="#94A3B8"
               multiline
               textAlignVertical="top"
+              maxLength={280}
             />
-            <TouchableOpacity
-              style={[styles.saveTodayBtn, !canSaveToday && styles.saveTodayBtnDisabled]}
-              onPress={() => void saveTodayReflection()}
-              disabled={!canSaveToday}
-              activeOpacity={0.85}
-            >
-              <Text
-                style={[
-                  styles.saveTodayBtnText,
-                  !canSaveToday && styles.saveTodayBtnTextDisabled,
-                ]}
-              >
-                Kaydet
+            <View style={styles.todayInputFooter}>
+              <Text style={styles.todayCharCount}>
+                {todayReflectionDraft.length}/280
+                {todayReflectionDraft.length >= 20 ? "  ✓" : ""}
               </Text>
-            </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.saveTodayBtn, !canSaveToday && styles.saveTodayBtnDisabled]}
+                onPress={() => void saveTodayReflection()}
+                disabled={!canSaveToday}
+                activeOpacity={0.85}
+              >
+                <Text
+                  style={[
+                    styles.saveTodayBtnText,
+                    !canSaveToday && styles.saveTodayBtnTextDisabled,
+                  ]}
+                >
+                  Kaydet
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Animated.View>
 
@@ -369,9 +391,13 @@ export default function MindDumpScreen(_: Props) {
             </TouchableOpacity>
           </View>
           {sortedReflections.length === 0 ? (
-            <Text style={styles.emptyReflections}>
-              Henüz yansıma yok. İlk yansımanı bugün yaz.
-            </Text>
+            <View style={styles.emptyReflectionsCard}>
+              <Ionicons name="pencil-outline" size={28} color={Colors.primary} />
+              <Text style={styles.emptyReflectionsTitle}>İlk yansıma senin</Text>
+              <Text style={styles.emptyReflectionsBody}>
+                Her gün bir cümle yaz. Düşüncelerini dışarı bırakmak beynin için alan açar — zorlamadan, yargılanmadan.
+              </Text>
+            </View>
           ) : (
             <View style={styles.reflectionListWrap}>
               {sortedReflections.map((item) => (
@@ -398,12 +424,18 @@ export default function MindDumpScreen(_: Props) {
             onPress={openMindDump}
             activeOpacity={0.88}
           >
-            <Ionicons name="leaf" size={24} color="#10B981" style={styles.mindDumpIcon} />
-            <Text style={styles.mindDumpTitle}>Zihin Boşalt</Text>
-            <Text style={styles.mindDumpDesc}>
-              Stres, uyku öncesi veya kafa doluyken — yazdığın sadece bu cihazda kalır.
-            </Text>
-            <Text style={styles.mindDumpCta}>Başla →</Text>
+            <View style={styles.mindDumpIconWrap}>
+              <Ionicons name="leaf" size={22} color="#10B981" />
+            </View>
+            <View style={styles.mindDumpTextWrap}>
+              <Text style={styles.mindDumpTitle}>Zihin Boşalt</Text>
+              <Text style={styles.mindDumpDesc}>
+                Kafan doluyken yaz, rahatla. Yazdıkların sadece bu cihazda kalır — ton analizi davranış motoruna hafifçe yansır.
+              </Text>
+              {mindEntries.length > 0 ? (
+                <Text style={styles.mindDumpMeta}>{mindEntries.length} not kayıtlı</Text>
+              ) : null}
+            </View>
           </TouchableOpacity>
         </Animated.View>
 
@@ -426,6 +458,11 @@ function MindDumpLegacyModal({
   const { entries, load, createEntry, updateEntry, deleteEntry } = useMindDumpStore();
   const profile = useUserStore((s) => s.profile);
   const isPremium = profile?.isPremium ?? false;
+  const currentDay = useUserStore((s) => s.dayNumber());
+  const modalStartPhrases = useMemo(
+    () => getMindModalStartPhrases(currentDay),
+    [currentDay]
+  );
 
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [text, setText] = useState("");
@@ -491,11 +528,19 @@ function MindDumpLegacyModal({
     [runPersist]
   );
 
+  const [liveMood, setLiveMood] = useState<MindDumpAnalysis | null>(null);
+
   const handleTextChange = (value: string) => {
     const next = value.slice(0, MODAL_MAX_CHARS);
     setText(next);
     setSelectedPromptIdx(null);
     triggerAutoSave(next, currentId);
+    if (next.trim().length >= 12) {
+      const analysis = analyzeMindDump(next);
+      setLiveMood(analysis.matchedKeyword ? analysis : null);
+    } else {
+      setLiveMood(null);
+    }
   };
 
   const applyStartPhrase = (phrase: string, idx: number) => {
@@ -611,9 +656,18 @@ function MindDumpLegacyModal({
                   <Text style={mindModalStyles.savingHint}>{savingLabel}</Text>
                 ) : null}
 
+                {liveMood?.matchedKeyword ? (
+                  <View style={mindModalStyles.liveMoodRow}>
+                    <Sparkles size={14} color={Colors.primary} strokeWidth={2} />
+                    <Text style={mindModalStyles.liveMoodText}>
+                      {MUSCLE_LABELS[liveMood.detectedMuscle]} modundasin — &quot;{liveMood.suggestedAction.title}&quot; seni harekete gecirebilir.
+                    </Text>
+                  </View>
+                ) : null}
+
                 <View style={mindModalStyles.promptsBlock}>
                   <Text style={mindModalStyles.promptsLabel}>💡 BAŞLANGIÇ CÜMLELERİ</Text>
-                  {MODAL_START_PHRASES.map((phrase, idx) => (
+                  {modalStartPhrases.map((phrase, idx) => (
                     <TouchableOpacity
                       key={phrase}
                       style={[
@@ -956,6 +1010,24 @@ const styles = StyleSheet.create({
   yeniBtnTextDisabled: {
     color: "#059669",
   },
+  moodPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 10,
+    backgroundColor: Colors.primaryLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radii.pill,
+    borderWidth: 1,
+    borderColor: "rgba(47,156,134,0.2)",
+    alignSelf: "flex-start",
+  },
+  moodPillText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+  },
   sectionLabelMuted: {
     fontSize: 11,
     fontWeight: "700",
@@ -1045,8 +1117,17 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     marginBottom: 12,
   },
+  todayInputFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  todayCharCount: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+  },
   saveTodayBtn: {
-    alignSelf: "flex-end",
     backgroundColor: "#10B981",
     borderRadius: 8,
     paddingHorizontal: 16,
@@ -1078,13 +1159,28 @@ const styles = StyleSheet.create({
   reflectionListWrap: {
     marginTop: 8,
   },
-  emptyReflections: {
-    textAlign: "center",
-    color: "#94A3B8",
-    marginTop: 20,
-    marginHorizontal: 24,
-    fontSize: 14,
+  emptyReflectionsCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.card,
+    padding: Spacing.lg,
+    alignItems: "center",
+    gap: Spacing.sm,
+    borderWidth: 1,
+    borderColor: "rgba(47,156,134,0.15)",
+  },
+  emptyReflectionsTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+  },
+  emptyReflectionsBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
     lineHeight: 20,
+    textAlign: "center",
   },
   reflectionCard: {
     marginHorizontal: 16,
@@ -1122,32 +1218,48 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   mindDumpPromo: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
     marginHorizontal: 16,
     marginTop: 16,
     marginBottom: 24,
-    backgroundColor: "#F0FDF4",
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(16, 185, 129, 0.18)",
+    ...Shadows.card,
   },
-  mindDumpIcon: {
-    marginBottom: 8,
+  mindDumpIconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: Radii.sm,
+    backgroundColor: "#F0FDF4",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  mindDumpTextWrap: {
+    flex: 1,
   },
   mindDumpTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#065F46",
-    marginBottom: 6,
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    marginBottom: 4,
   },
   mindDumpDesc: {
-    fontSize: 13,
-    color: "#059669",
-    lineHeight: 19,
-    marginBottom: 10,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
   },
-  mindDumpCta: {
-    color: "#059669",
-    fontWeight: "600",
-    fontSize: 14,
+  mindDumpMeta: {
+    marginTop: 6,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
 });
 
@@ -1273,6 +1385,25 @@ const mindModalStyles = StyleSheet.create({
     fontSize: 12,
     color: "#94A3B8",
     marginTop: 6,
+  },
+  liveMoodRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(47,156,134,0.2)",
+  },
+  liveMoodText: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.primaryDark,
+    lineHeight: 20,
   },
   promptsBlock: {
     marginHorizontal: 16,

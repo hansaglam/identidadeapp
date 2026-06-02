@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -11,9 +11,12 @@ import {
   Modal,
   Alert,
   Platform,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { Flame, Trophy, Target, TrendingUp } from "lucide-react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { format, parseISO, subDays, isBefore, startOfDay } from "date-fns";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
@@ -31,8 +34,9 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import PrivacyDataModal from "../components/PrivacyDataModal";
 import EditCommitmentModal from "../components/EditCommitmentModal";
 import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
+import CoachEngagementCard from "../components/CoachEngagementCard";
 import type { UserProfile } from "../types";
-import { Spacing } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 
 const PAGE_BG = "#F8FAFC";
 const APP_VERSION = "1.0.0";
@@ -46,6 +50,30 @@ const cardShadow = {
   shadowRadius: 12,
   elevation: 3,
 } as const;
+
+const ENTRANCE_COUNT = 6;
+const STAGGER_MS = 80;
+
+function useEntranceAnims() {
+  const opacity = useRef(
+    Array.from({ length: ENTRANCE_COUNT }, () => new Animated.Value(0))
+  ).current;
+  const translateY = useRef(
+    Array.from({ length: ENTRANCE_COUNT }, () => new Animated.Value(14))
+  ).current;
+
+  useEffect(() => {
+    const anims = opacity.map((o, i) =>
+      Animated.parallel([
+        Animated.timing(o, { toValue: 1, duration: 280, useNativeDriver: true }),
+        Animated.timing(translateY[i]!, { toValue: 0, duration: 280, useNativeDriver: true }),
+      ])
+    );
+    Animated.stagger(STAGGER_MS, anims).start();
+  }, [opacity, translateY]);
+
+  return { opacity, translateY };
+}
 
 function isRestModeActive(restUntil: string | null | undefined): boolean {
   if (!restUntil || typeof restUntil !== "string") return false;
@@ -95,6 +123,7 @@ export default function ProfileScreen() {
   const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const checkins = useCheckinsStore((s) => s.checkins);
+  const habit = useHabitStore((s) => s.habit);
   const { getStreakState, completionRate, getTodayCheckin } = useCheckinsStore();
   const streakState = getStreakState();
 
@@ -118,18 +147,21 @@ export default function ProfileScreen() {
   const avgAuto = useMemo(() => getAverageAutomaticity(checkins), [checkins]);
   const autoPct = avgAuto != null ? Math.round((avgAuto / 10) * 100) : 0;
 
+  const currentStreak = streakState.currentStreak;
+
   const achievements = useMemo(() => {
     if (!profile) return [];
-    const cur = streakState.currentStreak;
     const list: { emoji: string; title: string; desc: string; unlocked: boolean }[] = [
       { emoji: "🌱", title: "İlk filiz", desc: "Yolculuk başladı", unlocked: dayNumber >= 1 },
-      { emoji: "🔥", title: "7 gün üst üste", desc: "Streak gücü", unlocked: cur >= 7 },
-      { emoji: "🎯", title: "30 gün", desc: "Üçte bir", unlocked: dayNumber >= 30 },
-      { emoji: "🌳", title: "İlk ağaç", desc: "66 tamamlandı", unlocked: (profile.completedHabits?.length ?? 0) > 0 },
+      { emoji: "🔥", title: "3 gün seri", desc: "İlk momentum", unlocked: currentStreak >= 3 },
+      { emoji: "💪", title: "7 gün seri", desc: "Disiplin kası", unlocked: currentStreak >= 7 },
+      { emoji: "🎯", title: "21 gün", desc: "Çekirdek alışkanlık", unlocked: dayNumber >= 21 },
+      { emoji: "⚡", title: "30 gün", desc: "Üçte bir geçildi", unlocked: dayNumber >= 30 },
+      { emoji: "🌳", title: "66 gün", desc: "Tam otomatiklik", unlocked: (profile.completedHabits?.length ?? 0) > 0 },
       { emoji: "⭐", title: "Premium", desc: "Tam deneyim", unlocked: isPremium },
     ];
     return list;
-  }, [profile, dayNumber, streakState.currentStreak, isPremium]);
+  }, [profile, dayNumber, currentStreak, isPremium]);
 
   const last14 = useLast14Bars(profile?.startDate ?? "", checkins);
 
@@ -142,7 +174,8 @@ export default function ProfileScreen() {
         await setupNotifications(
           next,
           todayDone,
-          useTomorrowPlanStore.getState().listsByDate
+          useTomorrowPlanStore.getState().listsByDate,
+          useCheckinsStore.getState().checkins
         ).catch(console.warn);
       }
     },
@@ -165,6 +198,13 @@ export default function ProfileScreen() {
   };
 
   const notifTimeLabel = `Sabah ${String(notifHour).padStart(2, "0")}:${String(notifMin).padStart(2, "0")}`;
+  const checkInGate = profile?.checkInActionGate ?? "soft";
+  const gateModeLabel =
+    checkInGate === "strict"
+      ? "Sıkı — önce adım zorunlu"
+      : checkInGate === "off"
+      ? "Kapalı"
+      : "Yumuşak — önce adım önerilir";
 
   if (!profile) {
     if (profileLoadFailed) {
@@ -191,6 +231,10 @@ export default function ProfileScreen() {
     );
   }
 
+  const { opacity: entO, translateY: entY } = useEntranceAnims();
+
+  const journeyPct = Math.min(Math.round((dayNumber / 66) * 100), 100);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: PAGE_BG }]} edges={["top"]}>
       <ScrollView
@@ -198,208 +242,293 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.headerRow}>
+        {/* ── Header ── */}
+        <Animated.View style={[styles.headerRow, { opacity: entO[0], transform: [{ translateY: entY[0]! }] }]}>
           <Text style={styles.headerTitle}>Profil</Text>
           <View style={[styles.statusBadge, restActive ? styles.statusBadgeRest : styles.statusBadgeOk]}>
             <Text style={[styles.statusBadgeText, restActive && styles.statusBadgeTextRest]}>
-              {restActive ? "🔴 Mola" : "🟢 Aktif"}
+              {restActive ? "Mola" : "Aktif"}
             </Text>
           </View>
-        </View>
+        </Animated.View>
 
-        <View style={styles.profileCard}>
-          <View style={styles.avatar}>
-            <Text style={styles.avatarLetter}>
-              {(profile.name || profile.habitName || "K").slice(0, 1).toUpperCase()}
-            </Text>
-          </View>
-          <View style={styles.profileMain}>
-            {editingName ? (
-              <TextInput
-                style={styles.nameInput}
-                value={nameInput}
-                onChangeText={setNameInput}
-                autoFocus
-                returnKeyType="done"
-                onSubmitEditing={() => void handleSaveName()}
-              />
-            ) : (
-              <Text style={styles.displayName}>{profile.name || "Kahraman"}</Text>
-            )}
-            {isPremium ? (
-              <View style={styles.premiumBadge}>
-                <Text style={styles.premiumBadgeText}>⭐ Premium</Text>
+        {/* ── Profil Kartı ── */}
+        <Animated.View style={{ opacity: entO[0], transform: [{ translateY: entY[0]! }] }}>
+          <View style={styles.profileCard}>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarLetter}>
+                {habit?.identityIcon
+                  || (profile.name || profile.habitName || "K").slice(0, 1).toUpperCase()}
+              </Text>
+            </View>
+            <View style={styles.profileMain}>
+              {editingName ? (
+                <TextInput
+                  style={styles.nameInput}
+                  value={nameInput}
+                  onChangeText={setNameInput}
+                  autoFocus
+                  returnKeyType="done"
+                  onSubmitEditing={() => void handleSaveName()}
+                />
+              ) : (
+                <Text style={styles.displayName}>{profile.name || "Kahraman"}</Text>
+              )}
+              <Text style={styles.habitLabel}>{profile.habitName}</Text>
+              <View style={styles.profileMetaRow}>
+                {isPremium ? (
+                  <View style={styles.premiumBadge}>
+                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                  </View>
+                ) : null}
+                <Text style={styles.journeyMeta}>Gün {dayNumber}/66</Text>
               </View>
+            </View>
+            <TouchableOpacity
+              style={styles.editIconBtn}
+              onPress={() => {
+                if (editingName) void handleSaveName();
+                else {
+                  setEditingName(true);
+                  setNameInput(profile.name ?? "");
+                }
+              }}
+              hitSlop={8}
+            >
+              {editingName ? (
+                <Ionicons name="checkmark" size={20} color="#10B981" />
+              ) : (
+                <Ionicons name="pencil" size={18} color="#94A3B8" />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* Journey progress bar */}
+          <View style={styles.journeyBar}>
+            <View style={styles.journeyTrack}>
+              <View style={[styles.journeyFillClip, { width: `${journeyPct}%` }]}>
+                <LinearGradient
+                  colors={["#34D399", "#10B981"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.journeyGradient}
+                />
+              </View>
+            </View>
+            <Text style={styles.journeyBarText}>%{journeyPct} yolculuk tamamlandı</Text>
+          </View>
+        </Animated.View>
+
+        {/* ── Stat Kartları ── */}
+        <Animated.View style={{ opacity: entO[1], transform: [{ translateY: entY[1]! }] }}>
+          <Text style={styles.sectionLabel}>İSTATİSTİKLER</Text>
+          <View style={styles.statRow}>
+            <View style={[styles.statCard, styles.statCardStreak]}>
+              <Flame size={18} color="#F59E0B" strokeWidth={2.5} />
+              <Text style={styles.statBigStreak}>{currentStreak}</Text>
+              <Text style={styles.statSmall}>seri</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Target size={16} color={Colors.primary} strokeWidth={2} />
+              <Text style={styles.statBig}>{dayNumber}</Text>
+              <Text style={styles.statSmall}>gün</Text>
+            </View>
+            <View style={styles.statCard}>
+              <TrendingUp size={16} color={Colors.primary} strokeWidth={2} />
+              <Text style={styles.statBig}>%{autoPct}</Text>
+              <Text style={styles.statSmall}>otomatiklik</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Trophy size={16} color={Colors.primary} strokeWidth={2} />
+              <Text style={styles.statBig}>%{Math.round(rate * 100)}</Text>
+              <Text style={styles.statSmall}>tamamlama</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* ── 14 Günlük Grafik ── */}
+        <Animated.View style={{ opacity: entO[2], transform: [{ translateY: entY[2]! }] }}>
+          <Text style={styles.sectionLabel}>SON 14 GÜN</Text>
+          <View style={styles.chartCard}>
+            <View style={styles.barsRow}>
+              {last14.bars.map((b, i) => {
+                const h = b.beforeStart ? 14 : b.completed ? 36 : 14;
+                const bg = b.beforeStart
+                  ? "#E2E8F0"
+                  : b.completed
+                  ? "#10B981"
+                  : "#F1F5F9";
+                return (
+                  <View key={i} style={styles.barCol}>
+                    <View style={[styles.bar, { height: h, backgroundColor: bg }]} />
+                  </View>
+                );
+              })}
+            </View>
+            <View style={styles.chartFooter}>
+              <Text style={styles.chartCaption}>
+                {last14.completedInWindow}/14 gün
+              </Text>
+              <Text style={styles.chartPct}>%{last14.pct}</Text>
+            </View>
+          </View>
+        </Animated.View>
+
+        {/* ── Başarımlar ── */}
+        <Animated.View style={{ opacity: entO[3], transform: [{ translateY: entY[3]! }] }}>
+          <View style={styles.achHeadRow}>
+            <Text style={[styles.sectionLabel, styles.achSectionPad]}>BAŞARIMLAR</Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => setAchievementsModalOpen(true)}>
+              <Text style={styles.tumu}>Tümü</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.achScroll}
+          >
+            {achievements.map((a) => (
+              <View key={a.title} style={[styles.achCard, !a.unlocked && styles.achCardLocked]}>
+                <Text style={styles.achEmoji}>{a.emoji}</Text>
+                <Text style={styles.achTitle}>{a.title}</Text>
+                <Text style={styles.achDesc}>{a.desc}</Text>
+              </View>
+            ))}
+          </ScrollView>
+        </Animated.View>
+
+        {/* ── Koçluk akışı ── */}
+        <Animated.View style={{ opacity: entO[4], transform: [{ translateY: entY[4]! }] }}>
+          <Text style={styles.sectionLabel}>KOÇLUK AKIŞI</Text>
+          <View style={styles.coachCard}>
+            <Text style={styles.coachCardTitle}>Check-in öncesi adım</Text>
+            <Text style={styles.coachCardSub}>{gateModeLabel}</Text>
+            <View style={styles.gateChipRow}>
+              {(
+                [
+                  { id: "soft" as const, label: "Yumuşak" },
+                  { id: "strict" as const, label: "Sıkı" },
+                  { id: "off" as const, label: "Kapalı" },
+                ] as const
+              ).map((opt) => (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[
+                    styles.gateChip,
+                    checkInGate === opt.id && styles.gateChipOn,
+                  ]}
+                  onPress={() => void applyProfilePatch({ checkInActionGate: opt.id })}
+                  activeOpacity={0.85}
+                >
+                  <Text
+                    style={[
+                      styles.gateChipText,
+                      checkInGate === opt.id && styles.gateChipTextOn,
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+          <CoachEngagementCard />
+        </Animated.View>
+
+        {/* ── Ayarlar ── */}
+        <Animated.View style={{ opacity: entO[4], transform: [{ translateY: entY[4]! }] }}>
+          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>AYARLAR</Text>
+          <View style={styles.settingsList}>
+            <SettingsRow
+              emoji="🔔"
+              title="Bildirimler"
+              subtitle={notifTimeLabel}
+              onPress={() => setNotifSheetOpen(true)}
+            />
+            <SettingsRow
+              emoji="✏️"
+              title="Taahhüdünü düzenle"
+              subtitle={profile.habitName}
+              onPress={() => setShowCommitmentEdit(true)}
+            />
+            <View style={styles.setRow}>
+              <Text style={styles.setEmoji}>📳</Text>
+              <View style={styles.setTextCol}>
+                <Text style={styles.setTitle}>Titreşim</Text>
+                <Text style={styles.setSub}>Tamamlama geri bildirimi</Text>
+              </View>
+              <Switch
+                value={hapticsEnabled}
+                onValueChange={setHapticsEnabled}
+                trackColor={{ true: "#10B981", false: "#E2E8F0" }}
+                thumbColor="#FFFFFF"
+              />
+            </View>
+            <SettingsRow
+              emoji="🎨"
+              title="Tema"
+              subtitle="Açık"
+              onPress={() => Alert.alert("Tema", "Şu an yalnızca açık tema destekleniyor.")}
+            />
+            {!isPremium ? (
+              <SettingsRow
+                emoji="✨"
+                title="Premium"
+                subtitle="66 gün haritası, Kimlik Aynası, SDT"
+                onPress={() => setShowGate(true)}
+              />
             ) : null}
-            <Text style={styles.journeyMeta}>
-              Gün {dayNumber} · 66 günlük yolculuk
+          </View>
+
+          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>VERİ</Text>
+          <View style={styles.settingsList}>
+            <SettingsRow
+              emoji="🛡️"
+              title="Gizlilik"
+              subtitle="Bu cihazda ne tutuluyor"
+              onPress={() => setShowPrivacy(true)}
+            />
+            <SettingsRow
+              emoji="💾"
+              title="Verileri yedekle"
+              subtitle="JSON olarak dışa aktar"
+              onPress={() => setBackupSheetOpen(true)}
+            />
+            <SettingsRow
+              emoji="🗑️"
+              title="Verileri sil"
+              subtitle="Tüm geçmiş ve notlar"
+              danger
+              onPress={() => setProfileDialog("delete_all")}
+            />
+          </View>
+        </Animated.View>
+
+        {/* ── Footer ── */}
+        <Animated.View style={{ opacity: entO[5], transform: [{ translateY: entY[5]! }] }}>
+          <TouchableOpacity style={styles.notifPermRow} onPress={() => void handleNotifSetup()} activeOpacity={0.85}>
+            <Text style={styles.notifPermText}>Bildirim iznini kontrol et</Text>
+            <Ionicons name="open-outline" size={16} color="#10B981" />
+          </TouchableOpacity>
+
+          <View style={styles.footerQuote}>
+            <Text style={styles.quoteMain}>Motivasyon bir duygu değil, bir eylem.</Text>
+            <Text style={styles.quoteSub}>
+              {APP_VERSION} · discipline · Gün {dayNumber}
             </Text>
           </View>
+
           <TouchableOpacity
-            style={styles.editIconBtn}
-            onPress={() => {
-              if (editingName) void handleSaveName();
-              else {
-                setEditingName(true);
-                setNameInput(profile.name ?? "");
-              }
-            }}
-            hitSlop={8}
-          >
-            {editingName ? (
-              <Ionicons name="checkmark" size={20} color="#94A3B8" />
-            ) : (
-              <Ionicons name="pencil" size={18} color="#94A3B8" />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.sectionLabel}>İSTATİSTİKLER</Text>
-        <View style={styles.statRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statBig}>{dayNumber}</Text>
-            <Text style={styles.statSmall}>gün</Text>
-          </View>
-          <View style={[styles.statCard, { marginLeft: 10 }]}>
-            <Text style={styles.statBig}>%{autoPct}</Text>
-            <Text style={styles.statSmall}>otomatiklik</Text>
-          </View>
-          <View style={[styles.statCard, { marginLeft: 10 }]}>
-            <Text style={styles.statBig}>%{Math.round(rate * 100)}</Text>
-            <Text style={styles.statSmall}>tamamlama</Text>
-          </View>
-        </View>
-
-        <Text style={styles.sectionLabel}>SON 14 GÜN</Text>
-        <View style={styles.chartCard}>
-          <View style={styles.barsRow}>
-            {last14.bars.map((b, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.bar,
-                  {
-                    height: b.beforeStart ? 20 : b.completed ? 40 : 20,
-                    backgroundColor: b.beforeStart ? "#E2E8F0" : b.completed ? "#10B981" : "#E2E8F0",
-                  },
-                ]}
-              />
-            ))}
-          </View>
-          <Text style={styles.chartCaption}>
-            {last14.completedInWindow}/14 gün tamamlandı · %{last14.pct}
-          </Text>
-        </View>
-
-        <View style={styles.achHeadRow}>
-          <Text style={[styles.sectionLabel, styles.achSectionPad]}>BAŞARIMLAR</Text>
-          <TouchableOpacity activeOpacity={0.7} onPress={() => setAchievementsModalOpen(true)}>
-            <Text style={styles.tumu}>Tümü →</Text>
-          </TouchableOpacity>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.achScroll}
-        >
-          {achievements.map((a) => (
-            <View key={a.title} style={[styles.achCard, !a.unlocked && styles.achCardLocked]}>
-              <Text style={styles.achEmoji}>{a.emoji}</Text>
-              <Text style={styles.achTitle}>{a.title}</Text>
-              <Text style={styles.achDesc}>{a.desc}</Text>
-            </View>
-          ))}
-        </ScrollView>
-
-        <Text style={styles.sectionLabel}>AYARLAR</Text>
-        <View style={styles.settingsList}>
-          <SettingsRow
-            emoji="🔔"
-            title="Bildirimler"
-            subtitle={notifTimeLabel}
-            danger={false}
-            onPress={() => {
-              setNotifSheetOpen(true);
-            }}
-          />
-          <SettingsRow
-            emoji="🎨"
-            title="Tema"
-            subtitle="Açık"
-            danger={false}
-            onPress={() =>
-              Alert.alert("Tema", "Şu an yalnızca açık tema destekleniyor.")
-            }
-          />
-          <SettingsRow
-            emoji="🛡️"
-            title="Veri ve gizlilik"
-            subtitle="Bu cihazda ne tutuluyor"
-            danger={false}
-            onPress={() => setShowPrivacy(true)}
-          />
-          <SettingsRow
-            emoji="💾"
-            title="Verileri yedekle"
-            subtitle="JSON olarak dışa aktar"
-            danger={false}
-            onPress={() => setBackupSheetOpen(true)}
-          />
-          {!isPremium ? (
-            <SettingsRow
-              emoji="✨"
-              title="Premium"
-              subtitle="Yolculuk ve tam özellikler"
-              danger={false}
-              onPress={() => setShowGate(true)}
-            />
-          ) : null}
-          <SettingsRow
-            emoji="✏️"
-            title="Taahhüdünü düzenle"
-            subtitle={profile.habitName}
-            onPress={() => setShowCommitmentEdit(true)}
-          />
-          <View style={styles.setRow}>
-            <Text style={styles.setEmoji}>📳</Text>
-            <View style={styles.setTextCol}>
-              <Text style={styles.setTitle}>Titreşim</Text>
-              <Text style={styles.setSub}>Tamamlama geri bildirimi</Text>
-            </View>
-            <Switch
-              value={hapticsEnabled}
-              onValueChange={setHapticsEnabled}
-              trackColor={{ true: "#10B981", false: "#E2E8F0" }}
-              thumbColor="#FFFFFF"
-            />
-          </View>
-          <SettingsRow
-            emoji="🗑️"
-            title="Verileri sil"
-            subtitle="Tüm geçmiş ve notlar"
-            danger
-            onPress={() => setProfileDialog("delete_all")}
-          />
-          <SettingsRow
-            emoji="ℹ️"
-            title="Hakkında"
-            subtitle={`${APP_VERSION} · discipline`}
-            danger={false}
+            style={styles.aboutRow}
             onPress={() =>
               Alert.alert("Kimlik", `${APP_VERSION} · discipline\n\nYerel ilkelerle çalışan bir alışkanlık koçu.`)
             }
-          />
-        </View>
-
-        <TouchableOpacity style={styles.notifPermRow} onPress={() => void handleNotifSetup()} activeOpacity={0.85}>
-          <Text style={styles.notifPermText}>Bildirim iznini sistemden kontrol et</Text>
-          <Ionicons name="open-outline" size={18} color="#10B981" />
-        </TouchableOpacity>
-
-        <View style={styles.footerQuote}>
-          <Text style={styles.quoteMain}>Motivasyon bir duygu değil</Text>
-          <Text style={styles.quoteSub}>{APP_VERSION} · discipline</Text>
-        </View>
+            activeOpacity={0.7}
+          >
+            <Ionicons name="information-circle-outline" size={16} color="#94A3B8" />
+            <Text style={styles.aboutText}>Hakkında · v{APP_VERSION}</Text>
+          </TouchableOpacity>
+        </Animated.View>
 
         <View style={{ height: 28 }} />
       </ScrollView>
@@ -504,7 +633,8 @@ export default function ProfileScreen() {
             await setupNotifications(
               nextProfile,
               todayDone,
-              useTomorrowPlanStore.getState().listsByDate
+              useTomorrowPlanStore.getState().listsByDate,
+              useCheckinsStore.getState().checkins
             ).catch(console.warn);
           }
         }}
@@ -631,7 +761,9 @@ const styles = StyleSheet.create({
     color: "#0F172A",
   },
   statusBadge: {
-    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    borderRadius: Radii.pill,
     paddingVertical: 4,
     paddingHorizontal: 10,
   },
@@ -649,60 +781,105 @@ const styles = StyleSheet.create({
   statusBadgeTextRest: {
     color: "#DC2626",
   },
+
   profileCard: {
     flexDirection: "row",
     alignItems: "center",
     marginHorizontal: 16,
     marginTop: 12,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: Radii.card,
     padding: 16,
     ...cardShadow,
   },
   avatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "#ECFDF5",
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   avatarLetter: {
     fontSize: 22,
     fontWeight: "700",
-    color: "#059669",
+    color: Colors.primary,
   },
   profileMain: { flex: 1, marginLeft: 14, justifyContent: "center" },
-  displayName: { fontSize: 18, fontWeight: "700", color: "#0F172A" },
+  displayName: {
+    fontSize: 18,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  habitLabel: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  profileMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 6,
+  },
   nameInput: {
     fontSize: 18,
     fontWeight: "700",
     color: "#0F172A",
-    borderBottomWidth: 1,
+    borderBottomWidth: 1.5,
     borderBottomColor: "#10B981",
     paddingVertical: 2,
   },
   premiumBadge: {
-    alignSelf: "flex-start",
     backgroundColor: "#FEF3C7",
-    borderRadius: 8,
+    borderRadius: Radii.pill,
     paddingVertical: 2,
     paddingHorizontal: 8,
-    marginTop: 6,
   },
   premiumBadgeText: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#D97706",
     fontWeight: "600",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
   },
   journeyMeta: {
-    fontSize: 13,
-    color: "#64748B",
-    marginTop: 6,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
   },
   editIconBtn: {
     padding: 6,
   },
+
+  journeyBar: {
+    marginHorizontal: 16,
+    marginTop: 10,
+    gap: 6,
+  },
+  journeyTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#E2E8F0",
+    overflow: "hidden",
+  },
+  journeyFillClip: {
+    height: "100%",
+    borderRadius: 3,
+    overflow: "hidden",
+  },
+  journeyGradient: {
+    flex: 1,
+    height: "100%",
+  },
+  journeyBarText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+  },
+
   sectionLabel: {
     marginHorizontal: 16,
     marginTop: 16,
@@ -712,36 +889,51 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
     textTransform: "uppercase",
   },
+
   statRow: {
     flexDirection: "row",
     marginHorizontal: 16,
     marginTop: 8,
-    gap: 10,
+    gap: 8,
   },
   statCard: {
     flex: 1,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: Radii.button,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     alignItems: "center",
+    gap: 4,
     ...cardShadow,
   },
+  statCardStreak: {
+    backgroundColor: "#FFFBEB",
+    borderWidth: 1,
+    borderColor: "rgba(245,158,11,0.15)",
+  },
   statBig: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: "800",
     color: "#0F172A",
   },
-  statSmall: {
-    fontSize: 11,
-    color: "#64748B",
-    marginTop: 4,
-    textAlign: "center",
+  statBigStreak: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: "#D97706",
   },
+  statSmall: {
+    fontSize: 10,
+    color: "#64748B",
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
   chartCard: {
     marginHorizontal: 16,
     marginTop: 8,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: Radii.card,
     padding: 16,
     ...cardShadow,
   },
@@ -749,18 +941,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "flex-end",
     justifyContent: "space-between",
-    gap: 6,
+  },
+  barCol: {
+    flex: 1,
+    alignItems: "center",
   },
   bar: {
-    width: 8,
-    borderRadius: 4,
+    width: 10,
+    borderRadius: 5,
+  },
+  chartFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: 12,
   },
   chartCaption: {
-    fontSize: 13,
-    color: "#64748B",
-    marginTop: 12,
-    textAlign: "center",
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
   },
+  chartPct: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.primary,
+  },
+
   achHeadRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -772,9 +978,9 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   tumu: {
-    color: "#10B981",
+    color: Colors.primary,
     fontWeight: "600",
-    fontSize: 13,
+    fontSize: FontSizes.sm,
   },
   achScroll: {
     paddingHorizontal: 16,
@@ -782,17 +988,26 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
   },
   achCard: {
-    width: 120,
+    width: 110,
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: Radii.button,
     padding: 12,
     marginRight: 10,
     ...cardShadow,
   },
-  achCardLocked: { opacity: 0.45 },
+  achCardLocked: { opacity: 0.4 },
   achEmoji: { fontSize: 24, marginBottom: 6 },
-  achTitle: { fontSize: 13, fontWeight: "600", color: "#0F172A" },
-  achDesc: { fontSize: 11, color: "#64748B", marginTop: 4 },
+  achTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: "#0F172A",
+  },
+  achDesc: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "#64748B",
+    marginTop: 3,
+  },
   achModalScroll: {
     padding: 16,
     paddingBottom: 32,
@@ -800,7 +1015,7 @@ const styles = StyleSheet.create({
   achModalCard: {
     flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: Radii.button,
     padding: 14,
     marginBottom: 10,
     alignItems: "flex-start",
@@ -815,12 +1030,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   achStatusLocked: { color: "#94A3B8" },
+
   settingsList: {
     marginHorizontal: 16,
     marginTop: 8,
-    marginBottom: 8,
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: Radii.card,
     overflow: "hidden",
     ...cardShadow,
   },
@@ -834,39 +1049,115 @@ const styles = StyleSheet.create({
   },
   setEmoji: { fontSize: 18, marginRight: 12, width: 28 },
   setTextCol: { flex: 1 },
-  setTitle: { fontSize: 15, fontWeight: "600", color: "#0F172A" },
-  setSub: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  setTitle: {
+    fontSize: 15,
+    fontFamily: "Inter_500Medium",
+    fontWeight: "600",
+    color: "#0F172A",
+  },
+  setSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "#64748B",
+    marginTop: 2,
+  },
   setSubDanger: { color: "#EF4444" },
+
   notifPermRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: 6,
     marginHorizontal: 16,
-    marginTop: 8,
+    marginTop: 16,
   },
   notifPermText: {
-    fontSize: 13,
-    color: "#10B981",
-    fontWeight: "600",
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
   footerQuote: {
-    marginTop: 16,
-    marginBottom: 20,
+    marginTop: 20,
     alignItems: "center",
     paddingHorizontal: 24,
   },
   quoteMain: {
-    fontSize: 12,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
     color: "#94A3B8",
     fontStyle: "italic",
     textAlign: "center",
+    lineHeight: 20,
   },
   quoteSub: {
-    fontSize: 11,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
     color: "#CBD5E1",
     marginTop: 4,
   },
+  aboutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 5,
+    marginTop: 12,
+    paddingVertical: 6,
+  },
+  aboutText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "#94A3B8",
+  },
+  coachCard: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  coachCardTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+  },
+  coachCardSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    marginTop: 4,
+    marginBottom: Spacing.sm,
+  },
+  gateChipRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  gateChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: Radii.button,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceMuted,
+    alignItems: "center",
+  },
+  gateChipOn: {
+    backgroundColor: Colors.primaryLight,
+    borderColor: "rgba(47,156,134,0.35)",
+  },
+  gateChipText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textSecondary,
+  },
+  gateChipTextOn: {
+    color: Colors.primaryDark,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+  },
+
   sheetRoot: { flex: 1, backgroundColor: PAGE_BG },
   sheetHeader: {
     flexDirection: "row",
@@ -879,7 +1170,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   sheetTitle: { fontSize: 17, fontWeight: "700", color: "#0F172A" },
-  sheetClose: { fontSize: 16, color: "#10B981", fontWeight: "600" },
+  sheetClose: { fontSize: 16, color: Colors.primary, fontWeight: "600" },
   sheetScroll: { padding: 16, paddingBottom: 40 },
   sheetHint: {
     fontSize: 12,
@@ -898,10 +1189,10 @@ const styles = StyleSheet.create({
   retryBody: { fontSize: 14, color: "#64748B", textAlign: "center", lineHeight: 22 },
   retryPill: {
     marginTop: 8,
-    backgroundColor: "#10B981",
+    backgroundColor: Colors.primary,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    borderRadius: 10,
+    borderRadius: Radii.button,
   },
   retryPillText: { color: "#FFFFFF", fontWeight: "600" },
   emptyMuted: { color: "#64748B" },

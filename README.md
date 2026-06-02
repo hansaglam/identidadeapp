@@ -7,46 +7,41 @@
 | Katman | Teknoloji |
 |---|---|
 | Framework | React Native + Expo SDK 54 |
-| Navigasyon | Expo Router v6 (file-based) |
+| Navigasyon | React Navigation 7 (`App.tsx` → `AppNavigator`) |
 | State | Zustand v5 |
-| Veritabanı | expo-sqlite (SQLite — offline-first) |
+| Veri | AsyncStorage (offline-first; SQLite yok) |
 | Animasyon | React Native Reanimated v4 |
 | Bildirimler | expo-notifications |
 | Tarih | date-fns v4 |
 | Dil | TypeScript (strict) |
 
-## Proje Yapısı
+## Giriş noktası
 
-```
-kimlik-app/
-├── app/
-│   ├── _layout.tsx           # Root layout (DB init + store bootstrap)
-│   ├── index.tsx             # Onboarding/tabs yönlendirici
-│   ├── onboarding.tsx        # 4-adım kimlik onboardingi
-│   ├── (tabs)/
-│   │   ├── _layout.tsx       # Tab bar
-│   │   ├── index.tsx         # Bugün ekranı (daily habit check-in)
-│   │   ├── identity.tsx      # Kimlik/ilerleme ekranı
-│   │   └── settings.tsx      # Ayarlar
-│   └── habit/
-│       ├── new.tsx           # 4-adım alışkanlık oluşturucu
-│       └── [id].tsx          # Alışkanlık detayı + 66-gün grid
-├── src/
-│   ├── types/index.ts        # TypeScript tipleri
-│   ├── constants/theme.ts    # Renkler, spacing, kimlik mesajları
-│   ├── db/database.ts        # SQLite CRUD işlemleri
-│   ├── store/
-│   │   ├── habitStore.ts     # Habit state + streak hesaplama
-│   │   └── userStore.ts      # Kullanıcı profili
-│   ├── components/
-│   │   ├── HabitCard.tsx     # Günlük alışkanlık kartı
-│   │   ├── ProgressRing.tsx  # SVG ilerleme halkası
-│   │   ├── DayGrid.tsx       # 66-gün ısı haritası
-│   │   └── EmptyState.tsx    # Boş durum bileşeni
-│   └── utils/
-│       ├── uuid.ts           # UUID üretici
-│       └── notifications.ts  # Bildirim yardımcıları
-```
+- **Kök:** [`App.tsx`](App.tsx) — fontlar, store bootstrap, bildirimler
+- **Navigasyon:** [`src/navigation/AppNavigator.tsx`](src/navigation/AppNavigator.tsx) — Auth + 4 tab (Bugün, Zihin, Yolculuk, Profil)
+- **`app/` klasörü:** Opsiyonel Expo Router re-export (ör. `app/(tabs)/yolculuk.tsx`); aktif yönlendirme burada değil
+
+## Store'lar
+
+| Store | Açıklama |
+|---|---|
+| `userStore` | Profil, premium, bildirim saati |
+| `checkinsStore` | Günlük check-in + otomatiklik/çaba |
+| `habitStore` | Alışkanlık tanımı, günlük bayrak |
+| `tomorrowPlanStore` | Yarının küçük listesi (max 3 madde) |
+| `mindDumpStore` | Zihin notları |
+| `useBehaviorStore` | Davranış motoru sayaçları |
+| `sdtStore` | Haftalık SDT anketi |
+| `iapStore` | Abonelik |
+
+## Yedekleme
+
+Profil → Gelişmiş tercihler → JSON yedek.
+
+- **v1:** profil, check-in, mind dump (davranış sayacı sıfırlanır)
+- **v2:** v1 + yarın planları, habit, SDT, behavior state
+
+Şema: [`src/utils/exportBackup.ts`](src/utils/exportBackup.ts), geri yükleme: [`src/utils/restoreBackup.ts`](src/utils/restoreBackup.ts)
 
 ## Çalıştırma
 
@@ -56,20 +51,18 @@ npm install
 npx expo start --android
 ```
 
-EAS Build ile APK üretmek için:
+EAS Build:
+
 ```bash
 npm install -g eas-cli
 eas login
 eas build --platform android --profile preview
 ```
 
-## Öne Çıkan Özellikler
+## Öne çıkan özellikler
 
-- **Kimlik tabanlı framing**: Her alışkanlık "Ben bir ___ im" kimliğine bağlı
-- **Tiny Habits çapalama**: "Kahvemi aldıktan sonra..." trigger sistemi
-- **66-gün ısı haritası**: Her tamamlama görsel olarak işaretlenir
-- **Seri takibi**: Şimdiki + en uzun seri hesaplaması
-- **Kilometre taşı mesajları**: 7, 14, 21, 30, 50, 66. günlerde özel mesajlar
-- **Kimlik seviyesi**: Tohum → Filiz → Dal → Ağaç → Meşe
-- **Offline-first**: Tüm veri SQLite'da, internet gerekmez
-- **Dark theme**: #0A0A0F zemin üzerine mor/turkuaz aksanlar
+- 66 günlük kimlik yolculuğu (premium harita + faz eğitimi)
+- Yarının küçük listesi (free) → ertesi gün Bugün ekranında check-in
+- Check-in: hızlı teyit + otomatiklik/çaba değerlendirmesi
+- Zihin dump + davranış motoru (engine)
+- Offline analitik buffer + JSON yedek

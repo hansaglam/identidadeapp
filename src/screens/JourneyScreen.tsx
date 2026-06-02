@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { addDays, format, startOfWeek } from "date-fns";
+import { addDays, format } from "date-fns";
 import {
   View,
   Text,
@@ -45,6 +45,8 @@ import {
 import PremiumGateModal from "../components/PremiumGateModal";
 import JourneyPhaseEducationModal from "../components/JourneyPhaseEducationModal";
 import JourneyMindSentenceModal from "../components/JourneyMindSentenceModal";
+import TomorrowPlanSection from "../components/journey/TomorrowPlanSection";
+import TomorrowPlanModal from "../components/journey/TomorrowPlanModal";
 import {
   Colors,
   Spacing,
@@ -63,17 +65,23 @@ import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs"
 import { loadJourneyEducationPrefs } from "../utils/journeyEducationPrefs";
 import type { MainTabParamList } from "../types";
 import { requestNotificationPermissions } from "../utils/notifications";
+import JourneyIdentityMirrorCard from "../components/journey/JourneyIdentityMirrorCard";
+import JourneyMapTeaser from "../components/journey/JourneyMapTeaser";
+import JourneyPhaseMiniGrid from "../components/journey/JourneyPhaseMiniGrid";
+import JourneyDayDetailSheet from "../components/journey/JourneyDayDetailSheet";
+import { buildJourneyDayDetail } from "../utils/journeyDayDetail";
+import type { JourneyDayDetail } from "../utils/journeyDayDetail";
+import { getPhaseOpenTheme } from "../components/journey/journeyPhaseTheme";
+import { buildSdtInsight } from "../utils/sdtInsight";
 
 const JOURNEY_PAGE_BG = "#F8FAFC";
 
 const ACTION_ICON = "#10B981";
 const ACTION_ICON_BG = "rgba(16, 185, 129, 0.1)";
 
-const ENTRANCE_COUNT = 5;
+const ENTRANCE_COUNT = 6;
 const ENTRANCE_STAGGER_MS = 80;
 const ENTRANCE_INITIAL_DELAY_MS = 100;
-const WEEKDAY_LABELS = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
-
 const MAX_TOMORROW_TODOS = 3;
 
 const EMPTY_TODO_DRAFT: TomorrowTodoInput = {
@@ -123,96 +131,9 @@ function useJourneyEntrance(isPremium: boolean) {
 
 type Props = BottomTabScreenProps<MainTabParamList, "Journey">;
 
-type PhaseOpenTheme = {
-  borderColor: string;
-  badgeBg: string;
-  badgeText: string;
-  gridDone: string;
-  shadowColor: string;
-  showGlow: boolean;
-};
-
-function getPhaseOpenTheme(
-  phaseId: 1 | 2 | 3,
-  isActive: boolean,
-  isCompleted: boolean
-): PhaseOpenTheme {
-  const showGlow = isActive && !isCompleted;
-  if (phaseId === 1) {
-    return {
-      borderColor: Colors.primary,
-      badgeBg: Colors.primaryLight,
-      badgeText: Colors.primaryDark,
-      gridDone: Colors.primary,
-      shadowColor: Colors.primary,
-      showGlow,
-    };
-  }
-  if (phaseId === 2) {
-    return {
-      borderColor: "#E07A5F",
-      badgeBg: "#FDEBE5",
-      badgeText: "#C45C42",
-      gridDone: "#E07A5F",
-      shadowColor: "#E8917A",
-      showGlow,
-    };
-  }
-  return {
-    borderColor: "#7B5B9E",
-    badgeBg: "#F7F0E2",
-    badgeText: "#5A4578",
-    gridDone: Colors.gold,
-    shadowColor: "#8B6BBD",
-    showGlow,
-  };
-}
-
-function PhaseMiniGrid({
-  phaseGrid,
-  dayNumber,
-  phase,
-}: {
-  phase: (typeof JOURNEY_PHASES)[number];
-  phaseGrid: boolean[];
-  dayNumber: number;
-}) {
-  const cellSize = 10;
-  const gap = 2;
-  const doneColor = "#059669";
-  const restColor = "#E2E8F0";
-  const missedColor = "#FECACA";
-
-  return (
-    <View style={[styles.phaseMiniGridWrap, { gap }]}>
-      {phaseGrid.map((done, i) => {
-        const day = phase.startDay + i;
-        const isFuture = dayNumber <= 66 && day > dayNumber;
-        const isMissed =
-          !done && ((dayNumber <= 66 && day < dayNumber) || dayNumber > 66);
-        let backgroundColor = restColor;
-        if (done) backgroundColor = doneColor;
-        else if (isMissed) backgroundColor = missedColor;
-        else if (isFuture) backgroundColor = restColor;
-
-        return (
-          <View
-            key={i}
-            style={[
-              styles.phaseMiniCell,
-              { width: cellSize, height: cellSize, backgroundColor },
-            ]}
-          />
-        );
-      })}
-    </View>
-  );
-}
-
 export default function JourneyScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
-  const journeyScrollY = useRef(new Animated.Value(0)).current;
   const planScrollRef = useRef<ScrollView>(null);
   const profile = useUserStore((s) => s.profile);
   const dayNumber = useUserStore((s) => s.dayNumber());
@@ -233,6 +154,7 @@ export default function JourneyScreen({ navigation }: Props) {
   const checkins = useCheckinsStore((s) => s.checkins);
   const { completionRate } = useCheckinsStore();
   const createMindEntry = useMindDumpStore((s) => s.createEntry);
+  const loadMindDumps = useMindDumpStore((s) => s.load);
   const listsByDate = useTomorrowPlanStore((s) => s.listsByDate);
   const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
   const addTomorrowTodo = useTomorrowPlanStore((s) => s.addItem);
@@ -242,6 +164,7 @@ export default function JourneyScreen({ navigation }: Props) {
   const isPremium = profile?.isPremium ?? false;
   const { entranceOpacity, entranceY } = useJourneyEntrance(isPremium);
   const [showGate, setShowGate] = useState(false);
+  const [dayDetail, setDayDetail] = useState<JourneyDayDetail | null>(null);
   const [showSurvey, setShowSurvey] = useState(false);
   const [showPhaseEdu, setShowPhaseEdu] = useState(false);
   const [showMindSentence, setShowMindSentence] = useState(false);
@@ -257,6 +180,7 @@ export default function JourneyScreen({ navigation }: Props) {
   }, [profile, checkins, dayNumber]);
 
   const avgAuto = useMemo(() => getAverageAutomaticity(checkins), [checkins]);
+
   const rate = profile ? completionRate(profile.startDate) : 0;
 
   const dailyPrinciple = getDailyPrinciple(dayNumber);
@@ -278,10 +202,13 @@ export default function JourneyScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      if (isPremium) refreshEduPrefs();
+      if (isPremium) {
+        refreshEduPrefs();
+        void loadMindDumps();
+      }
       if (!profile?.id || profile?.hasOpenedJourneyTab) return;
       void updateProfile({ hasOpenedJourneyTab: true });
-    }, [isPremium, refreshEduPrefs, profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
+    }, [isPremium, refreshEduPrefs, loadMindDumps, profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
   );
 
   const eduPhaseCompleted =
@@ -318,23 +245,26 @@ export default function JourneyScreen({ navigation }: Props) {
   const supportTodos = tomorrowTodos.filter((item) => item.id !== primaryTodo?.id);
   const plannedTodoCount = tomorrowTodos.length;
   const isAtTodoLimit = plannedTodoCount >= MAX_TOMORROW_TODOS;
-  const weekPlanDays = useMemo(() => {
-    const start = startOfWeek(new Date(), { weekStartsOn: 1 });
-    return WEEKDAY_LABELS.map((label, index) => {
-      const date = format(addDays(start, index), "yyyy-MM-dd");
-      return {
-        label,
-        date,
-        hasPlan: Boolean(listsByDate[date]?.items.length),
-      };
-    });
-  }, [listsByDate]);
   const latest = latestScore();
+  const sdtInsight = useMemo(
+    () => (latest && profile ? buildSdtInsight(latest, profile.habitName) : null),
+    [latest, profile?.habitName]
+  );
   const journeyProgress = Math.min(1, Math.max(0, dayNumber / 66));
   const coachNoteText = coachNote;
 
   const phaseCardWidth = Math.round(windowWidth * 0.8);
   const phaseSnapInterval = phaseCardWidth + 10;
+
+  const openDayDetail = useCallback(
+    (journeyDay: number) => {
+      if (!profile?.startDate) return;
+      setDayDetail(
+        buildJourneyDayDetail(profile.startDate, journeyDay, dayNumber, checkins)
+      );
+    },
+    [profile?.startDate, dayNumber, checkins]
+  );
 
   const scrollPlanFormToEnd = useCallback(() => {
     requestAnimationFrame(() => {
@@ -396,67 +326,79 @@ export default function JourneyScreen({ navigation }: Props) {
     setShowPlanModal(false);
   };
 
-  if (!isPremium) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: JOURNEY_PAGE_BG }]} edges={["top"]}>
-        <View style={styles.lockedContainer}>
-          <View style={styles.lockIcon}>
-            <Lock size={32} color={Colors.primary} strokeWidth={1.5} />
-          </View>
-          <Text style={styles.lockedTitle}>66 Gün Haritası</Text>
-          <Text style={styles.lockedSub}>
-            Bugün ekranında tek net hareket + check-in akışın çalışır; fazın “tek fikri” özeti de
-            orada. 66 günlük harita ve buradaki detaylı yol özeti premium ile açılır.
-          </Text>
-          <TouchableOpacity
-            style={styles.unlockBtn}
-            onPress={() => setShowGate(true)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.unlockBtnText}>Kilidi aç</Text>
-            <ChevronRight size={18} color="#fff" strokeWidth={2} />
-          </TouchableOpacity>
-        </View>
-        <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
-      </SafeAreaView>
-    );
-  }
+  const PlanSectionWrapper = isPremium ? Animated.View : View;
+  const planSectionStyle = isPremium
+    ? {
+        opacity: entranceOpacity[0],
+        transform: [{ translateY: entranceY[0] }],
+      }
+    : undefined;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: JOURNEY_PAGE_BG }]} edges={["top"]}>
       <ScrollView
-        stickyHeaderIndices={[0]}
+        stickyHeaderIndices={isPremium ? [0] : undefined}
         contentContainerStyle={[styles.scroll, { backgroundColor: JOURNEY_PAGE_BG }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: journeyScrollY } } }], {
-          useNativeDriver: false,
-        })}
       >
-        <View style={styles.stickyHero} collapsable={false}>
-          <View style={styles.hero}>
+        {isPremium ? (
+          <View style={styles.stickyHero} collapsable={false}>
+            <View style={styles.hero}>
+              <View style={styles.heroTop}>
+                <View style={styles.heroTitles}>
+                  <Text style={styles.title}>Yolculuğun</Text>
+                  <Text style={styles.subtitle}>
+                    66 günlük kimlik inşası · Yarın planı + harita · Gün {dayNumber}
+                  </Text>
+                </View>
+                <View style={styles.dayPill}>
+                  <View style={styles.dayPillIconWrap}>
+                    <Map size={16} color="#059669" strokeWidth={2} />
+                  </View>
+                  <Text style={styles.dayPillText}>{dayNumber}/66</Text>
+                </View>
+              </View>
+              <View style={styles.progressTrack}>
+                <View
+                  style={[
+                    styles.progressFillClip,
+                    { width: `${journeyProgress * 100}%` },
+                  ]}
+                >
+                  <LinearGradient
+                    colors={["#34D399", "#059669"]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={styles.progressGradient}
+                  />
+                </View>
+              </View>
+              <Text style={styles.progressHint}>
+                Tamamlama bu dönemde %{Math.round(rate * 100)}
+                {avgAuto != null ? ` · Ort. otomatiklik ${avgAuto.toFixed(1)}/10` : ""}
+              </Text>
+            </View>
+          </View>
+        ) : (
+          <View style={styles.freeHeader}>
             <View style={styles.heroTop}>
               <View style={styles.heroTitles}>
-                <Text style={styles.title}>Yolculuğun</Text>
+                <Text style={styles.title}>Yolculuk</Text>
                 <Text style={styles.subtitle}>
-                  66 günlük kimlik inşası · Gün {dayNumber}
+                  66 günlük kimlik inşası · Yarın planı · Gün {dayNumber}
                 </Text>
               </View>
               <View style={styles.dayPill}>
                 <View style={styles.dayPillIconWrap}>
                   <Map size={16} color="#059669" strokeWidth={2} />
                 </View>
-                <Text style={styles.dayPillText}>
-                  {dayNumber}/66
-                </Text>
+                <Text style={styles.dayPillText}>{dayNumber}/66</Text>
               </View>
             </View>
             <View style={styles.progressTrack}>
               <View
-                style={[
-                  styles.progressFillClip,
-                  { width: `${journeyProgress * 100}%` },
-                ]}
+                style={[styles.progressFillClip, { width: `${journeyProgress * 100}%` }]}
               >
                 <LinearGradient
                   colors={["#34D399", "#059669"]}
@@ -467,145 +409,73 @@ export default function JourneyScreen({ navigation }: Props) {
               </View>
             </View>
             <Text style={styles.progressHint}>
-              Tamamlama bu dönemde %{Math.round(rate * 100)}
-              {avgAuto != null ? ` · Ort. otomatiklik ${avgAuto.toFixed(1)}/10` : ""}
+              Tamamlama %{Math.round(rate * 100)} · Gün {dayNumber}/66
             </Text>
           </View>
-        </View>
+        )}
 
-        <Animated.View
-          style={{
-            opacity: entranceOpacity[0],
-            transform: [{ translateY: entranceY[0] }],
-          }}
-        >
-          <View style={styles.planStack}>
-            <View style={styles.sectionLabelRow}>
-              <Text style={styles.sectionLabel}>YARININ KÜÇÜK LİSTESİ</Text>
+        <PlanSectionWrapper style={planSectionStyle}>
+          <TomorrowPlanSection
+            primaryTodo={primaryTodo}
+            supportTodos={supportTodos}
+            isAtTodoLimit={isAtTodoLimit}
+            onOpenEditor={openTodoEditor}
+            onDeletePrimary={(id) => void handleDeleteTodo(id)}
+            showJourneyBridge
+          />
+        </PlanSectionWrapper>
+
+        {!isPremium ? (
+          <JourneyMapTeaser
+            dayNumber={dayNumber}
+            grid={grid}
+            cardWidth={phaseCardWidth}
+            onUnlock={() => setShowGate(true)}
+            onDayPress={openDayDetail}
+          />
+        ) : null}
+
+        {isPremium && profile ? (
+          <Animated.View
+            style={{
+              opacity: entranceOpacity[1],
+              transform: [{ translateY: entranceY[1] }],
+            }}
+          >
+            <JourneyIdentityMirrorCard
+              startDate={profile.startDate}
+              habitName={profile.habitName}
+            />
+          </Animated.View>
+        ) : null}
+
+        {!isPremium ? (
+          <View style={styles.premiumUpsellCard}>
+            <View style={styles.lockIcon}>
+              <Lock size={28} color={Colors.primary} strokeWidth={1.5} />
             </View>
-            <View style={styles.tomorrowPlanCard}>
-              {primaryTodo ? (
-                <>
-                  <View style={styles.planCardHeader}>
-                    <View>
-                      <Text style={styles.planKicker}>Yarın otomatikleşsin diye</Text>
-                      <Text style={styles.planAction}>1 ana adımı netleştir</Text>
-                    </View>
-                    <View style={styles.planStatusPill}>
-                      <Text style={styles.planStatusText}>Yarın</Text>
-                    </View>
-                  </View>
-
-                  <Text style={styles.planScheduleHint}>
-                    Check-in yarın yapılır. Uygulama plan gününde sabah hatırlatır.
-                  </Text>
-
-                  <View style={styles.todoList}>
-                    <View style={styles.primaryTodoRow}>
-                      <View style={styles.todoCheckPlanned} />
-                      <View style={styles.todoTextWrap}>
-                        <Text style={styles.primaryTodoText}>{primaryTodo.text}</Text>
-                        {primaryTodo.time || primaryTodo.context ? (
-                          <Text style={styles.todoMeta} numberOfLines={2}>
-                            {[primaryTodo.time, primaryTodo.context].filter(Boolean).join(" · ")}
-                          </Text>
-                        ) : (
-                          <Text style={styles.todoMeta}>Saat veya tetikleyici ekleyebilirsin</Text>
-                        )}
-                      </View>
-                      <TouchableOpacity
-                        style={styles.todoEditChip}
-                        onPress={() => openTodoEditor(primaryTodo)}
-                        hitSlop={8}
-                      >
-                        <Text style={styles.todoEditText}>Düzenle</Text>
-                      </TouchableOpacity>
-                    </View>
-
-                    {supportTodos.map((item) => (
-                      <View key={item.id} style={styles.supportTodoRow}>
-                        <View style={styles.todoCheckSmallPlanned} />
-                        <View style={styles.todoTextWrap}>
-                          <Text style={styles.supportTodoText}>{item.text}</Text>
-                          {item.time || item.context ? (
-                            <Text style={styles.todoMeta} numberOfLines={1}>
-                              {[item.time, item.context].filter(Boolean).join(" · ")}
-                            </Text>
-                          ) : null}
-                        </View>
-                        <TouchableOpacity
-                          style={styles.todoEditChip}
-                          onPress={() => openTodoEditor(item)}
-                          hitSlop={8}
-                        >
-                          <Text style={styles.todoEditText}>Düzenle</Text>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View style={styles.todoFooter}>
-                    {!isAtTodoLimit ? (
-                      <TouchableOpacity
-                        style={styles.planAddSmallBtn}
-                        onPress={() => openTodoEditor()}
-                        activeOpacity={0.85}
-                      >
-                        <Text style={styles.planAddSmallText}>+ Küçük madde ekle</Text>
-                      </TouchableOpacity>
-                    ) : (
-                      <Text style={styles.todoLimitText}>Yarın için 3 küçük madde yeterli.</Text>
-                    )}
-                    <TouchableOpacity
-                      style={styles.planDeleteBtn}
-                      onPress={() => primaryTodo && handleDeleteTodo(primaryTodo.id)}
-                    >
-                      <Text style={styles.planDeleteText}>Ana maddeyi sil</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              ) : (
-                <>
-                  <Text style={styles.planEmptyTitle}>Yarın için küçük liste kur</Text>
-                  <Text style={styles.planEmptySub}>
-                    Önce tek ana mikro adımı seç. Yarın sabah hatırlatma gelir; check-in Bugün
-                    ekranından yapılır.
-                  </Text>
-                  <TouchableOpacity style={styles.planAddBtn} onPress={() => openTodoEditor()}>
-                    <Text style={styles.planAddText}>İlk maddeyi ekle</Text>
-                  </TouchableOpacity>
-                </>
-              )}
-            </View>
-
-            <View style={styles.weekPlanCard}>
-              <View style={styles.weekPlanHeader}>
-                <Text style={styles.weekPlanTitle}>BU HAFTANIN PLANI</Text>
-                <Text style={styles.weekPlanMeta}>
-                  {weekPlanDays.filter((d) => d.hasPlan).length}/7 planlı
-                </Text>
-              </View>
-              <View style={styles.weekPlanGrid}>
-                {weekPlanDays.map((day) => (
-                  <View key={day.date} style={styles.weekPlanDay}>
-                    <Text style={styles.weekPlanLabel}>{day.label}</Text>
-                    <View
-                      style={[
-                        styles.weekPlanDot,
-                        day.hasPlan ? styles.weekPlanDotActive : styles.weekPlanDotEmpty,
-                      ]}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
+            <Text style={styles.lockedTitle}>Premium yolculuk paneli</Text>
+            <Text style={styles.lockedSub}>
+              Tam harita, güne dokununca detay, Kimlik Aynası, SDT ve bugünün koç paketi. Yarın
+              planın her zaman ücretsiz.
+            </Text>
+            <TouchableOpacity
+              style={styles.unlockBtn}
+              onPress={() => setShowGate(true)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.unlockBtnText}>Paneli aç</Text>
+              <ChevronRight size={18} color="#fff" strokeWidth={2} />
+            </TouchableOpacity>
           </View>
-        </Animated.View>
+        ) : null}
 
+        {isPremium ? (
+        <>
         <Animated.View
           style={{
-            opacity: entranceOpacity[1],
-            transform: [{ translateY: entranceY[1] }],
+            opacity: entranceOpacity[2],
+            transform: [{ translateY: entranceY[2] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -675,8 +545,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[2],
-            transform: [{ translateY: entranceY[2] }],
+            opacity: entranceOpacity[3],
+            transform: [{ translateY: entranceY[3] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -743,7 +613,13 @@ export default function JourneyScreen({ navigation }: Props) {
                 <Text style={styles.phaseCardSub} numberOfLines={4}>
                   {phase.subtitle}
                 </Text>
-                <PhaseMiniGrid phase={phase} phaseGrid={phaseGrid} dayNumber={dayNumber} />
+                <JourneyPhaseMiniGrid
+                  phase={phase}
+                  phaseGrid={phaseGrid}
+                  dayNumber={dayNumber}
+                  doneColor={theme.gridDone}
+                  onDayPress={openDayDetail}
+                />
               </View>
             );
           })}
@@ -752,8 +628,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[3],
-            transform: [{ translateY: entranceY[3] }],
+            opacity: entranceOpacity[4],
+            transform: [{ translateY: entranceY[4] }],
           }}
         >
         <View style={styles.sectionLabelRow}>
@@ -792,12 +668,19 @@ export default function JourneyScreen({ navigation }: Props) {
                 />
               ))}
             </View>
-          ) : (
+          ) : null}
+          {latest && sdtInsight ? (
+            <View style={styles.sdtInsightBlock}>
+              <Text style={styles.sdtInsightSummary}>{sdtInsight.summary}</Text>
+              <Text style={styles.sdtInsightTip}>{sdtInsight.tip}</Text>
+            </View>
+          ) : null}
+          {!latest ? (
             <TouchableOpacity style={styles.surveyBtn} onPress={() => setShowSurvey(true)}>
               <Text style={styles.surveyBtnText}>İlk anketi doldur</Text>
               <ChevronRight size={18} color={Colors.primary} strokeWidth={2} />
             </TouchableOpacity>
-          )}
+          ) : null}
 
           {latest && needsSurvey() ? (
             <TouchableOpacity onPress={() => setShowSurvey(true)}>
@@ -809,8 +692,8 @@ export default function JourneyScreen({ navigation }: Props) {
 
         <Animated.View
           style={{
-            opacity: entranceOpacity[4],
-            transform: [{ translateY: entranceY[4] }],
+            opacity: entranceOpacity[5],
+            transform: [{ translateY: entranceY[5] }],
           }}
         >
           <View style={styles.shareBlock}>
@@ -842,135 +725,28 @@ export default function JourneyScreen({ navigation }: Props) {
             <View style={styles.shareUnderline} />
           </View>
         </Animated.View>
+        </>
+        ) : null}
 
         <View style={{ height: 100 }} />
       </ScrollView>
 
-      <Modal
+      <TomorrowPlanModal
         visible={showPlanModal}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPlanModal(false)}
-        statusBarTranslucent
-      >
-        <View style={styles.planModalOverlay}>
-          <Pressable
-            style={styles.planModalBackdrop}
-            onPress={() => setShowPlanModal(false)}
-            accessibilityRole="button"
-            accessibilityLabel="Kapat"
-          />
-          <View
-            style={[
-              styles.surveySheet,
-              styles.planModalSheet,
-              {
-                marginBottom: planModalKeyboardHeight,
-                maxHeight: Math.round(windowHeight * 0.78),
-                paddingBottom: Math.max(Spacing.lg, insets.bottom + Spacing.sm),
-              },
-            ]}
-          >
-            <View style={styles.surveyHandle} />
-            <View style={styles.surveyHeader}>
-              <View style={styles.surveyHeaderLeft}>
-                <View style={styles.surveyIconWrap}>
-                  <ClipboardList size={20} color={Colors.primary} strokeWidth={1.8} />
-                </View>
-                <View>
-                  <Text style={styles.surveyTitle}>
-                    {editingTodoId ? "Maddeyi düzenle" : "Küçük madde ekle"}
-                  </Text>
-                  <Text style={styles.surveyMeta}>Yarın için net ve kısa tut</Text>
-                </View>
-              </View>
-              <TouchableOpacity
-                style={styles.surveyClose}
-                onPress={() => setShowPlanModal(false)}
-                hitSlop={12}
-                accessibilityLabel="Kapat"
-              >
-                <X size={22} color={Colors.textTertiary} strokeWidth={2} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView
-              ref={planScrollRef}
-              style={styles.planModalScroll}
-              contentContainerStyle={[
-                styles.planModalScrollContent,
-                planModalKeyboardHeight > 0 && {
-                  paddingBottom: Spacing.md,
-                },
-              ]}
-              keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}
-              bounces={false}
-              nestedScrollEnabled
-            >
-              <View style={styles.planForm}>
-                <View style={styles.planField}>
-                  <Text style={styles.planFieldLabel}>Madde</Text>
-                  <TextInput
-                    style={styles.planInput}
-                    value={todoDraft.text}
-                    onChangeText={(text) => setTodoDraft((prev) => ({ ...prev, text }))}
-                    onFocus={scrollPlanFormToEnd}
-                    placeholder={profile?.habitName || "2 sayfa kitap"}
-                    placeholderTextColor="#94A3B8"
-                  />
-                </View>
-                <View style={styles.planField}>
-                  <Text style={styles.planFieldLabel}>Zaman (opsiyonel)</Text>
-                  <TextInput
-                    style={styles.planInput}
-                    value={todoDraft.time}
-                    onChangeText={(time) => setTodoDraft((prev) => ({ ...prev, time }))}
-                    onFocus={scrollPlanFormToEnd}
-                    placeholder="Sabah 07:00-08:00"
-                    placeholderTextColor="#94A3B8"
-                  />
-                </View>
-                <View style={styles.planField}>
-                  <Text style={styles.planFieldLabel}>Bağlam (opsiyonel)</Text>
-                  <TextInput
-                    style={styles.planInput}
-                    value={todoDraft.context}
-                    onChangeText={(context) => setTodoDraft((prev) => ({ ...prev, context }))}
-                    onFocus={scrollPlanFormToEnd}
-                    placeholder={profile?.habitAnchor || "Kahvemi içtikten sonra"}
-                    placeholderTextColor="#94A3B8"
-                  />
-                </View>
-
-                <TouchableOpacity
-                  style={[
-                    styles.planSaveBtn,
-                    !todoDraft.text.trim() && styles.planSaveBtnDisabled,
-                  ]}
-                  onPress={handleSaveTodo}
-                  disabled={!todoDraft.text.trim()}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.planSaveText}>
-                    {editingTodoId ? "Maddeyi kaydet" : "Listeye ekle"}
-                  </Text>
-                </TouchableOpacity>
-
-                {editingTodoId ? (
-                  <TouchableOpacity
-                    style={styles.planModalDeleteBtn}
-                    onPress={() => handleDeleteTodo(editingTodoId)}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.planModalDeleteText}>Maddeyi sil</Text>
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowPlanModal(false)}
+        editingTodoId={editingTodoId}
+        todoDraft={todoDraft}
+        onChangeDraft={(patch) => setTodoDraft((prev) => ({ ...prev, ...patch }))}
+        habitName={profile?.habitName ?? ""}
+        habitAnchor={profile?.habitAnchor ?? ""}
+        onSave={() => void handleSaveTodo()}
+        onDelete={(id) => void handleDeleteTodo(id)}
+        windowHeight={windowHeight}
+        insets={insets}
+        keyboardHeight={planModalKeyboardHeight}
+        scrollRef={planScrollRef}
+        onFieldFocus={scrollPlanFormToEnd}
+      />
 
       <Modal
         visible={showSurvey}
@@ -1112,6 +888,12 @@ export default function JourneyScreen({ navigation }: Props) {
         }}
       />
       <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
+
+      <JourneyDayDetailSheet
+        visible={dayDetail != null}
+        detail={dayDetail}
+        onClose={() => setDayDetail(null)}
+      />
     </SafeAreaView>
   );
 }
@@ -1163,12 +945,23 @@ const sdtS = StyleSheet.create({
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: JOURNEY_PAGE_BG },
   scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1, paddingBottom: Spacing.md, paddingTop: Spacing.sm },
-  lockedContainer: {
-    flex: 1,
+  freeHeader: {
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
+  premiumUpsellCard: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: Spacing.xl,
-    gap: Spacing.lg,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xl,
+    marginTop: Spacing.md,
+    marginBottom: Spacing.lg,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.borderStrong,
+    gap: Spacing.md,
+    ...Shadows.soft,
   },
   lockIcon: {
     width: 72,
@@ -1539,63 +1332,6 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
     color: "#FFFFFF",
-  },
-  weekPlanCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 14,
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  weekPlanHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 12,
-  },
-  weekPlanTitle: {
-    fontSize: 11,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-    color: "#94A3B8",
-    letterSpacing: 1,
-  },
-  weekPlanMeta: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-    color: Colors.primary,
-  },
-  weekPlanGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 6,
-  },
-  weekPlanDay: {
-    alignItems: "center",
-    gap: 6,
-    flex: 1,
-  },
-  weekPlanLabel: {
-    fontSize: 10,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
-    color: "#64748B",
-  },
-  weekPlanDot: {
-    width: "100%",
-    maxWidth: 34,
-    height: 28,
-    borderRadius: 8,
-  },
-  weekPlanDotActive: {
-    backgroundColor: Colors.primary,
-  },
-  weekPlanDotEmpty: {
-    backgroundColor: "#E2E8F0",
   },
   planForm: {
     gap: 12,
@@ -2010,6 +1746,25 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   sdtBars: { gap: Spacing.sm },
+  sdtInsightBlock: {
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    gap: 6,
+  },
+  sdtInsightSummary: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
+  sdtInsightTip: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+    lineHeight: 20,
+  },
   surveyBtn: {
     flexDirection: "row",
     alignItems: "center",

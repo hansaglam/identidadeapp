@@ -1,8 +1,13 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import * as FileSystem from "expo-file-system/legacy";
 
-import type { CheckinRecord, MindDumpEntry, UserProfile } from "../types";
-import type { ExportPayload } from "./exportBackup";
+import type { CheckinRecord, MindDumpEntry, SDTScore, UserProfile } from "../types";
+import type { ExportPayload, ExportPayloadV2 } from "./exportBackup";
+import {
+  BACKUP_STORAGE_KEYS,
+  persistV2ExtraStorage,
+} from "./exportBackup";
 import { clearAllData, saveProfile, saveCheckin, saveMindDump } from "./storage";
 import { normalizeProfile } from "./profileDefaults";
 import { useBehaviorStore } from "../store/useBehaviorStore";
@@ -10,6 +15,8 @@ import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useSDTStore } from "../store/sdtStore";
+import { useHabitStore } from "../store/habitStore";
+import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -35,10 +42,25 @@ function roughMindDump(v: unknown): v is MindDumpEntry {
   );
 }
 
-/** JSON ağacından yedek şeması doğrulama — güvenilir olmayan dosyaya karşı temel kontrol. */
-export function parseExportPayloadFromUnknown(parsed: unknown): ExportPayload | { error: string } {
-  if (!isRecord(parsed)) return { error: "Dosya beklenen formatta değil." };
-  if (parsed.schemaVersion !== 1) return { error: "Bu yedek sürümü desteklenmiyor." };
+function roughSdtScore(v: unknown): v is SDTScore {
+  if (!isRecord(v)) return false;
+  return (
+    typeof v.week === "string" &&
+    typeof v.autonomy === "number" &&
+    typeof v.competence === "number" &&
+    typeof v.relatedness === "number" &&
+    typeof v.answeredAt === "string"
+  );
+}
+
+function parseBaseFields(parsed: Record<string, unknown>):
+  | { error: string }
+  | {
+      exportedAt: string;
+      profile: UserProfile;
+      checkins: CheckinRecord[];
+      mindDumps: MindDumpEntry[];
+    } {
   if (typeof parsed.exportedAt !== "string") return { error: "Yedek tarihi eksik." };
   if (!isRecord(parsed.profile)) return { error: "Profil alanı eksik." };
   const id = parsed.profile.id;
@@ -54,20 +76,82 @@ export function parseExportPayloadFromUnknown(parsed: unknown): ExportPayload | 
   if (!checkinsOk || !dumpsOk) {
     return { error: "Kayıtlar bozuk veya tanınmayan bir sürümde olabilir." };
   }
-
   return {
     exportedAt: parsed.exportedAt,
-    schemaVersion: 1,
     profile: parsed.profile as unknown as UserProfile,
     checkins: parsed.checkins as CheckinRecord[],
     mindDumps: parsed.mindDumps as MindDumpEntry[],
   };
 }
 
-/** Yedekleri diske uygula; davranış sayaçlarını sıfırlar (yedek bu veriyi içermez). */
+/** JSON ağacından yedek şeması doğrulama — v1 ve v2. */
+export function parseExportPayloadFromUnknown(parsed: unknown): ExportPayload | { error: string } {
+  if (!isRecord(parsed)) return { error: "Dosya beklenen formatta değil." };
+  const version = parsed.schemaVersion;
+  if (version !== 1 && version !== 2) {
+    return { error: "Bu yedek sürümü desteklenmiyor." };
+  }
+
+  const base = parseBaseFields(parsed);
+  if ("error" in base) return base;
+
+  if (version === 1) {
+    return {
+      exportedAt: base.exportedAt,
+      schemaVersion: 1,
+      profile: base.profile,
+      checkins: base.checkins,
+      mindDumps: base.mindDumps,
+    };
+  }
+
+  if (!isRecord(parsed.tomorrowPlans)) {
+    return { error: "Yarın planları alanı eksik (v2)." };
+  }
+  if (!isRecord(parsed.habitDaily)) {
+    return { error: "Günlük alışkanlık alanı eksik (v2)." };
+  }
+  if (!Array.isArray(parsed.sdtScores) || !parsed.sdtScores.every(roughSdtScore)) {
+    return { error: "SDT skorları eksik veya bozuk (v2)." };
+  }
+  if (!isRecord(parsed.behaviorState)) {
+    return { error: "Davranış durumu eksik (v2)." };
+  }
+
+  const habitReflections = Array.isArray(parsed.habitReflections)
+    ? parsed.habitReflections
+    : [];
+
+  return {
+    exportedAt: base.exportedAt,
+    schemaVersion: 2,
+    profile: base.profile,
+    checkins: base.checkins,
+    mindDumps: base.mindDumps,
+    tomorrowPlans: parsed.tomorrowPlans as ExportPayloadV2["tomorrowPlans"],
+    habitDaily: parsed.habitDaily as unknown as ExportPayloadV2["habitDaily"],
+    habitDefinition: (parsed.habitDefinition ?? null) as ExportPayloadV2["habitDefinition"],
+    habitReflections: habitReflections as ExportPayloadV2["habitReflections"],
+    sdtScores: parsed.sdtScores as SDTScore[],
+    behaviorState: parsed.behaviorState as unknown as ExportPayloadV2["behaviorState"],
+  };
+}
+
+async function clearV2StorageKeys(): Promise<void> {
+  await Promise.all([
+    AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.tomorrowPlans),
+    AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.habitDaily),
+    AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.habitDefinition),
+    AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.habitReflections),
+    AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.behaviorState),
+  ]);
+}
+
+/** Yedekleri diske uygula; v1 davranış sayaçlarını sıfırlar, v2 tam durumu yazar. */
 export async function applyExportPayload(payload: ExportPayload): Promise<void> {
   const profile = normalizeProfile(payload.profile);
   await clearAllData();
+  await clearV2StorageKeys();
   try {
     await SecureStore.setItemAsync("user_id", profile.id);
   } catch {
@@ -76,7 +160,12 @@ export async function applyExportPayload(payload: ExportPayload): Promise<void> 
   await saveProfile(profile);
   await Promise.all(payload.checkins.map((c) => saveCheckin(c)));
   await Promise.all(payload.mindDumps.map((m) => saveMindDump(m)));
-  await useBehaviorStore.getState().reset();
+
+  if (payload.schemaVersion === 2) {
+    await persistV2ExtraStorage(payload);
+  } else {
+    await useBehaviorStore.getState().reset();
+  }
 }
 
 export async function readJsonUri(uri: string): Promise<unknown> {
@@ -94,5 +183,7 @@ export async function reloadAllStoresAfterRestore(): Promise<void> {
     useMindDumpStore.getState().load(),
     useSDTStore.getState().load(),
     useBehaviorStore.getState().load(),
+    useHabitStore.getState().load(),
+    useTomorrowPlanStore.getState().load(),
   ]);
 }

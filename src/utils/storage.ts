@@ -149,5 +149,7 @@ export async function clearAllData(): Promise<void> {
     AsyncStorage.removeItem("habit:daily:v1"),
     AsyncStorage.removeItem("habit:definition:v1"),
     AsyncStorage.removeItem("habit:reflections:v1"),
+    AsyncStorage.removeItem("journey:tomorrow-plans:v1"),
+    AsyncStorage.removeItem("behavior:state:v1"),
   ]);
 }

@@ -33,6 +33,10 @@ import { shareAppDataBackup } from "../utils/exportBackup";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useUserStore } from "../store/userStore";
+import { useSDTStore } from "../store/sdtStore";
+import { useHabitStore } from "../store/habitStore";
+import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
+import { useBehaviorStore } from "../store/useBehaviorStore";
 import {
   parseExportPayloadFromUnknown,
   applyExportPayload,
@@ -106,7 +110,7 @@ export default function AdvancedPreferencesCard({
     }
     await applyExportPayload(parsed);
     await reloadAllStoresAfterRestore();
-    Alert.alert("Tamam", "Yedek uygulandı; kayıtlar güncellendi.");
+    Alert.alert("Tamam", "Yedek uygulandı (v1 veya v2); kayıtlar güncellendi.");
     setPasteOpen(false);
     setPasteText("");
   };
@@ -128,12 +132,29 @@ export default function AdvancedPreferencesCard({
       if (!p) return;
       const checkins = Object.values(useCheckinsStore.getState().checkins);
       const mindDumps = useMindDumpStore.getState().entries;
+      const habitState = useHabitStore.getState();
+      const behaviorState = useBehaviorStore.getState();
       await shareAppDataBackup({
         exportedAt: new Date().toISOString(),
-        schemaVersion: 1,
+        schemaVersion: 2,
         profile: p,
         checkins,
         mindDumps,
+        tomorrowPlans: useTomorrowPlanStore.getState().listsByDate,
+        habitDaily: {
+          todayCheckedIn: habitState.todayCheckedIn,
+          lastCheckInDate: habitState.lastCheckInDate,
+          todayCheckIn: habitState.todayCheckIn,
+        },
+        habitDefinition: habitState.habit,
+        habitReflections: habitState.reflections,
+        sdtScores: useSDTStore.getState().scores,
+        behaviorState: {
+          muscles: behaviorState.muscles,
+          recentActions: behaviorState.recentActions,
+          lastActionAt: behaviorState.lastActionAt,
+          totalActions: behaviorState.totalActions,
+        },
       });
     } catch {
       Alert.alert(

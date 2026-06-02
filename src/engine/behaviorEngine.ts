@@ -190,10 +190,14 @@ function anchorActionScore(action: Action, anchor: AnchorActionContext): number 
         "screen-blank",
         "tpl-sleep-phone",
         "tpl-focus-timer",
+        "tpl-focus-notify-off",
+        "stop-scroll-thumb",
+        "micro-phone-away",
         "deep-breath",
         "one-thing",
         "close-eyes",
         "tpl-focus-tab",
+        "mute-notifications",
       ]);
       if (encouraged.has(action.id)) s += 6;
       if (action.id === "walk-5" || action.id === "stand-up") s -= 6;
@@ -216,10 +220,14 @@ function anchorPreferenceBoostPool(anchor: AnchorActionContext): Action[] {
         "tpl-sleep-phone",
         "tpl-sleep-screen",
         "tpl-sleep-breath",
+        "tpl-sleep-dim-light",
+        "tpl-sleep-gratitude",
         "phone-down",
         "deep-breath",
+        "box-breath-4",
         "screen-blank",
         "close-eyes",
+        "micro-phone-away",
       ]);
     case "phone_away":
       return actionsFromIds([
@@ -228,6 +236,10 @@ function anchorPreferenceBoostPool(anchor: AnchorActionContext): Action[] {
         "tpl-sleep-phone",
         "tpl-focus-timer",
         "tpl-focus-tab",
+        "tpl-focus-notify-off",
+        "stop-scroll-thumb",
+        "mute-notifications",
+        "micro-phone-away",
       ]);
     case "morning_routine":
       return actionsFromIds([
@@ -236,6 +248,10 @@ function anchorPreferenceBoostPool(anchor: AnchorActionContext): Action[] {
         "drink-water",
         "walk-5",
         "anchor-touch",
+        "stand-tall",
+        "light-on",
+        "micro-feet",
+        "habit-whisper",
       ]);
     case "midday":
       return actionsFromIds([
@@ -243,6 +259,9 @@ function anchorPreferenceBoostPool(anchor: AnchorActionContext): Action[] {
         "tpl-learn-name",
         "drink-water",
         "deep-breath",
+        "one-line-plan",
+        "micro-sip",
+        "tpl-social-name",
       ]);
     default:
       return [];

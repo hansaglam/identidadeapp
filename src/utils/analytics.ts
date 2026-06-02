@@ -23,13 +23,18 @@ export type AnalyticsEventName =
   | "action_cancelled"
   | "template_changed"
   | "checkin_completed"
+  | "checkin_gate_shown"
+  | "checkin_gate_action_first"
+  | "checkin_gate_skipped"
   | "miss_recovered"
   | "journey_66_complete"
   | "journey_stacked"
   | "stacking_modal_dismissed"
   | "stacking_modal_share"
   | "stacking_same_habit_selected"
-  | "stacking_new_habit_selected";
+  | "stacking_new_habit_selected"
+  | "app_session_daily"
+  | "notification_opened";
 
 export interface AnalyticsEvent {
   name: AnalyticsEventName;

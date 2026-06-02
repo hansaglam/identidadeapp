@@ -1,9 +1,18 @@
 import React, { useState } from "react";
 import {
-  View, Text, StyleSheet, TouchableOpacity,
-  TextInput, KeyboardAvoidingView, Platform, ScrollView, Alert,
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Check, ChevronLeft, Lock, Zap, BarChart2, Shield } from "lucide-react-native";
+import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import { useUserStore } from "../store/userStore";
@@ -12,29 +21,104 @@ import {
   scheduleMorningNotifications,
   schedulePhaseTransitions,
 } from "../utils/notifications";
-import { Colors, Spacing, Radii, FontSizes, TIME_RANGES } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows, TIME_RANGES } from "../constants/theme";
 import { getIdentitySlugForTag, getIdentityTemplate } from "../constants/identityTemplates";
-import { ONBOARDING_WHY_SUB_LEAD, ONBOARDING_WHY_SUB_TAIL } from "../constants/purposeCopy";
 import { trackEvent } from "../utils/analytics";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep3">;
 
 const MIN_CHARS = 10;
 
+const STEP_LABELS = ["Kimliğin", "Çapan", "Neden"] as const;
+
+const SYSTEM_PROMISES = [
+  {
+    Icon: Zap,
+    color: Colors.gold,
+    text: "Her gün 1 aksiyon önerir — sıfır düşünme, sıfır karar yorgunluğu.",
+  },
+  {
+    Icon: BarChart2,
+    color: Colors.purple,
+    text: "Momentum ve efor sinyallerini okuyarak sana özel hareket seçer.",
+  },
+  {
+    Icon: Shield,
+    color: Colors.primary,
+    text: "Düşüş yakaladığında müdahale eder. Streak kırmaz, cezalandırmaz.",
+  },
+] as const;
+
+const ANCHOR_EMOJIS: Record<string, string> = {
+  "Kahvemi içtikten sonra": "☕",
+  "Dişlerimi fırçaladıktan sonra": "🪥",
+  "Telefonu elimden bıraktıktan sonra": "📵",
+  "Yatağa girmeden önce": "🛏️",
+  "Öğle yemeğinden sonra": "🍽️",
+  "Uyandıktan hemen sonra": "⏰",
+};
+
+const TIME_EMOJIS: Record<string, string> = {
+  sabah: "🌅",
+  ogle: "☀️",
+  "ogleden-sonra": "🌤️",
+  aksam: "🌇",
+  gece: "🌙",
+};
+
+function StepBar({ current }: { current: number }) {
+  return (
+    <View style={styles.stepWrap}>
+      {STEP_LABELS.map((label, i) => {
+        const done = i < current - 1;
+        const active = i === current - 1;
+        return (
+          <React.Fragment key={label}>
+            {i > 0 && (
+              <View
+                style={[styles.stepConnector, (done || active) && styles.stepConnectorActive]}
+              />
+            )}
+            <View style={styles.stepItem}>
+              <View
+                style={[
+                  styles.stepCircle,
+                  done && styles.stepCircleDone,
+                  active && styles.stepCircleActive,
+                ]}
+              >
+                {done ? (
+                  <Check size={10} color="#fff" strokeWidth={3} />
+                ) : (
+                  <Text style={[styles.stepNum, active && styles.stepNumActive]}>{i + 1}</Text>
+                )}
+              </View>
+              <Text style={[styles.stepLabel, active && styles.stepLabelActive]}>{label}</Text>
+            </View>
+          </React.Fragment>
+        );
+      })}
+    </View>
+  );
+}
+
 export default function OnboardingStep3Screen({ route, navigation }: Props) {
   const { habitName, anchorBehavior, anchorTime, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
-  const timeSlotLabel =
-    TIME_RANGES.find((r) => r.id === anchorTime)?.label ?? anchorTime;
+  const timeSlotLabel = TIME_RANGES.find((r) => r.id === anchorTime)?.label ?? anchorTime;
+
   const [whyText, setWhyText] = useState("");
   const [saving, setSaving] = useState(false);
 
   const completeOnboarding = useUserStore((s) => s.completeOnboarding);
 
+  const wordCount = whyText.trim().split(/\s+/).filter(Boolean).length;
   const canStart = whyText.trim().length >= MIN_CHARS;
+  const remaining = Math.max(0, MIN_CHARS - whyText.trim().length);
 
   const handleStart = async () => {
     if (!canStart || saving) return;
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSaving(true);
     try {
       await completeOnboarding({
@@ -57,7 +141,6 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         identityTagId: identityTagId ?? "custom",
       });
 
-      // Load updated profile for notifications
       const profile = useUserStore.getState().profile;
       if (profile) {
         try {
@@ -68,7 +151,6 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         }
       }
 
-      // Navigate to main app
       navigation.getParent()?.reset({
         index: 0,
         routes: [{ name: "Main" }],
@@ -94,76 +176,106 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          {/* Step dots — all filled */}
-          <View style={styles.stepRow}>
-            {[1, 2, 3].map((s) => (
-              <View key={s} style={styles.stepActive} />
-            ))}
-          </View>
+          <StepBar current={3} />
 
-          <Text style={styles.title}>Bu kimliği neden istiyorsun?</Text>
+          <Text style={styles.title}>Bu kimliği neden{"\n"}istiyorsun?</Text>
           <Text style={styles.sub}>
-            {ONBOARDING_WHY_SUB_LEAD}{"\n\n"}
-            {ONBOARDING_WHY_SUB_TAIL}
+            Bu cümle yalnızca söz değil: düştüğünde geri dönmeni sağlayan bağ.
+            Dürüstçe yaz — kimse görmeyecek.
           </Text>
 
-          <TextInput
-            style={styles.whyInput}
-            value={whyText}
-            onChangeText={setWhyText}
-            placeholder={template?.whyPlaceholder ?? "Düşünmeden yaz..."}
-            placeholderTextColor={Colors.textTertiary}
-            multiline
-            textAlignVertical="top"
-            autoFocus
-          />
-
-          <View style={styles.hintRow}>
-            {!canStart && whyText.length > 0 && (
-              <Text style={styles.hint}>
-                En az {MIN_CHARS} karakter ({MIN_CHARS - whyText.trim().length} daha)
-              </Text>
-            )}
-            <Text style={styles.charCount}>{whyText.length}</Text>
+          {/* Choices summary */}
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Seçtiklerin</Text>
+            <View style={styles.summaryChips}>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{template?.emoji ?? "✏️"}</Text>
+                <Text style={styles.chipText}>{habitName}</Text>
+              </View>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{ANCHOR_EMOJIS[anchorBehavior] ?? "🔗"}</Text>
+                <Text style={styles.chipText} numberOfLines={1}>{anchorBehavior}</Text>
+              </View>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{TIME_EMOJIS[anchorTime] ?? "⏰"}</Text>
+                <Text style={styles.chipText}>{timeSlotLabel.split("(")[0].trim()}</Text>
+              </View>
+            </View>
           </View>
 
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              Bu neden sadece senin için. Kimse görmeyecek.
+          {/* Why textarea */}
+          <View style={styles.textareaWrap}>
+            <TextInput
+              style={styles.whyInput}
+              value={whyText}
+              onChangeText={setWhyText}
+              placeholder={
+                template?.whyPlaceholder ??
+                "Bu değişikliği neden istiyorsun? İlk aklına geleni yaz…"
+              }
+              placeholderTextColor={Colors.textTertiary}
+              multiline
+              textAlignVertical="top"
+            />
+            <View style={styles.textareaFooter}>
+              {!canStart && whyText.length > 0 ? (
+                <Text style={styles.hintText}>{remaining} karakter daha</Text>
+              ) : canStart ? (
+                <View style={styles.readyBadge}>
+                  <Check size={10} color={Colors.primary} strokeWidth={3} />
+                  <Text style={styles.readyText}>Harika görünüyor</Text>
+                </View>
+              ) : (
+                <Text style={styles.hintEmpty}>Düşünmeden, özgürce yaz</Text>
+              )}
+              <Text style={styles.wordCount}>{wordCount} kelime</Text>
+            </View>
+          </View>
+
+          {/* Privacy note */}
+          <View style={styles.privacyNote}>
+            <Lock size={12} color={Colors.primaryDark} strokeWidth={2} />
+            <Text style={styles.privacyText}>
+              Bu neden yalnızca senin için. Kimse görmeyecek.
             </Text>
           </View>
 
-          {/* Sistem önizlemesi */}
-          <View style={styles.systemPreview}>
+          {/* System promises */}
+          <View style={styles.systemCard}>
             <Text style={styles.systemTitle}>66 günde sistem şunları yapacak</Text>
-            {[
-              { icon: "⚡", text: "Her gün 1 aksiyon önerir — sıfır düşünme, sıfır karar yorgunluğu." },
-              { icon: "📊", text: "Momentum, efor ve zihin sinyallerini okuyarak sana özel hareket seçer." },
-              { icon: "🛡️", text: "Düşüş yakaladığında müdahale eder. Streak kırmaz, cezalandırmaz." },
-            ].map((item, i) => (
+            {SYSTEM_PROMISES.map(({ Icon, color, text }, i) => (
               <View key={i} style={styles.systemRow}>
-                <Text style={styles.systemIcon}>{item.icon}</Text>
-                <Text style={styles.systemRowText}>{item.text}</Text>
+                <View style={[styles.systemIconWrap, { backgroundColor: `${color}18` }]}>
+                  <Icon size={15} color={color} strokeWidth={2} />
+                </View>
+                <Text style={styles.systemRowText}>{text}</Text>
               </View>
             ))}
           </View>
         </ScrollView>
 
+        {/* Footer */}
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.backBtn}
-            onPress={() => navigation.goBack()}
+            onPress={() => {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              navigation.goBack();
+            }}
+            activeOpacity={0.75}
           >
+            <ChevronLeft size={18} color={Colors.textSecondary} strokeWidth={2} />
             <Text style={styles.backText}>Geri</Text>
           </TouchableOpacity>
+
           <TouchableOpacity
             style={[styles.cta, !canStart && styles.ctaDisabled]}
             onPress={handleStart}
             disabled={!canStart || saving}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
             <Text style={styles.ctaText}>
-              {saving ? "Başlatılıyor..." : "66 Günüm Başlasın →"}
+              {saving ? "Başlatılıyor…" : "66 Günüm Başlasın →"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -181,20 +293,63 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     flexGrow: 1,
   },
-  stepRow: {
+
+  /* Step bar */
+  stepWrap: {
     flexDirection: "row",
-    gap: Spacing.sm,
+    alignItems: "center",
     marginBottom: Spacing.xl,
   },
-  stepActive: {
-    flex: 1, height: 3,
-    borderRadius: Radii.full,
+  stepItem: { alignItems: "center", gap: 4 },
+  stepConnector: {
+    flex: 1,
+    height: 2,
+    backgroundColor: Colors.border,
+    marginBottom: 14,
+  },
+  stepConnectorActive: { backgroundColor: Colors.primary },
+  stepCircle: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.surface,
+    borderWidth: 2,
+    borderColor: Colors.border,
+  },
+  stepCircleActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  stepCircleDone: {
+    borderColor: Colors.primary,
     backgroundColor: Colors.primary,
   },
+  stepNum: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+  },
+  stepNumActive: { color: Colors.primary },
+  stepLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    letterSpacing: 0.3,
+  },
+  stepLabelActive: {
+    color: Colors.primary,
+    fontFamily: "Inter_500Medium",
+  },
+
+  /* Header */
   title: {
     fontSize: FontSizes.xxl,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
+    lineHeight: 34,
+    letterSpacing: -0.3,
     marginBottom: Spacing.sm,
   },
   sub: {
@@ -204,75 +359,162 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Spacing.lg,
   },
-  whyInput: {
+
+  /* Summary card */
+  summaryCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: Colors.border,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+    ...Shadows.soft,
+  },
+  summaryTitle: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.7,
+  },
+  summaryChips: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.xs,
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.pill,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 5,
+    maxWidth: "100%",
+  },
+  chipEmoji: { fontSize: 13 },
+  chipText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.primaryDark,
+    flexShrink: 1,
+  },
+
+  /* Textarea */
+  textareaWrap: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.card,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    marginBottom: Spacing.sm,
+    overflow: "hidden",
+    ...Shadows.soft,
+  },
+  whyInput: {
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.md,
+    paddingTop: Spacing.md,
+    paddingBottom: Spacing.sm,
     fontSize: FontSizes.lg,
     fontFamily: "Inter_400Regular",
     color: Colors.textPrimary,
-    minHeight: 160,
+    minHeight: 140,
     lineHeight: 26,
   },
-  hintRow: {
+  textareaFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.md,
+    alignItems: "center",
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    backgroundColor: Colors.surfaceMuted,
   },
-  hint: {
-    fontSize: FontSizes.sm,
+  hintText: {
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.coral,
   },
-  charCount: {
+  hintEmpty: {
     fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
-    marginLeft: "auto",
+    fontStyle: "italic",
   },
-  infoBox: {
+  readyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  readyText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
+  wordCount: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+  },
+
+  /* Privacy note */
+  privacyNote: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.card,
-    padding: Spacing.md,
+    borderRadius: Radii.sm,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.lg,
   },
-  infoText: {
+  privacyText: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.primaryDark,
     fontStyle: "italic",
+    flex: 1,
   },
-  systemPreview: {
-    marginTop: Spacing.lg,
+
+  /* System promises */
+  systemCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: Colors.border,
     padding: Spacing.lg,
     gap: Spacing.md,
+    ...Shadows.soft,
   },
   systemTitle: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
   },
   systemRow: {
     flexDirection: "row",
     alignItems: "flex-start",
     gap: Spacing.sm,
   },
-  systemIcon: { fontSize: 16, lineHeight: 22 },
+  systemIconWrap: {
+    width: 30,
+    height: 30,
+    borderRadius: Radii.sm,
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
   systemRowText: {
     flex: 1,
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     lineHeight: 20,
+    paddingTop: 5,
   },
+
+  /* Footer */
   footer: {
     flexDirection: "row",
     gap: Spacing.sm,
@@ -284,12 +526,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
   },
   backBtn: {
-    paddingVertical: 15,
-    paddingHorizontal: Spacing.lg,
-    borderRadius: Radii.button,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    flexDirection: "row",
     alignItems: "center",
+    paddingVertical: 15,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radii.button,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    gap: 2,
   },
   backText: {
     fontSize: FontSizes.md,
@@ -302,8 +546,9 @@ const styles = StyleSheet.create({
     borderRadius: Radii.button,
     paddingVertical: 15,
     alignItems: "center",
+    ...Shadows.card,
   },
-  ctaDisabled: { opacity: 0.45 },
+  ctaDisabled: { opacity: 0.42 },
   ctaText: {
     fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
