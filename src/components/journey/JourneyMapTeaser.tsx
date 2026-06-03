@@ -38,8 +38,7 @@ export default function JourneyMapTeaser({
     <View style={styles.wrap}>
       <Text style={styles.sectionLabel}>66 GÜN · ÖNİZLEME</Text>
       <Text style={styles.hint}>
-        Yarın planın ücretsiz. Aktif fazı ve günlere dokunarak önizleme burada; tam harita, Kimlik
-        Aynası ve SDT premium ile açılır.
+        Yarın planın ücretsiz. Aktif faza dokun — kısa önizleme; tam gün özeti ve harita premium.
       </Text>
 
       <View

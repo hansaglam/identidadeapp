@@ -12,6 +12,7 @@ import { useBehaviorStore } from "../../store/useBehaviorStore";
 import { trackEvent } from "../../utils/analytics";
 import BehaviorActionCard from "../BehaviorActionCard";
 import LiveActionModal from "../LiveActionModal";
+import InterruptModal from "../InterruptModal";
 import type { UserState, Action } from "../../engine";
 
 export interface HeroActionSectionHandle {
@@ -32,17 +33,24 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
   ) {
     const [liveAction, setLiveAction] = useState<Action | null>(null);
     const [showLiveModal, setShowLiveModal] = useState(false);
+    const [showInterruptModal, setShowInterruptModal] = useState(false);
 
     const openSuggestedAction = useCallback(() => {
       if (!userBehaviorState) return;
       if (hapticsEnabled) {
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
-      setLiveAction(userBehaviorState.suggestedAction);
-      setShowLiveModal(true);
+      const action = userBehaviorState.suggestedAction;
+      setLiveAction(action);
+      if (action.isInterrupt) {
+        setShowInterruptModal(true);
+      } else {
+        setShowLiveModal(true);
+      }
       void trackEvent("action_started", {
-        actionId: userBehaviorState.suggestedAction.id,
+        actionId: action.id,
         source: "hero",
+        interrupt: action.isInterrupt === true,
       });
     }, [userBehaviorState, hapticsEnabled]);
 
@@ -63,9 +71,14 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
         source: "hero",
       });
       setShowLiveModal(false);
+      setShowInterruptModal(false);
       onActionRecorded?.();
       onToast("Adım kaydedildi. Disiplin kası güçleniyor.");
     }, [userBehaviorState, hapticsEnabled, onToast, onActionRecorded]);
+
+    const handleInterruptDone = useCallback(async () => {
+      await handleActionComplete();
+    }, [handleActionComplete]);
 
     const handleActionCancel = useCallback(() => {
       void trackEvent("action_cancelled", {
@@ -73,6 +86,7 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
         source: "hero",
       });
       setShowLiveModal(false);
+      setShowInterruptModal(false);
     }, [liveAction?.id]);
 
     if (!userBehaviorState) return null;
@@ -96,6 +110,14 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
           action={liveAction}
           onComplete={handleActionComplete}
           onCancel={handleActionCancel}
+        />
+
+        <InterruptModal
+          visible={showInterruptModal}
+          action={liveAction}
+          forced
+          onDone={() => void handleInterruptDone()}
+          onClose={handleActionCancel}
         />
       </View>
     );

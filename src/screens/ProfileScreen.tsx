@@ -22,6 +22,8 @@ import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useHabitStore } from "../store/habitStore";
 import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
+import { useBehaviorStore } from "../store/useBehaviorStore";
+import { useMindDumpStore } from "../store/mindDumpStore";
 import {
   cancelAllMorningNotifications,
   scheduleMorningNotifications,
@@ -34,9 +36,17 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import PrivacyDataModal from "../components/PrivacyDataModal";
 import EditCommitmentModal from "../components/EditCommitmentModal";
 import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
-import CoachEngagementCard from "../components/CoachEngagementCard";
+import GoalProgressCard from "../components/GoalProgressCard";
+import ViralStoryCard from "../components/ViralStoryCard";
+import WeeklySummaryCard from "../components/WeeklySummaryCard";
 import type { UserProfile } from "../types";
+import {
+  PRIVACY_POLICY_URL,
+  TERMS_URL,
+  getManageSubscriptionsUrl,
+} from "../constants/appLinks";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
+import { trackEvent } from "../utils/analytics";
 
 const PAGE_BG = "#F8FAFC";
 const APP_VERSION = "1.0.0";
@@ -130,6 +140,7 @@ export default function ProfileScreen() {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(profile?.name ?? "");
   const [showGate, setShowGate] = useState(false);
+  const [showStoryCard, setShowStoryCard] = useState(false);
   const [profileDialog, setProfileDialog] = useState<ProfileDialog>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showCommitmentEdit, setShowCommitmentEdit] = useState(false);
@@ -157,7 +168,7 @@ export default function ProfileScreen() {
       { emoji: "💪", title: "7 gün seri", desc: "Disiplin kası", unlocked: currentStreak >= 7 },
       { emoji: "🎯", title: "21 gün", desc: "Çekirdek alışkanlık", unlocked: dayNumber >= 21 },
       { emoji: "⚡", title: "30 gün", desc: "Üçte bir geçildi", unlocked: dayNumber >= 30 },
-      { emoji: "🌳", title: "66 gün", desc: "Tam otomatiklik", unlocked: (profile.completedHabits?.length ?? 0) > 0 },
+      { emoji: "🏁", title: "66 gün", desc: "Yolculuk tamamlandı", unlocked: (profile.completedHabits?.length ?? 0) > 0 },
       { emoji: "⭐", title: "Premium", desc: "Tam deneyim", unlocked: isPremium },
     ];
     return list;
@@ -317,6 +328,16 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.journeyBarText}>%{journeyPct} yolculuk tamamlandı</Text>
           </View>
+
+          <GoalProgressCard dayNumber={dayNumber} startDate={profile.startDate} />
+
+          <TouchableOpacity
+            style={styles.storyShareBtn}
+            onPress={() => setShowStoryCard(true)}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.storyShareBtnText}>İlerlemeyi hikaye olarak paylaş</Text>
+          </TouchableOpacity>
         </Animated.View>
 
         {/* ── Stat Kartları ── */}
@@ -344,7 +365,32 @@ export default function ProfileScreen() {
               <Text style={styles.statSmall}>tamamlama</Text>
             </View>
           </View>
+
+          <WeeklySummaryCard
+            startDate={profile.startDate}
+            checkins={checkins}
+            habitName={profile.habitName}
+          />
         </Animated.View>
+
+        {(profile.completedHabits?.length ?? 0) > 0 ? (
+          <View style={styles.completedHabitsWrap}>
+            <Text style={styles.sectionLabel}>TAMAMLANAN TURLAR</Text>
+            <View style={styles.settingsList}>
+              {(profile.completedHabits ?? []).map((h, i) => (
+                <View key={`${h.completedAt}-${i}`} style={styles.completedHabitRow}>
+                  <Text style={styles.completedHabitName}>{h.habitName}</Text>
+                  <Text style={styles.completedHabitMeta}>
+                    {h.completedDaysCount} gün tamamlandı
+                    {h.avgAutomaticity != null
+                      ? ` · ort. otomatiklik ${h.avgAutomaticity.toFixed(1)}`
+                      : ""}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         {/* ── 14 Günlük Grafik ── */}
         <Animated.View style={{ opacity: entO[2], transform: [{ translateY: entY[2]! }] }}>
@@ -432,7 +478,6 @@ export default function ProfileScreen() {
               ))}
             </View>
           </View>
-          <CoachEngagementCard />
         </Animated.View>
 
         {/* ── Ayarlar ── */}
@@ -477,7 +522,26 @@ export default function ProfileScreen() {
                 subtitle="66 gün haritası, Kimlik Aynası, SDT"
                 onPress={() => setShowGate(true)}
               />
-            ) : null}
+            ) : (
+              <SettingsRow
+                emoji="💳"
+                title="Aboneliği yönet"
+                subtitle="Mağaza ayarları"
+                onPress={() => void Linking.openURL(getManageSubscriptionsUrl())}
+              />
+            )}
+            <SettingsRow
+              emoji="📄"
+              title="Gizlilik politikası"
+              subtitle="Web"
+              onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
+            />
+            <SettingsRow
+              emoji="📋"
+              title="Kullanım koşulları"
+              subtitle="Abonelik şartları"
+              onPress={() => void Linking.openURL(TERMS_URL)}
+            />
           </View>
 
           <Text style={[styles.sectionLabel, { marginTop: 20 }]}>VERİ</Text>
@@ -514,14 +578,14 @@ export default function ProfileScreen() {
           <View style={styles.footerQuote}>
             <Text style={styles.quoteMain}>Motivasyon bir duygu değil, bir eylem.</Text>
             <Text style={styles.quoteSub}>
-              {APP_VERSION} · discipline · Gün {dayNumber}
+              {APP_VERSION} · Kimlik · Gün {dayNumber}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.aboutRow}
             onPress={() =>
-              Alert.alert("Kimlik", `${APP_VERSION} · discipline\n\nYerel ilkelerle çalışan bir alışkanlık koçu.`)
+              Alert.alert("Kimlik", `${APP_VERSION}\n\nYerel ilkelerle çalışan bir alışkanlık koçu.`)
             }
             activeOpacity={0.7}
           >
@@ -615,9 +679,19 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </Modal>
 
-      <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
+      <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="profile" />
 
       <PrivacyDataModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
+
+      <ViralStoryCard
+        visible={showStoryCard}
+        onClose={() => setShowStoryCard(false)}
+        dayNumber={dayNumber}
+        consistencyPercent={Math.round(rate * 100)}
+        habitName={profile.habitName}
+        startDate={profile.startDate}
+        checkins={checkins}
+      />
 
       <EditCommitmentModal
         visible={showCommitmentEdit}
@@ -627,6 +701,7 @@ export default function ProfileScreen() {
         habitWhy={profile.habitWhy}
         onSave={async ({ habitName, habitAnchor, habitWhy }) => {
           await updateProfile({ habitName, habitAnchor, habitWhy });
+          void trackEvent("template_changed", { habitName });
           const nextProfile = useUserStore.getState().profile;
           const todayDone = getTodayCheckin()?.completed ?? false;
           if (nextProfile) {
@@ -708,6 +783,10 @@ export default function ProfileScreen() {
               setProfileDialog(null);
               await cancelAllMorningNotifications();
               await clearData();
+              // Disk temizlendi; Zustand store'ları da in-memory sıfırla
+              await useCheckinsStore.getState().clearAllCheckins();
+              useMindDumpStore.getState().clearAll();
+              await useBehaviorStore.getState().reset();
               await useHabitStore.getState().resetWithJourney();
             },
           },
@@ -879,6 +958,20 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
   },
+  storyShareBtn: {
+    marginTop: Spacing.sm,
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.md,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+  },
+  storyShareBtnText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.primaryDark,
+  },
 
   sectionLabel: {
     marginHorizontal: 16,
@@ -1038,6 +1131,28 @@ const styles = StyleSheet.create({
     borderRadius: Radii.card,
     overflow: "hidden",
     ...cardShadow,
+  },
+  completedHabitsWrap: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  completedHabitRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#F1F5F9",
+  },
+  completedHabitName: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+  },
+  completedHabitMeta: {
+    marginTop: 4,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
   setRow: {
     flexDirection: "row",

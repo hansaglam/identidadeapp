@@ -28,8 +28,6 @@ export interface UserProfile {
   habitName: string;          // "Egzersiz"
   habitAnchor: string;        // "Kahvemi aldıktan sonra"
   habitWhy: string;           // onboarding free text
-  /** Yolculuk ağacı görseli: oak | cherry | olive | bamboo | acacia */
-  journeyTreeType?: string;
   startDate: string;          // ISO – 66-day countdown starts here
   isPremium: boolean;
   purchaseToken: string | null;

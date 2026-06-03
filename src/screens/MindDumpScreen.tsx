@@ -22,7 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { Trash2, Lock, Sparkles, Footprints } from "lucide-react-native";
+import { Trash2, Lock, Sparkles, Footprints, NotebookPen } from "lucide-react-native";
+import EmptyState from "../components/EmptyState";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
 import { tr } from "date-fns/locale";
 import { useMindDumpStore } from "../store/mindDumpStore";
@@ -466,7 +467,7 @@ function MindDumpLegacyModal({
 
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [text, setText] = useState("");
-  const [savingLabel, setSavingLabel] = useState<"" | "kaydediliyor..." | "kaydedildi">("");
+  const [savingLabel, setSavingLabel] = useState<"" | "kaydediliyor…" | "kaydedildi">("");
   const [showGate, setShowGate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MindDumpEntry | null>(null);
   const [journeyOnly, setJourneyOnly] = useState(false);
@@ -487,11 +488,16 @@ function MindDumpLegacyModal({
         return;
       }
       const v = raw.trim();
-      setSavingLabel("kaydediliyor...");
+      setSavingLabel("kaydediliyor…");
       try {
         if (id) {
           await updateEntry(id, v);
         } else {
+          if (!useMindDumpStore.getState().canCreate(isPremium)) {
+            setShowGate(true);
+            setSavingLabel("");
+            return;
+          }
           const { entry, hitLimit } = await createEntry(v);
           setCurrentId(entry.id);
           if (hitLimit && !isPremium) setShowGate(true);
@@ -520,7 +526,7 @@ function MindDumpLegacyModal({
   const triggerAutoSave = useCallback(
     (value: string, id: string | null) => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      setSavingLabel("kaydediliyor...");
+      setSavingLabel("kaydediliyor…");
       saveTimer.current = setTimeout(() => {
         void runPersist(value, id);
       }, 2000);
@@ -660,7 +666,7 @@ function MindDumpLegacyModal({
                   <View style={mindModalStyles.liveMoodRow}>
                     <Sparkles size={14} color={Colors.primary} strokeWidth={2} />
                     <Text style={mindModalStyles.liveMoodText}>
-                      {MUSCLE_LABELS[liveMood.detectedMuscle]} modundasin — &quot;{liveMood.suggestedAction.title}&quot; seni harekete gecirebilir.
+                      {MUSCLE_LABELS[liveMood.detectedMuscle]} modunadasın — &quot;{liveMood.suggestedAction.title}&quot; seni harekete geçirebilir.
                     </Text>
                   </View>
                 ) : null}
@@ -704,6 +710,14 @@ function MindDumpLegacyModal({
                       <Text style={legacyStyles.reflectionCtaText}>5 saniye kuralı ile devam et?</Text>
                     </TouchableOpacity>
                   </View>
+                ) : null}
+
+                {entries.length === 0 ? (
+                  <EmptyState
+                    icon={<NotebookPen size={32} color={Colors.primary} strokeWidth={1.8} />}
+                    title="Henüz not yok"
+                    subtitle="İlk düşünceni yazmaya başla. Kimse okumayacak."
+                  />
                 ) : null}
 
                 {filtered.length > 0 ? (

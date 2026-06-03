@@ -1,6 +1,7 @@
 import { addDays, format, parseISO } from "date-fns";
 import { tr } from "date-fns/locale";
 import type { CheckinRecord } from "../types";
+import type { TomorrowTodoList } from "../store/tomorrowPlanStore";
 
 export type JourneyDayStatus = "done" | "missed" | "future" | "today" | "before_start";
 
@@ -21,7 +22,8 @@ export function buildJourneyDayDetail(
   startDateISO: string,
   day: number,
   currentDayNumber: number,
-  checkins: Record<string, CheckinRecord>
+  checkins: Record<string, CheckinRecord>,
+  listsByDate: Record<string, TomorrowTodoList> = {}
 ): JourneyDayDetail {
   const dateISO = isoDateForJourneyDay(startDateISO, day);
   let dateLabel: string;
@@ -81,6 +83,15 @@ export function buildJourneyDayDetail(
   }
   if (rec?.checkInNote) {
     lines.push(`Not: ${rec.checkInNote}`);
+  }
+  if (rec?.checkInDetail?.trim()) {
+    lines.push(`Detay: ${rec.checkInDetail.trim()}`);
+  }
+
+  const dayPlan = listsByDate[dateISO]?.items ?? [];
+  const primary = dayPlan.find((i) => i.isPrimary) ?? dayPlan[0];
+  if (primary?.text) {
+    lines.push(`Plan (o gün): ${primary.text}`);
   }
 
   return { day, dateISO, dateLabel, status, lines };

@@ -11,6 +11,7 @@ interface Props {
   recentActionsCount: number;
   mindDumpCount: number;
   journeyOpened: boolean;
+  hasTomorrowPlan: boolean;
 }
 
 export default function FirstWeekGuideCard({
@@ -21,6 +22,7 @@ export default function FirstWeekGuideCard({
   recentActionsCount,
   mindDumpCount,
   journeyOpened,
+  hasTomorrowPlan,
 }: Props) {
   if (dayNumber > 7 || dismissed) return null;
 
@@ -29,13 +31,14 @@ export default function FirstWeekGuideCard({
     { ok: recentActionsCount > 0, label: "En az bir canlı aksiyon (karttan)" },
     { ok: mindDumpCount >= 1, label: 'Zihin sekmesinde bir satır bile yaz' },
     { ok: journeyOpened, label: "Yolculuk sekmesini bir kez aç" },
+    { ok: hasTomorrowPlan, label: "Yolculuk’ta yarın için ana madde yaz" },
   ];
 
   return (
     <View style={[styles.card, { borderColor: Colors.border, backgroundColor: Colors.surface }, Shadows.card]}>
       <Text style={[styles.head, { color: Colors.textPrimary }]}>İlk hafta — küçük harita</Text>
       <Text style={[styles.body, { color: Colors.textSecondary }]}>
-        Uygulama yoğun; bu dört küçük adım ilk hissi oturtur.
+        Uygulama yoğun; bu beş küçük adım ilk hissi oturtur.
       </Text>
       <View style={styles.rows}>
         {steps.map((s) => (

@@ -17,6 +17,7 @@ import { useMindDumpStore } from "../store/mindDumpStore";
 import { useSDTStore } from "../store/sdtStore";
 import { useHabitStore } from "../store/habitStore";
 import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
+import { useIAPStore } from "../store/iapStore";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -149,7 +150,11 @@ async function clearV2StorageKeys(): Promise<void> {
 
 /** Yedekleri diske uygula; v1 davranış sayaçlarını sıfırlar, v2 tam durumu yazar. */
 export async function applyExportPayload(payload: ExportPayload): Promise<void> {
-  const profile = normalizeProfile(payload.profile);
+  const profile = normalizeProfile({
+    ...payload.profile,
+    isPremium: false,
+    purchaseToken: null,
+  });
   await clearAllData();
   await clearV2StorageKeys();
   try {
@@ -186,4 +191,5 @@ export async function reloadAllStoresAfterRestore(): Promise<void> {
     useHabitStore.getState().load(),
     useTomorrowPlanStore.getState().load(),
   ]);
+  await useIAPStore.getState().syncSubscriptionStatus();
 }

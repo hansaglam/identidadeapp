@@ -47,6 +47,7 @@ import CheckInConfirmationSheet from "../components/CheckInConfirmationSheet";
 import AutomaticitySlider from "../components/AutomaticitySlider";
 import HabitStackingModal from "../components/HabitStackingModal";
 import Journey66CompleteModal from "../components/Journey66CompleteModal";
+import PremiumGateModal from "../components/PremiumGateModal";
 import { getAverageAutomaticity } from "../utils/profileMetrics";
 import {
   shouldOpenStackingModalOnFocus,
@@ -137,6 +138,8 @@ export default function HomeScreen({ navigation }: Props) {
   const [showProactiveModal, setShowProactiveModal] = useState(false);
   const [showStackingModal, setShowStackingModal] = useState(false);
   const [show66CompleteModal, setShow66CompleteModal] = useState(false);
+  const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const isPremium = profile?.isPremium ?? false;
   const [checkInAnimating, setCheckInAnimating] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
   const [streakRoll, setStreakRoll] = useState<{ from: number; to: number } | null>(null);
@@ -331,6 +334,7 @@ export default function HomeScreen({ navigation }: Props) {
     if (!profile || profile.isPremium) return;
     if (dayNumber >= 22 && !profile.premiumGateDay22Shown) {
       markPremiumGateShown("day22");
+      setShowPremiumGate(true);
     }
   }, [dayNumber, profile, markPremiumGateShown]);
 
@@ -764,17 +768,23 @@ export default function HomeScreen({ navigation }: Props) {
         ) : null}
 
         {/* --- Hero Action (Behavior Engine) --- */}
-        {!todayDone && userBehaviorState ? (
-          <Animated.View style={[styles.heroWrap, cardEnterStyle(0)]}>
-            <HeroActionSection
-              ref={heroActionRef}
-              userBehaviorState={userBehaviorState}
-              hapticsEnabled={profile.hapticsEnabled !== false}
-              onToast={showToast}
-              onActionRecorded={handleActionRecorded}
-            />
-          </Animated.View>
-        ) : null}
+        {!todayDone && (
+          userBehaviorState ? (
+            <Animated.View style={[styles.heroWrap, cardEnterStyle(0)]}>
+              <HeroActionSection
+                ref={heroActionRef}
+                userBehaviorState={userBehaviorState}
+                hapticsEnabled={profile.hapticsEnabled !== false}
+                onToast={showToast}
+                onActionRecorded={handleActionRecorded}
+              />
+            </Animated.View>
+          ) : (
+            <View style={styles.heroWrap}>
+              <View style={styles.heroPulse} />
+            </View>
+          )
+        )}
 
         {/* --- Check-in CTA --- */}
         <CheckInSection
@@ -835,6 +845,7 @@ export default function HomeScreen({ navigation }: Props) {
               recentActionsCount={behaviorTotalActions}
               mindDumpCount={mindDumpEntries.length}
               journeyOpened={profile.hasOpenedJourneyTab === true}
+              hasTomorrowPlan={tomorrowPlanTodos.length > 0}
             />
           </View>
         )}
@@ -861,7 +872,7 @@ export default function HomeScreen({ navigation }: Props) {
           </Animated.View>
         ) : (
           <Animated.View style={[styles.tipSection, cardEnterStyle(2)]}>
-            <DailyCoachCard dayNumber={dayNumber} />
+            <DailyCoachCard dayNumber={dayNumber} isPremium={isPremium} />
           </Animated.View>
         )}
 
@@ -946,6 +957,12 @@ export default function HomeScreen({ navigation }: Props) {
           markProactiveHandled();
           setShowFiveSecond(true);
         }}
+      />
+
+      <PremiumGateModal
+        visible={showPremiumGate}
+        onClose={() => setShowPremiumGate(false)}
+        trigger="day22"
       />
 
       <Journey66CompleteModal
@@ -1065,6 +1082,12 @@ const styles = StyleSheet.create({
   heroWrap: {
     marginHorizontal: Spacing.md,
     marginTop: Spacing.sm,
+  },
+  heroPulse: {
+    height: 88,
+    borderRadius: Radii.card,
+    backgroundColor: Colors.border,
+    opacity: 0.5,
   },
   contentStack: {
     marginHorizontal: Spacing.md,

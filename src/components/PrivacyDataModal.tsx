@@ -7,10 +7,12 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { PRIVACY_POLICY_URL, TERMS_URL } from "../constants/appLinks";
 
 interface Props {
   visible: boolean;
@@ -58,6 +60,14 @@ export default function PrivacyDataModal({ visible, onClose }: Props) {
                 Premium satın alma mağazan (Apple/Google) üzerinden faturalandırılır;
                 ödeme ayrıntıları kimlik-app tarafından tutulmaz.
               </Text>
+              <View style={styles.linkRow}>
+                <TouchableOpacity onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
+                  <Text style={styles.linkText}>Gizlilik politikası (web)</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => void Linking.openURL(TERMS_URL)}>
+                  <Text style={styles.linkText}>Kullanım koşulları</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
             <TouchableOpacity style={styles.primaryBtn} onPress={onClose} activeOpacity={0.85}>
               <Text style={styles.primaryBtnText}>Tamam</Text>
@@ -124,6 +134,15 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     marginTop: Spacing.sm,
     marginBottom: Spacing.sm,
+  },
+  linkRow: {
+    gap: 10,
+    marginBottom: Spacing.sm,
+  },
+  linkText: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
   },
   primaryBtn: {
     marginTop: Spacing.sm,

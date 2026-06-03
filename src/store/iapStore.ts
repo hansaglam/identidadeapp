@@ -6,6 +6,8 @@
  * buradaki dinleyicide `setPremium` ile güncellenir (modal senkron if ile yetinmez).
  */
 import { Platform } from "react-native";
+
+const IAP_NATIVE = Platform.OS === "android" || Platform.OS === "ios";
 import { create } from "zustand";
 import type { Purchase, ProductSubscription } from "react-native-iap";
 import {
@@ -104,6 +106,8 @@ interface IAPState {
   loadProducts: () => Promise<void>;
   purchase: (productId: IAPProductId) => Promise<void>;
   restorePurchases: () => Promise<void>;
+  /** Mağaza ile premium durumunu senkronlar; açılış / yedek sonrası çağır. */
+  syncSubscriptionStatus: () => Promise<boolean>;
 }
 
 export const useIAPStore = create<IAPState>((set, get) => {
@@ -203,6 +207,31 @@ export const useIAPStore = create<IAPState>((set, get) => {
           error: e?.message ?? "Restore failed",
           isLoading: false,
         });
+      }
+    },
+
+    syncSubscriptionStatus: async () => {
+      if (!IAP_NATIVE) return useUserStore.getState().profile?.isPremium ?? false;
+
+      try {
+        if (!get().isConnected) {
+          await get().connect();
+        }
+        const purchases = await getAvailablePurchases();
+        const ours = purchases.find((p) => isOurSku(p.productId));
+        if (ours) {
+          set({ isPro: true });
+          await persistPremiumAfterPurchase(ours);
+          return true;
+        }
+        set({ isPro: false });
+        const profile = useUserStore.getState().profile;
+        if (profile?.isPremium && profile.purchaseToken) {
+          await useUserStore.getState().setPremium(false);
+        }
+        return false;
+      } catch {
+        return useUserStore.getState().profile?.isPremium ?? false;
       }
     },
   };

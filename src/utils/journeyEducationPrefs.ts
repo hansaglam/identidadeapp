@@ -2,11 +2,13 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const KEY_HINT = "journey:eduSwipeHintShown";
 const KEY_COMPLETED = "journey:eduPhasesCompleted";
+const KEY_AUTO_SHOWN = "journey:eduPhasesAutoShown";
 const KEY_LAST_SNIP = "journey:lastMindSentenceSnippet";
 
 export interface JourneyEducationPrefsState {
   swipeHintShown: boolean;
   phasesCompleted12: Record<"1" | "2" | "3", boolean>;
+  phasesAutoShown12: Record<"1" | "2" | "3", boolean>;
   lastMindSentenceSnippet: string | null;
 }
 
@@ -32,15 +34,18 @@ function parsePhases(raw: string | null): JourneyEducationPrefsState["phasesComp
 }
 
 export async function loadJourneyEducationPrefs(): Promise<JourneyEducationPrefsState> {
-  const [hint, phasesRaw, snip] = await Promise.all([
+  const [hint, phasesRaw, autoRaw, snip] = await Promise.all([
     AsyncStorage.getItem(KEY_HINT),
     AsyncStorage.getItem(KEY_COMPLETED),
+    AsyncStorage.getItem(KEY_AUTO_SHOWN),
     AsyncStorage.getItem(KEY_LAST_SNIP),
   ]);
   const phasesCompleted12 = parsePhases(phasesRaw);
+  const phasesAutoShown12 = parsePhases(autoRaw);
   return {
     swipeHintShown: hint === "1",
     phasesCompleted12,
+    phasesAutoShown12,
     lastMindSentenceSnippet: snip?.trim().length ? snip!.trim().slice(0, 220) : null,
   };
 }
@@ -57,6 +62,14 @@ export async function markPhaseEducationCompleted(phaseId: 1 | 2 | 3): Promise<v
   await AsyncStorage.setItem(KEY_COMPLETED, JSON.stringify(arr));
 }
 
+/** Faz giriş gününde otomatik modal bir kez gösterildi. */
+export async function markPhaseEducationAutoShown(phaseId: 1 | 2 | 3): Promise<void> {
+  const cur = parsePhases(await AsyncStorage.getItem(KEY_AUTO_SHOWN));
+  cur[String(phaseId) as "1" | "2" | "3"] = true;
+  const arr = ([1, 2, 3] as const).filter((id) => cur[String(id) as "1" | "2" | "3"]);
+  await AsyncStorage.setItem(KEY_AUTO_SHOWN, JSON.stringify(arr));
+}
+
 export async function saveLastMindSentenceSnippet(text: string): Promise<void> {
   const t = text.trim();
   if (!t) await AsyncStorage.removeItem(KEY_LAST_SNIP);
@@ -67,6 +80,7 @@ export async function clearJourneyEducationPrefs(): Promise<void> {
   await Promise.all([
     AsyncStorage.removeItem(KEY_HINT),
     AsyncStorage.removeItem(KEY_COMPLETED),
+    AsyncStorage.removeItem(KEY_AUTO_SHOWN),
     AsyncStorage.removeItem(KEY_LAST_SNIP),
   ]);
 }

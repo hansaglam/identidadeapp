@@ -24,9 +24,18 @@ interface Props {
   visible: boolean;
   detail: JourneyDayDetail | null;
   onClose: () => void;
+  /** Ücretsiz: kısa önizleme + premium CTA */
+  isPreview?: boolean;
+  onUnlockPremium?: () => void;
 }
 
-export default function JourneyDayDetailSheet({ visible, detail, onClose }: Props) {
+export default function JourneyDayDetailSheet({
+  visible,
+  detail,
+  onClose,
+  isPreview = false,
+  onUnlockPremium,
+}: Props) {
   const insets = useSafeAreaInsets();
   if (!detail) return null;
 
@@ -50,13 +59,34 @@ export default function JourneyDayDetailSheet({ visible, detail, onClose }: Prop
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{STATUS_LABEL[detail.status]}</Text>
           </View>
-          {detail.lines.map((line, i) => (
+          {(isPreview ? detail.lines.slice(0, 3) : detail.lines).map((line, i) => (
             <Text key={`${i}-${line}`} style={styles.line}>
               {line}
             </Text>
           ))}
-          <TouchableOpacity style={styles.btn} onPress={onClose} activeOpacity={0.85}>
-            <Text style={styles.btnText}>Kapat</Text>
+          {isPreview ? (
+            <>
+              <Text style={styles.previewHint}>
+                Premium ile o günün tam özeti: plan maddeleri, check-in notu ve otomatiklik.
+              </Text>
+              <TouchableOpacity
+                style={styles.btn}
+                onPress={() => {
+                  onClose();
+                  onUnlockPremium?.();
+                }}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.btnText}>Tam paneli aç</Text>
+              </TouchableOpacity>
+            </>
+          ) : null}
+          <TouchableOpacity
+            style={[styles.btn, isPreview && styles.btnSecondary]}
+            onPress={onClose}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.btnText, isPreview && styles.btnSecondaryText]}>Kapat</Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>
@@ -135,5 +165,19 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: "#fff",
+  },
+  previewHint: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  btnSecondary: {
+    backgroundColor: Colors.surfaceMuted,
+    marginTop: Spacing.xs,
+  },
+  btnSecondaryText: {
+    color: Colors.textPrimary,
   },
 });

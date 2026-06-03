@@ -214,6 +214,9 @@ export default function InterruptModal({
       if (tickRef.current) clearInterval(tickRef.current);
       if (actionRef.current) clearInterval(actionRef.current);
       stopPulse();
+      // State sıfırla; bir sonraki açılışta doğru ekrandan başlasın
+      setPhase("countdown");
+      setCount(3);
     }
   }, [visible, stopPulse]);
 
@@ -259,7 +262,7 @@ export default function InterruptModal({
                   { transform: [{ scale: countScale }] },
                 ]}
               >
-                {count > 0 ? count : ""}
+                {count > 0 ? count : "🚀"}
               </Animated.Text>
               <Text style={styles.upNext}>{action.title}</Text>
             </Animated.View>
@@ -278,7 +281,12 @@ export default function InterruptModal({
 
               {/* Manuel erken tamamlama — forced değilse */}
               {!forced && (
-                <Pressable style={styles.earlyDoneBtn} onPress={onDone}>
+                <Pressable
+                  style={styles.earlyDoneBtn}
+                  onPress={onDone}
+                  accessibilityLabel="Aksiyonu tamamladım"
+                  accessibilityRole="button"
+                >
                   <Text style={styles.earlyDoneText}>Yaptım</Text>
                 </Pressable>
               )}

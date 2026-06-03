@@ -77,7 +77,7 @@ export default function CheckInSection({
   return (
     <View style={styles.actionBlock}>
       <Text style={styles.sectionLabel}>
-        {showDoneShell ? "Bugun tamam" : "Gunun onayi"}
+        {showDoneShell ? "Bugün tamam" : "Günün onayı"}
       </Text>
       <Animated.View style={buttonEnterStyle}>
         <Animated.View style={{ transform: [{ scale: ctaPressScale }] }}>
@@ -119,6 +119,8 @@ export default function CheckInSection({
                   activeOpacity={0.92}
                   onPress={onCheckInPress}
                   style={styles.ctaTouchable}
+                  accessibilityLabel="Günü onayla"
+                  accessibilityRole="button"
                 >
                   <LinearGradient
                     colors={["#34D399", "#059669"]}
@@ -152,28 +154,28 @@ export default function CheckInSection({
         ]}
       >
         {showDoneShell ? (
-          <Text style={styles.doneCaption}>Bugun tamamlandi</Text>
+          <Text style={styles.doneCaption}>Bugün tamamlandı</Text>
         ) : streakRoll ? (
           <View style={styles.streakCaptionClip}>
             <Animated.View style={{ transform: [{ translateY: streakSlideY }] }}>
               <Text style={styles.captionStrong}>
-                {streakRoll.from} gun ust uste
+                {streakRoll.from} gün üst üste
               </Text>
               <Text style={styles.captionStrong}>
-                {streakRoll.to} gun ust uste
+                {streakRoll.to} gün üst üste
               </Text>
             </Animated.View>
           </View>
         ) : streakDisplay > 0 ? (
           <Text style={styles.captionStrong}>
-            {streakDisplay} gun ust uste — harika gidiyorsun
+            {streakDisplay} gün üst üste — harika gidiyorsun
           </Text>
         ) : todayPrimaryText ? (
           <Text style={styles.planCaption} numberOfLines={2}>
-            Dun planladin: {todayPrimaryText}
+            Dün planladın: {todayPrimaryText}
           </Text>
         ) : (
-          <Text style={styles.captionZero}>Tamamlamak icin dokun</Text>
+          <Text style={styles.captionZero}>Tamamlamak için dokun</Text>
         )}
       </Animated.View>
     </View>

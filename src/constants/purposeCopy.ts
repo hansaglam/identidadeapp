@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Uygulama vaadi — Welcome, onboarding, Bugün ve Yolculuk aynı hikâyeyi anlatır.
  */
 
@@ -119,28 +119,52 @@ export function pickEveningNotificationBody(
   return EVENING_NOTIFICATION_BODIES[i]!(h);
 }
 
-/** Faz milestone — push metinleri (schedulePhaseTransitions ile) */
+/** Faz milestone - push metinleri (schedulePhaseTransitions ile) */
 export const PHASE_MILESTONE_NOTIFICATIONS: readonly {
   dayOffset: number;
   title: string;
   body: string;
 }[] = [
   {
-    dayOffset: 21,
-    title: "Kuruluş fazı tamamlandı.",
+    dayOffset: 6,
+    title: "7 günlük kuruluş 🌱",
     body:
-      "22 gündür küçük tekrar + check-in. Pekiştirme fazına geçiyorsun; Bugün kartı yine tek net adımla devam.",
+      "İlk hafta tamamlandı. Beyin yeni bir deseni fark etmeye başladı — basal ganglia devreye giriyor. Bugün de devam et.",
+  },
+  {
+    dayOffset: 13,
+    title: "14 gün — Örüntü kuruluyor",
+    body:
+      "2 haftadır tekrar ediyorsun. Nöronal iz güçleniyor — alışkanlık henüz otomatik değil ama yol açılıyor.",
+  },
+  {
+    dayOffset: 21,
+    title: "Kuruluş fazı tamamlandı 🎯",
+    body:
+      "22 gündür küçük tekrar + check-in. Beyin bu deseni artık 'biliyor'. Pekiştirme başlıyor — devam et.",
+  },
+  {
+    dayOffset: 29,
+    title: "30 gün — Yarı yoldasın",
+    body:
+      "66 günlük yolculuğun yarısındasın. Küçük ama tutarlı adımlar büyük bir iz bıraktı.",
   },
   {
     dayOffset: 43,
-    title: "Son faz: Otomatikleşme.",
+    title: "Son faz başlıyor: Otomatikleşme 🚀",
     body:
-      "Duygudan önce seçim zamanı — zor günde bile Bugün’de küçük sürüm her zaman seçenek.",
+      "Pekiştirme tamamlandı. Artık seçimler alışkanlığa dönüşüyor — zor günde bile Bugün kartındaki küçük sürüm hep seçenek.",
+  },
+  {
+    dayOffset: 59,
+    title: "60 gün — Bitiş çizgisi görünüyor 🌟",
+    body:
+      "6 gün kaldı. Bu yolculuk artık senin kim olduğunu tanımlıyor. Son düzlüğe hoş geldin.",
   },
   {
     dayOffset: 65,
-    title: "66 gün tamamlandı.",
+    title: "66 gün — Kimlik inşası tamamlandı 🎉",
     body:
-      "Bu artık kim olduğunun parçası. Kaçırdığında toparlamak için tasarladığın yapı hep burada.",
+      "Bu artık kim olduğunun parçası. Yapı her zaman burada. Kaçırdığında geri dönmek de bu sistemin içinde.",
   },
 ];

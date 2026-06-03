@@ -34,7 +34,12 @@ export type AnalyticsEventName =
   | "stacking_same_habit_selected"
   | "stacking_new_habit_selected"
   | "app_session_daily"
-  | "notification_opened";
+  | "notification_opened"
+  | "paywall_view"
+  | "purchase_start"
+  | "purchase_success"
+  | "purchase_error"
+  | "purchase_restore";
 
 export interface AnalyticsEvent {
   name: AnalyticsEventName;

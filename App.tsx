@@ -48,6 +48,7 @@ import {
   handleNotificationResponseData,
 } from "./src/utils/notifications";
 import { trackEvent } from "./src/utils/analytics";
+import { useIAPStore } from "./src/store/iapStore";
 import { format } from "date-fns";
 import ExactAlarmPermissionModal from "./src/components/ExactAlarmPermissionModal";
 import { Colors, FontSizes, Radii } from "./src/constants/theme";
@@ -197,6 +198,11 @@ function AppBootstrap() {
     sessionTrackedDayRef.current = dayKey;
     void trackEvent("app_session_daily", { dayNumber: useUserStore.getState().dayNumber() });
   }, [dataReady, loadedProfile?.startDate]);
+
+  useEffect(() => {
+    if (!dataReady || !loadedProfile?.startDate) return;
+    void useIAPStore.getState().syncSubscriptionStatus();
+  }, [dataReady, loadedProfile?.id, loadedProfile?.startDate]);
 
   useEffect(() => {
     if ((fontsLoaded || fontError) && dataReady && !isUserLoading) {

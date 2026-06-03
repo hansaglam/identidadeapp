@@ -27,7 +27,7 @@ export default function JourneyIdentityMirrorCard({ startDate, habitName }: Prop
         </View>
         <Text style={styles.empty}>
           Zihin notlarından henüz yeterli sinyal yok. Birkaç satır yazdığında burada
-          yolculuğunun dili yansır.
+          yolculuğunun dili yansır. Yapay zekâ sohbeti değil — kural tabanlı özet.
         </Text>
       </View>
     );

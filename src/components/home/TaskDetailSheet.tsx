@@ -4,6 +4,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight, MapPin, Clock, Zap } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
 import LiveActionModal from "../LiveActionModal";
+import InterruptModal from "../InterruptModal";
+import { useBehaviorStore } from "../../store/useBehaviorStore";
+import { trackEvent } from "../../utils/analytics";
 import type { UserState, Action } from "../../engine";
 
 interface Props {
@@ -35,17 +38,35 @@ export default function TaskDetailSheet({
 }: Props) {
   const [liveAction, setLiveAction] = useState<Action | null>(null);
   const [showLive, setShowLive] = useState(false);
+  const [showInterrupt, setShowInterrupt] = useState(false);
 
   const handleStartAction = useCallback(() => {
     if (!userBehaviorState) return;
-    setLiveAction(userBehaviorState.suggestedAction);
-    setShowLive(true);
+    const action = userBehaviorState.suggestedAction;
+    setLiveAction(action);
+    if (action.isInterrupt) {
+      setShowInterrupt(true);
+    } else {
+      setShowLive(true);
+    }
+    void trackEvent("action_started", {
+      actionId: action.id,
+      source: "task_sheet",
+      interrupt: action.isInterrupt === true,
+    });
   }, [userBehaviorState]);
 
   const handleLiveComplete = useCallback(async () => {
+    if (!userBehaviorState) return;
+    await useBehaviorStore.getState().recordAction(userBehaviorState.suggestedAction);
+    void trackEvent("action_completed", {
+      actionId: userBehaviorState.suggestedAction.id,
+      source: "task_sheet",
+    });
     setShowLive(false);
-    onToast("Adim kaydedildi.");
-  }, [onToast]);
+    setShowInterrupt(false);
+    onToast("Adım kaydedildi.");
+  }, [userBehaviorState, onToast]);
 
   const suggested = userBehaviorState?.suggestedAction;
 
@@ -59,22 +80,22 @@ export default function TaskDetailSheet({
               <View style={styles.handle} />
 
               <Text style={styles.title}>{habitName}</Text>
-              <Text style={styles.dayBadge}>Gun {dayNumber}</Text>
+              <Text style={styles.dayBadge}>Gün {dayNumber}</Text>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Kimlik cumlen</Text>
+                <Text style={styles.sectionLabel}>Kimlik cümlen</Text>
                 <Text style={styles.sectionBody}>{identityLine}</Text>
               </View>
 
               <View style={styles.section}>
                 <View style={styles.infoRow}>
                   <MapPin size={13} color={Colors.textTertiary} strokeWidth={2} />
-                  <Text style={styles.infoText}>Capa: {anchorBehavior}</Text>
+                  <Text style={styles.infoText}>Çapa: {anchorBehavior}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Clock size={13} color={Colors.textTertiary} strokeWidth={2} />
                   <Text style={styles.infoText}>
-                    {todayDone ? "Bugun tamamlandi" : "Henuz tamamlanmadi"}
+                    {todayDone ? "Bugün tamamlandı" : "Henüz tamamlanmadı"}
                   </Text>
                 </View>
               </View>
@@ -91,7 +112,7 @@ export default function TaskDetailSheet({
                   <View style={styles.actionTextWrap}>
                     <Text style={styles.actionTitle}>{suggested.title}</Text>
                     <Text style={styles.actionSub}>
-                      {suggested.duration} sn · Simdi basla
+                      {suggested.duration} sn · Şimdi başla
                     </Text>
                   </View>
                   <ChevronRight size={16} color={Colors.textTertiary} strokeWidth={2} />
@@ -106,7 +127,7 @@ export default function TaskDetailSheet({
                   onNavigateJourney();
                 }}
               >
-                <Text style={styles.journeyCtaText}>Yolculuga Git</Text>
+                <Text style={styles.journeyCtaText}>Yolculuk’a git</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.closeBtn} activeOpacity={0.85} onPress={onClose}>
@@ -122,6 +143,13 @@ export default function TaskDetailSheet({
         action={liveAction}
         onComplete={handleLiveComplete}
         onCancel={() => setShowLive(false)}
+      />
+      <InterruptModal
+        visible={showInterrupt}
+        action={liveAction}
+        forced
+        onDone={() => void handleLiveComplete()}
+        onClose={() => setShowInterrupt(false)}
       />
     </>
   );

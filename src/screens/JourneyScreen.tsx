@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { addDays, format } from "date-fns";
 import {
   View,
@@ -32,6 +32,8 @@ import {
   BookOpen,
   X,
   ClipboardList,
+  FlaskConical,
+  Zap,
 } from "lucide-react-native";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
@@ -58,11 +60,15 @@ import {
   getCoachNote,
 } from "../constants/theme";
 import { getDailyPrinciple } from "../constants/identity-copy";
+import { DAILY_PRINCIPLES } from "../data/dailyPrinciples";
 import { getJourneyEducationCards, phaseIdFromDay } from "../constants/journeyPhaseEducation";
 import { getJourneyMomentLine } from "../constants/journeyMoments";
 import { estimateAutomationFromFirst14Linear, getAverageAutomaticity } from "../utils/profileMetrics";
 import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs";
-import { loadJourneyEducationPrefs } from "../utils/journeyEducationPrefs";
+import {
+  loadJourneyEducationPrefs,
+  markPhaseEducationAutoShown,
+} from "../utils/journeyEducationPrefs";
 import type { MainTabParamList } from "../types";
 import { requestNotificationPermissions } from "../utils/notifications";
 import JourneyIdentityMirrorCard from "../components/journey/JourneyIdentityMirrorCard";
@@ -165,6 +171,7 @@ export default function JourneyScreen({ navigation }: Props) {
   const { entranceOpacity, entranceY } = useJourneyEntrance(isPremium);
   const [showGate, setShowGate] = useState(false);
   const [dayDetail, setDayDetail] = useState<JourneyDayDetail | null>(null);
+  const [dayDetailPreview, setDayDetailPreview] = useState(false);
   const [showSurvey, setShowSurvey] = useState(false);
   const [showPhaseEdu, setShowPhaseEdu] = useState(false);
   const [showMindSentence, setShowMindSentence] = useState(false);
@@ -184,6 +191,10 @@ export default function JourneyScreen({ navigation }: Props) {
   const rate = profile ? completionRate(profile.startDate) : 0;
 
   const dailyPrinciple = getDailyPrinciple(dayNumber);
+  const dailyPrincipleRich = useMemo(
+    () => DAILY_PRINCIPLES.find((p) => p.day === dayNumber) ?? null,
+    [dayNumber]
+  );
   const coachNote = getCoachNote(dayNumber);
 
   const journeyEduCards = useMemo(() => getJourneyEducationCards(dayNumber), [dayNumber]);
@@ -229,13 +240,26 @@ export default function JourneyScreen({ navigation }: Props) {
       markPremiumGateShown("day7");
       setShowGate(true);
     }
-  }, [dayNumber]);
+  }, [dayNumber, profile, isPremium, markPremiumGateShown]);
 
   useEffect(() => {
     if (isPremium && needsSurvey() && dayNumber > 7) {
       setShowSurvey(true);
     }
   }, [isPremium, scores.length]);
+
+  const phaseEntryDays = [1, 23, 45] as const;
+  useEffect(() => {
+    if (!isPremium || !profile || !eduPrefs) return;
+    if (!phaseEntryDays.includes(dayNumber as 1 | 23 | 45)) return;
+    const pid = phaseIdFromDay(dayNumber);
+    const key = String(pid) as "1" | "2" | "3";
+    if (eduPrefs.phasesCompleted12[key] || eduPrefs.phasesAutoShown12[key]) return;
+    void markPhaseEducationAutoShown(pid).then(() => {
+      void loadJourneyEducationPrefs().then(setEduPrefs);
+    });
+    setShowPhaseEdu(true);
+  }, [isPremium, profile, dayNumber, eduPrefs]);
 
   const grid = profile ? last66Days(profile.startDate) : [];
   const tomorrowDate = useMemo(() => format(addDays(new Date(), 1), "yyyy-MM-dd"), []);
@@ -259,11 +283,22 @@ export default function JourneyScreen({ navigation }: Props) {
   const openDayDetail = useCallback(
     (journeyDay: number) => {
       if (!profile?.startDate) return;
-      setDayDetail(
-        buildJourneyDayDetail(profile.startDate, journeyDay, dayNumber, checkins)
+      const detail = buildJourneyDayDetail(
+        profile.startDate,
+        journeyDay,
+        dayNumber,
+        checkins,
+        listsByDate
       );
+      if (!isPremium) {
+        setDayDetail(detail);
+        setDayDetailPreview(true);
+        return;
+      }
+      setDayDetailPreview(false);
+      setDayDetail(detail);
     },
-    [profile?.startDate, dayNumber, checkins]
+    [profile?.startDate, dayNumber, checkins, listsByDate, isPremium]
   );
 
   const scrollPlanFormToEnd = useCallback(() => {
@@ -451,13 +486,31 @@ export default function JourneyScreen({ navigation }: Props) {
 
         {!isPremium ? (
           <View style={styles.premiumUpsellCard}>
+            {/* Faz eğitimi teaser — ilk kart önizlemesi */}
+            {journeyEduCards.length > 0 ? (
+              <View style={styles.phaseTeaserWrap}>
+                <View style={styles.phaseTeaserHeader}>
+                  <BookOpen size={14} color={Colors.primary} strokeWidth={2} />
+                  <Text style={styles.phaseTeaserKicker}>Bu fazda beyin nasıl çalışıyor?</Text>
+                </View>
+                <Text style={styles.phaseTeaserTitle}>{journeyEduCards[0].title}</Text>
+                <Text style={styles.phaseTeaserBody} numberOfLines={3}>
+                  {journeyEduCards[0].body}
+                </Text>
+                <View style={styles.phaseTeaserLockRow}>
+                  <Lock size={13} color={Colors.primary} strokeWidth={2} />
+                  <Text style={styles.phaseTeaserLockText}>+3 kart daha premium ile açılıyor</Text>
+                </View>
+              </View>
+            ) : null}
+
             <View style={styles.lockIcon}>
               <Lock size={28} color={Colors.primary} strokeWidth={1.5} />
             </View>
             <Text style={styles.lockedTitle}>Premium yolculuk paneli</Text>
             <Text style={styles.lockedSub}>
-              Tam harita, güne dokununca detay, Kimlik Aynası, SDT ve bugünün koç paketi. Yarın
-              planın her zaman ücretsiz.
+              66 gün haritası, Kimlik Aynası, SDT nabzı, faz eğitimi (4 kart) ve her gün için koç paketi.
+              Yarın planın her zaman ücretsiz.
             </Text>
             <TouchableOpacity
               style={styles.unlockBtn}
@@ -494,7 +547,23 @@ export default function JourneyScreen({ navigation }: Props) {
             </View>
           ) : null}
 
-          {dailyPrinciple ? (
+          {dailyPrincipleRich ? (
+            <View style={styles.principleBlock}>
+              <Text style={styles.odakLine}>
+                <Text style={styles.odakQuoteMark}>{"\u201C"}</Text>
+                <Text style={styles.odakBody}>{dailyPrincipleRich.principle}</Text>
+                <Text style={styles.odakQuoteMark}>{"\u201D"}</Text>
+              </Text>
+              <View style={styles.principleMetaRow}>
+                <FlaskConical size={12} color="#94A3B8" strokeWidth={1.8} />
+                <Text style={styles.principleScience}>{dailyPrincipleRich.science}</Text>
+              </View>
+              <View style={styles.principleActionRow}>
+                <Zap size={12} color={ACTION_ICON} strokeWidth={2} />
+                <Text style={styles.principleAction}>{dailyPrincipleRich.action}</Text>
+              </View>
+            </View>
+          ) : dailyPrinciple ? (
             <Text style={styles.odakLine}>
               <Text style={styles.odakQuoteMark}>{"\u201C"}</Text>
               <Text style={styles.odakBody}>{dailyPrinciple.principle}</Text>
@@ -669,6 +738,37 @@ export default function JourneyScreen({ navigation }: Props) {
               ))}
             </View>
           ) : null}
+
+          {/* Son 4 hafta trend */}
+          {scores.length > 1 ? (
+            <View style={styles.sdtTrendBlock}>
+              <Text style={styles.sdtTrendTitle}>Son {Math.min(scores.length, 4)} hafta trendi</Text>
+              <View style={styles.sdtTrendRow}>
+                {scores.slice(0, 4).reverse().map((s, i) => {
+                  const avg = ((s.autonomy + s.competence + s.relatedness) / 3);
+                  const heightPct = avg / 5;
+                  const isLatest = i === Math.min(scores.length, 4) - 1;
+                  return (
+                    <View key={s.week} style={styles.sdtTrendCol}>
+                      <View style={styles.sdtTrendBarTrack}>
+                        <View
+                          style={[
+                            styles.sdtTrendBarFill,
+                            {
+                              height: `${Math.round(heightPct * 100)}%`,
+                              backgroundColor: isLatest ? "#10B981" : "#CBD5E1",
+                            },
+                          ]}
+                        />
+                      </View>
+                      <Text style={styles.sdtTrendLabel}>{avg.toFixed(1)}</Text>
+                    </View>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
           {latest && sdtInsight ? (
             <View style={styles.sdtInsightBlock}>
               <Text style={styles.sdtInsightSummary}>{sdtInsight.summary}</Text>
@@ -887,12 +987,23 @@ export default function JourneyScreen({ navigation }: Props) {
           navigation.navigate("MindDump");
         }}
       />
-      <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="journey" />
+      <PremiumGateModal
+        visible={showGate}
+        onClose={() => setShowGate(false)}
+        trigger={
+          dayNumber >= 22 ? "day22" : dayNumber >= 7 ? "day7" : "journey"
+        }
+      />
 
       <JourneyDayDetailSheet
         visible={dayDetail != null}
         detail={dayDetail}
-        onClose={() => setDayDetail(null)}
+        isPreview={dayDetailPreview}
+        onUnlockPremium={() => setShowGate(true)}
+        onClose={() => {
+          setDayDetail(null);
+          setDayDetailPreview(false);
+        }}
       />
     </SafeAreaView>
   );
@@ -997,6 +1108,52 @@ const styles = StyleSheet.create({
     fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
     color: "#fff",
+  },
+  phaseTeaserWrap: {
+    width: "100%",
+    backgroundColor: "#F0FDF9",
+    borderRadius: Radii.card,
+    padding: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: "rgba(47, 156, 134, 0.18)",
+    gap: 5,
+  },
+  phaseTeaserHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+  },
+  phaseTeaserKicker: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.primary,
+    letterSpacing: 0.3,
+  },
+  phaseTeaserTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+  },
+  phaseTeaserBody: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
+  },
+  phaseTeaserLockRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginTop: 2,
+  },
+  phaseTeaserLockText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+    fontStyle: "italic",
   },
   hero: {
     paddingTop: Spacing.md,
@@ -1425,6 +1582,36 @@ const styles = StyleSheet.create({
     color: "#475569",
     lineHeight: 22,
   },
+  principleBlock: {
+    gap: 6,
+  },
+  principleMetaRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 5,
+    paddingTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "#E2E8F0",
+  },
+  principleScience: {
+    flex: 1,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "#94A3B8",
+    lineHeight: 17,
+  },
+  principleActionRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 5,
+  },
+  principleAction: {
+    flex: 1,
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    color: "#059669",
+    lineHeight: 20,
+  },
   phaseHScroll: {
     paddingVertical: 8,
     paddingRight: Spacing.lg,
@@ -1764,6 +1951,51 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: Colors.primaryDark,
     lineHeight: 20,
+  },
+  sdtTrendBlock: {
+    marginTop: Spacing.sm,
+    paddingTop: Spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+    gap: 6,
+  },
+  sdtTrendTitle: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+  },
+  sdtTrendRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    height: 40,
+  },
+  sdtTrendCol: {
+    flex: 1,
+    alignItems: "center",
+    gap: 3,
+    height: "100%",
+    justifyContent: "flex-end",
+  },
+  sdtTrendBarTrack: {
+    width: "100%",
+    flex: 1,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 3,
+    overflow: "hidden",
+    justifyContent: "flex-end",
+  },
+  sdtTrendBarFill: {
+    width: "100%",
+    borderRadius: 3,
+  },
+  sdtTrendLabel: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
   surveyBtn: {
     flexDirection: "row",

@@ -78,7 +78,15 @@ export default function LiveActionModal({
   const actionType = action?.type;
 
   useEffect(() => {
-    if (!visible || actionId == null || actionType == null) return;
+    if (!visible || actionId == null || actionType == null) {
+      if (!visible) {
+        clearTimers();
+        setPhase("countdown");
+        setCount(3);
+        setActionLeft(0);
+      }
+      return;
+    }
 
     clearTimers();
 

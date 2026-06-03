@@ -7,6 +7,9 @@ import {
   TouchableOpacity,
   Animated,
   Pressable,
+  Linking,
+  Platform,
+  Alert,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
@@ -21,29 +24,37 @@ import {
 } from "../constants/theme";
 import ConfirmDialog from "./ConfirmDialog";
 import { MIND_DUMP_FREE_LIMIT_EXPLAIN } from "../constants/purposeCopy";
+import { trackEvent } from "../utils/analytics";
+import { PRIVACY_POLICY_URL, TERMS_URL } from "../constants/appLinks";
 
 const TRIGGER_MICRO: Record<
-  "journey" | "minddump" | "day22",
+  "journey" | "minddump" | "day7" | "day22" | "profile",
   string | null
 > = {
   journey:
-    "Yarın planı ücretsiz. Premium: 66 gün haritası, Kimlik Aynası, SDT nabzı ve bugünün koç paketi.",
+    "Yarın planı her zaman ücretsiz. Premium açılınca: 66 gün yolculuk haritası, her güne dokunarak tam özet, Kimlik Aynası, haftalık SDT anketi, faz eğitimi ve bugünün koç paketi (ilke + bilim + aksiyon).",
   minddump: MIND_DUMP_FREE_LIMIT_EXPLAIN,
+  day7:
+    "7. gün: yolculuk haritası tam açılıyor. Premium ile 66 günün tamamını görürsün, her güne dokunarak o günün check-in, plan ve koç özetine ulaşırsın. Faz eğitimi ve Kimlik Aynası da seni bekliyor.",
   day22:
-    "22. günde tam yolculuk paneli açılır: 3 faz haritası, güne tıklayınca detay, Kimlik Aynası.",
+    "22. gün ortasındasın — alışkanlık pekişmeye başlıyor. Tam yolculuk haritası, 3 faz geçmişi, güne dokununca tam özet ve Kimlik Aynası ile bu süreci bilinçli yürüt.",
+  profile:
+    "Premium: 66 gün yolculuk haritası, Kimlik Aynası, haftalık SDT anketi, faz eğitimi ve her gün için koç paketi (ilke + bilim + aksiyon) ile yolculuğunu derinleştir.",
 };
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  trigger: "journey" | "minddump" | "day22";
+  trigger: "journey" | "minddump" | "day7" | "day22" | "profile";
 }
 
 /** Kısa maddeler — tek ekranda sığsın diye özümsenmiş. */
 const BENEFIT_LINES = [
-  "Yarın planı her zaman ücretsiz (Ana + Yolculuk)",
-  "66 gün · 3 faz haritası — güne dokun, o günün özeti",
-  "Kimlik Aynası + SDT nabzı + faz eğitimi + koç paketi",
+  "66 gün yolculuk haritası — her güne dokun, tam özet",
+  "Günlük koç paketi: ilke · bilim · aksiyona geç",
+  "Kimlik Aynası — zihin notlarından seni yansıtır",
+  "Haftalık SDT anketi + faz eğitimi (4 kart · ~30 sn)",
+  "Sınırsız Zihin notu · yarın planı her zaman ücretsiz",
 ];
 
 export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
@@ -66,12 +77,28 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
   const overlayOpacity = useRef(new Animated.Value(0)).current;
   const ctaScale = useRef(new Animated.Value(1)).current;
 
+  const purchaseStartedRef = useRef(false);
+
   useEffect(() => {
     if (visible && profilePremium) {
+      if (purchaseStartedRef.current) {
+        void trackEvent("purchase_success", { trigger });
+        purchaseStartedRef.current = false;
+      }
       setPurchasing(false);
       onClose();
     }
-  }, [visible, profilePremium, onClose]);
+  }, [visible, profilePremium, onClose, trigger]);
+
+  useEffect(() => {
+    if (!visible) purchaseStartedRef.current = false;
+  }, [visible]);
+
+  useEffect(() => {
+    if (visible && !profilePremium) {
+      void trackEvent("paywall_view", { trigger });
+    }
+  }, [visible, profilePremium, trigger]);
 
   useEffect(() => {
     if (visible) {
@@ -122,12 +149,14 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
     }
     setPurchasing(true);
     setPurchaseError(null);
+    void trackEvent("purchase_start", { trigger });
+    purchaseStartedRef.current = true;
     try {
       await connect();
       await loadProducts();
       await purchase(IAP_PRODUCTS.PRO_MONTHLY);
-      // Premium profil güncellemesi iapStore dinleyicide asenkron olur — kapatma profilePremium effect’indedir.
     } catch {
+      void trackEvent("purchase_error", { trigger });
       setPurchaseError("Satın alma işlemi tamamlanamadı. Tekrar dene veya geri yükle.");
     } finally {
       setPurchasing(false);
@@ -147,12 +176,17 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
     try {
       await connect();
       await restorePurchases();
-      if (!useUserStore.getState().profile?.isPremium) {
+      void trackEvent("purchase_restore", { trigger });
+      if (useUserStore.getState().profile?.isPremium) {
+        Alert.alert("Geri Yüklendi", "Aboneliğin başarıyla geri yüklendi. Tüm premium özelliklere erişebilirsin.");
+        onClose();
+      } else {
         setPurchaseError(
           "Aktif bir abonelik bulunamadı. Hangi hesapla satın aldığını kontrol et."
         );
       }
     } catch {
+      void trackEvent("purchase_error", { trigger, phase: "restore" });
       setPurchaseError("Geri yükleme başarısız. İnternet ve mağaza hesabını kontrol et.");
     } finally {
       setPurchasing(false);
@@ -271,6 +305,8 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                     onPressOut={ctaPressOut}
                     disabled={purchasing || isLoading}
                     activeOpacity={1}
+                    accessibilityLabel="Premium'a abone ol"
+                    accessibilityRole="button"
                   >
                     <Text style={styles.ctaText}>
                       {purchasing || isLoading
@@ -280,7 +316,7 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                   </TouchableOpacity>
                 </Animated.View>
 
-                <TouchableOpacity style={styles.dismissBtn} onPress={onClose}>
+                <TouchableOpacity style={styles.dismissBtn} onPress={onClose} accessibilityLabel="Şimdi değil, ücretsiz devam et">
                   <Text style={styles.dismissText}>Şimdi değil</Text>
                   <Text style={styles.dismissSub}>Uygulamayı ücretsiz kullanmaya devam et</Text>
                 </TouchableOpacity>
@@ -289,14 +325,41 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                   style={styles.restoreWrap}
                   onPress={handleRestore}
                   disabled={purchasing || isLoading}
+                  accessibilityLabel="Önceki satın alımları geri yükle"
+                  accessibilityRole="button"
                 >
                   <Text style={styles.restoreText}>Satın alımları geri yükle</Text>
                 </TouchableOpacity>
 
                 <Text style={styles.disclaimer}>
                   Aylık abonelik; ücret her dönemde otomatik yenilenir. İstediğin zaman mağaza
-                  ayarlarından iptal edebilirsin. Sonuç garantisi koşulları geçerlidir.
+                  ayarlarından iptal edebilirsin.
                 </Text>
+                <View style={styles.legalLinks}>
+                  <TouchableOpacity onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
+                    <Text style={styles.legalLinkText}>Gizlilik</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.legalDot}>·</Text>
+                  <TouchableOpacity onPress={() => void Linking.openURL(TERMS_URL)}>
+                    <Text style={styles.legalLinkText}>Koşullar</Text>
+                  </TouchableOpacity>
+                  {Platform.OS === "android" || Platform.OS === "ios" ? (
+                    <>
+                      <Text style={styles.legalDot}>·</Text>
+                      <TouchableOpacity
+                        onPress={() =>
+                          void Linking.openURL(
+                            Platform.OS === "ios"
+                              ? "https://apps.apple.com/account/subscriptions"
+                              : "https://play.google.com/store/account/subscriptions"
+                          )
+                        }
+                      >
+                        <Text style={styles.legalLinkText}>Aboneliği yönet</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : null}
+                </View>
               </View>
             </View>
           </Animated.View>
@@ -559,5 +622,22 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     paddingHorizontal: Spacing.xs,
     marginBottom: Spacing.xs,
+  },
+  legalLinks: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 4,
+    marginTop: 4,
+  },
+  legalLinkText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primary,
+  },
+  legalDot: {
+    fontSize: 10,
+    color: Colors.textTertiary,
   },
 });

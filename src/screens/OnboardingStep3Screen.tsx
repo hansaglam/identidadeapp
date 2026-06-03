@@ -240,6 +240,14 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
             </Text>
           </View>
 
+          <View style={styles.tabsCard}>
+            <Text style={styles.tabsTitle}>Başladıktan sonra</Text>
+            <Text style={styles.tabsBody}>
+              4 sekme: Bugün (her gün buradan başla) · Zihin · Yolculuk (yarın planı) · Profil.
+              Önce kartındaki tek hareketi yap, sonra check-in.
+            </Text>
+          </View>
+
           {/* System promises */}
           <View style={styles.systemCard}>
             <Text style={styles.systemTitle}>66 günde sistem şunları yapacak</Text>
@@ -478,6 +486,27 @@ const styles = StyleSheet.create({
   },
 
   /* System promises */
+  tabsCard: {
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: Radii.card,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: Colors.border,
+  },
+  tabsTitle: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+    marginBottom: 6,
+  },
+  tabsBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 20,
+  },
   systemCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,

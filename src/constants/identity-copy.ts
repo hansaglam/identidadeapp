@@ -61,7 +61,7 @@ export const IDENTITY_MESSAGES = {
       "Mükemmeliyetçilik düşmanın. 'Yeterince iyi' şu an en iyi.",
       "Bugün çapanı fark ettiğin an, alışkanlığı başlat. Düşünme.",
       "Her başlangıç bir oy. Bugün 'yapan biri' için oy kullan.",
-      "Beynin 21 günde yeni bir yol açmaya başlar. Sabır.",
+      "Beynin 66 günlük tekrarla yeni bir yol açar. Sabır kalıcı değişim yaratır.",
       "Küçük adım atmak, büyük adım hayal etmekten üstündür.",
       "Bu ilk fazda amaç: alışkanlığı hayatına yerleştirmek.",
     ],

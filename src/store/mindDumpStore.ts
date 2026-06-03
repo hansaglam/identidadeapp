@@ -21,6 +21,7 @@ interface MindDumpState {
   deleteEntry: (id: string) => Promise<void>;
   canCreate: (isPremium: boolean) => boolean;
   entryCount: () => number;
+  clearAll: () => void;
 }
 
 export const useMindDumpStore = create<MindDumpState>((set, get) => ({
@@ -85,4 +86,8 @@ export const useMindDumpStore = create<MindDumpState>((set, get) => ({
   },
 
   entryCount: () => get().entries.length,
+
+  clearAll: () => {
+    set({ entries: [], loadFailed: false });
+  },
 }));

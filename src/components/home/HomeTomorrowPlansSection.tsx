@@ -73,7 +73,13 @@ export default function HomeTomorrowPlansSection({
           </Text>
         )}
 
-        <TouchableOpacity style={styles.tomorrowCta} onPress={onOpenJourney} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.tomorrowCta}
+          onPress={onOpenJourney}
+          activeOpacity={0.85}
+          accessibilityLabel={tomorrowItems.length > 0 ? "Yarın planını Yolculuk'ta düzenle" : "Yarın için Yolculuk'ta plan oluştur"}
+          accessibilityRole="button"
+        >
           <ClipboardList size={16} color="#fff" strokeWidth={2} />
           <Text style={styles.tomorrowCtaText}>
             {tomorrowItems.length > 0 ? "Yolculuk’ta düzenle" : "Yolculuk’ta planla"}

@@ -21,7 +21,7 @@ export default function WeeklySummaryStrip({ weekCells, calendarToday, weekDoneC
   const pct = Math.round((weekDoneCount / 7) * 100);
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Haftalik ozet</Text>
+      <Text style={styles.title}>Haftalık özet</Text>
       <View style={styles.card}>
         <View style={styles.barsRow}>
           {weekCells.map((cell) => {
@@ -43,7 +43,7 @@ export default function WeeklySummaryStrip({ weekCells, calendarToday, weekDoneC
             );
           })}
         </View>
-        <Text style={styles.metaLine}>Bu hafta {weekDoneCount}/7 tamamlandi</Text>
+        <Text style={styles.metaLine}>Bu hafta {weekDoneCount}/7 tamamlandı</Text>
         <View style={styles.track}>
           <View style={[styles.fill, { width: `${pct}%` }]} />
         </View>
