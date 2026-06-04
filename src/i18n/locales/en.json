@@ -1,0 +1,1874 @@
+{
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "done": "Done",
+    "close": "Close",
+    "loading": "Loading...",
+    "retry": "Try again",
+    "error": "Error",
+    "success": "Success",
+    "yes": "Yes",
+    "no": "No",
+    "or": "or",
+    "days": "days",
+    "noRegistration": "No sign-up · Data stays on your device",
+    "dismiss": "Dismiss",
+    "openSettings": "Open Settings",
+    "delete": "Delete"
+  },
+  "tabs": {
+    "today": "Today",
+    "mind": "Mind",
+    "journey": "Journey",
+    "profile": "Profile"
+  },
+  "welcome": {
+    "headline": "Motivation is not\na feeling.",
+    "headlineSub": "One action per day, honest check-in,\nreconnect when you fall.",
+    "cta": "Get Started",
+    "stats": {
+      "days": "days",
+      "noReg": "Sign-up",
+      "noRegValue": "Zero",
+      "local": "Local",
+      "localLabel": "data"
+    },
+    "features": {
+      "0": {
+        "title": "One clear action",
+        "sub": "Zero decision fatigue every day — the card tells you what to do."
+      },
+      "1": {
+        "title": "Anchor system",
+        "sub": "Attach to an existing routine; no need to carve out new time."
+      },
+      "2": {
+        "title": "Built for recovery",
+        "sub": "Never punishes you for falling. Helps you reconnect."
+      }
+    }
+  },
+  "onboarding": {
+    "steps": {
+      "identity": "Identity",
+      "anchor": "Anchor",
+      "why": "Why"
+    },
+    "step1": {
+      "title": "Who do you want\nto be in 66 days?",
+      "sub": "Choose an identity or write your own. You'll attach it to an anchor and time in the next step.",
+      "infoTitle": "Same engine, your direction",
+      "infoBody": "There may not be an exact match in the list — choose the closest one. You'll refine the details with your anchor and habit name.",
+      "customLabel": "I'll write my own",
+      "customBlurb": "Write a custom statement; you'll set the anchor and time in the next step.",
+      "customPlaceholder": "E.g. Someone who drinks water daily and takes care of themselves…",
+      "previewIdentity": "Identity statement",
+      "previewMicro": "First micro-step",
+      "footerHint": "Choose an identity to continue"
+    },
+    "step2": {
+      "title": "Where will you\nanchor this identity?",
+      "sub": "An anchor is what locks your daily suggestions to real life. Add it to a routine you already do.",
+      "commitmentLabel": "YOUR COMMITMENT",
+      "commitmentPlaceholder": "Your commitment sentence will appear here when you choose an anchor…",
+      "infoText": "The template only gives the first suggestion; you can change the anchor and time whenever you want.",
+      "anchorLabel": "What do you do first?",
+      "timeLabel": "What time of day?",
+      "templateHint": "anchor pre-selected, change if you like."
+    },
+    "step3": {
+      "title": "Why did you want\nthis identity?",
+      "sub": "Even one sentence is enough. We save this motivation — to remind you on tough days.",
+      "placeholder": "E.g. I want to feel more energetic…",
+      "systemTitle": "What does this system do for you?",
+      "promises": {
+        "0": "Suggests 1 action daily — zero thinking, zero decision fatigue.",
+        "1": "Reads momentum and effort signals to choose your personalised move.",
+        "2": "Intervenes when it detects a drop. Never breaks streaks, never punishes."
+      },
+      "notifTitle": "Notification permission",
+      "notifBody": "Used for morning guidance and evening reminders. You can turn it off in settings.",
+      "skipNotif": "Skip for now",
+      "startCta": "Start"
+    }
+  },
+  "premium": {
+    "headline": "Personal Discipline Programme",
+    "narrative1": "You're not paying for an app.",
+    "narrativeEmphasis": "You're making a decision for yourself.",
+    "narrative2": "You're starting a process you'll take seriously.",
+    "optOut": "Premium is not required — continuing for free is perfectly fine; you can choose at any time.",
+    "panelLabel": "What's in the programme",
+    "commitmentEffect": "People who invest are generally 2–3× more likely to keep going (commitment effect).",
+    "extensionNote": "If the expected automaticity doesn't form, you can request an extension via support.",
+    "ctaLabel": "I'm deciding",
+    "ctaButton": "Start Discipline Programme",
+    "ctaButtonWithPrice": "Start Discipline Programme — {{price}}",
+    "dismiss": "Not now",
+    "dismissSub": "Keep using the app for free",
+    "restore": "Restore purchases",
+    "subscriptionNote": "Monthly subscription · Auto-renews · Cancel anytime",
+    "purchaseError": "Purchase could not be completed. Try again or restore.",
+    "restoreSuccess": "Restored",
+    "restoreSuccessBody": "Your subscription has been successfully restored. You can access all premium features.",
+    "restoreNotFound": "No active subscription found. Check which account you used to purchase.",
+    "restoreError": "Restore failed. Check your internet and store account.",
+    "legalManage": "Manage subscription",
+    "benefits": [
+      "66-day journey map — tap each day for full summary",
+      "Daily coach pack: principle · science · take action",
+      "Identity Mirror — reflects you from your mind notes",
+      "Weekly SDT survey + phase training (4 cards · ~30 sec)",
+      "Unlimited Mind notes · tomorrow plan always free"
+    ],
+    "triggers": {
+      "journey": "Tomorrow plan is always free. With Premium: 66-day journey map, tap each day for full summary, Identity Mirror, weekly SDT survey, phase training and today's coach pack (principle + science + action).",
+      "day7": "Day 7: the journey map fully opens. With Premium you can see all 66 days, tap each day for that day's check-in, plan and coach summary. Phase training and Identity Mirror are waiting for you.",
+      "day22": "You're in the middle of day 22 — the habit is starting to solidify. Full journey map, 3 phase history, full day summary on tap and Identity Mirror to run this consciously.",
+      "profile": "Premium: deepen your journey with the 66-day map, Identity Mirror, weekly SDT survey, phase training and daily coach pack (principle + science + action)."
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "Good morning ☀️",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening 🌙",
+      "night": "Good night 🌙"
+    },
+    "defaultName": "friend",
+    "streakDays": "{{count}} days",
+    "loading": "Loading...",
+    "profileErrorTitle": "Could not open profile",
+    "profileErrorBody": "Storage may have been temporarily unreadable due to missing permissions. You can try again.",
+    "restartTitle": "Restart",
+    "identityCard": "Your identity · day {{day}}",
+    "identityFallback": "You're on the path to {{habitName}}.",
+    "fiveDefaultTrigger": "Take a deep breath, drop your shoulders — then make the one clear move for your habit.",
+    "toast": {
+      "dayComplete": "Today complete.",
+      "actionRecorded": "Step recorded. Discipline muscle growing.",
+      "trainingRecorded": "Training recorded. Discipline muscle growing."
+    },
+    "hero": {
+      "todayStep": "Today's step"
+    },
+    "anchorStep": {
+      "context": {
+        "default": "Anchor",
+        "morning_routine": "Morning anchor",
+        "midday": "Midday anchor",
+        "sleep_winddown": "Evening anchor",
+        "phone_away": "Phone-down anchor"
+      },
+      "card": {
+        "withAnchor": "At «{{anchor}}»: {{title}} — one move for {{habit}}.",
+        "noAnchor": "{{title}} · a small touch on your {{habit}} path."
+      },
+      "modal": {
+        "prepare": "Get ready",
+        "afterMove": "Then one clear move",
+        "close": "Close",
+        "breath": "{{seconds}}s · keep your breath steady",
+        "breathVisualize": "{{seconds}}s · visualize only, no forcing",
+        "recoveryHint": "Your pace. One small move is enough.",
+        "recoveryDone": "I did this",
+        "continue": "Continue",
+        "done": "Done"
+      },
+      "muscleHeadline": {
+        "activation": "Get moving",
+        "consistency": "Small repeat",
+        "resistance": "Soften resistance",
+        "focus": "Gather focus",
+        "recovery": "Recovery"
+      },
+      "doneSubline": {
+        "activation": "Your start reflex got one rep stronger.",
+        "consistency": "Anchor + repeat logged.",
+        "resistance": "You moved through resistance.",
+        "focus": "You gathered attention in one place.",
+        "recovery": "A small step reopens the path."
+      },
+      "guide": {
+        "_fallback": {
+          "lead": "{{contextLabel}}: «{{anchor}}» — then {{title}}.",
+          "lead_default": "{{title}} · one clear move for {{habit}}.",
+          "step1": "Say your anchor line once",
+          "step2": "Take the smallest physical step for {{habit}}"
+        },
+        "anchor-visualize": {
+          "lead": "Picture «{{anchor}}» for 5s — then {{habit}}.",
+          "lead_midday": "Right after lunch: «{{anchor}}» — visualize 5s.",
+          "lead_morning_routine": "Morning routine: «{{anchor}}» — 5s in your mind.",
+          "lead_sleep_winddown": "Before bed: «{{anchor}}» — picture tomorrow's first move.",
+          "lead_phone_away": "Phone down moment: «{{anchor}}» — visualize 5s.",
+          "step1": "Repeat the anchor aloud or silently",
+          "step2": "Finish the first {{habit}} move in your mind"
+        },
+        "anchor-touch": {
+          "lead": "At «{{anchor}}» — touch your anchor physically.",
+          "lead_midday": "After lunch: touch table/palm, say «{{anchor}}».",
+          "step1": "Touch the anchor object or spot once",
+          "step2": "Then a 1s {{habit}} move right after"
+        },
+        "repeat-anchor-twice": {
+          "lead": "Say «{{anchor}}» twice, clearly.",
+          "step1": "First repeat: recall the anchor",
+          "step2": "Second repeat: link to «{{habit}}»"
+        },
+        "mark-done-intent": {
+          "lead": "Say “I'm doing it now” — «{{anchor}}» + {{habit}}.",
+          "step1": "Intent line aloud or in a whisper",
+          "step2": "Go to the anchor and start the first move"
+        },
+        "micro-anchor-say": {
+          "lead": "Say «{{anchor}}» out loud.",
+          "step1": "Repeat the full anchor sentence",
+          "step2": "One rep or 2s of {{habit}} movement"
+        },
+        "habit-whisper": {
+          "lead": "After «{{anchor}}», {{habit}} — in a whisper.",
+          "step1": "Whisper the habit name once",
+          "step2": "Do the smallest move at the anchor"
+        },
+        "say-identity": {
+          "lead": "Identity line + «{{anchor}}» link.",
+          "step1": "Say who you are in one sentence",
+          "step2": "Start {{habit}} at the anchor"
+        },
+        "two-minute": {
+          "lead": "After «{{anchor}}», 2-min version — {{habit}}.",
+          "step1": "Start a 2-minute box in your head",
+          "step2": "Do the small version where the anchor happens"
+        },
+        "tiny-rep": {
+          "lead": "«{{anchor}}» — one rep, {{habit}}.",
+          "step1": "Recall the anchor",
+          "step2": "Complete the smallest physical rep"
+        }
+      }
+    },
+    "checkIn": {
+      "sectionDone": "Today done",
+      "sectionPending": "Day confirmation",
+      "accessibility": "Confirm the day",
+      "doneCaption": "Today complete",
+      "streakConsecutive": "{{count}} days in a row",
+      "streakGreat": "{{count}} days in a row — you're doing great",
+      "plannedYesterday": "Planned yesterday: {{text}}",
+      "tapToComplete": "Tap to complete"
+    },
+    "plans": {
+      "emptyTodayTitle": "No plan for today",
+      "emptyTodayBody": "The list you wrote in Journey yesterday appears here. You can set the first plan for tomorrow.",
+      "tomorrowKicker": "Tomorrow's short list",
+      "tomorrowReady": "{{count}} items ready",
+      "tomorrowEmpty": "No plan yet",
+      "primaryStep": "Main step",
+      "tomorrowHint": "Add 1 main + max 2 support items for a clear anchor tomorrow morning.",
+      "editOnJourney": "Edit in Journey",
+      "planOnJourney": "Plan in Journey",
+      "todayPlan": "Today's plan",
+      "planDone": "Plan complete.",
+      "planDoneShort": "Done",
+      "planProgress": "{{done}}/{{total}}",
+      "planHint": "Check off or confirm the day with check-in.",
+      "planHintShort": "Tap to check off · lock the day with check-in"
+    },
+    "miss": {
+      "kicker": "Miss protocol",
+      "smallestStep": "Smallest step: {{title}}",
+      "startSmallest": "Start smallest step",
+      "goToCheckIn": "Go to day confirmation",
+      "day1": {
+        "title": "The process continues",
+        "body": "Missing 1 day is about 1.5% of the 66-day path. The neural pathway is open — a small repeat in the same direction with today's card is enough.",
+        "action": "Today's repeat"
+      },
+      "day2": {
+        "title": "Time to scale down",
+        "body": "Skipping two days in a row points to an over-ambitious goal. Scale the behaviour to 2 minutes, keep the same anchor; choose the small version on today's card and do an honest check-in.",
+        "action": "Scale the goal"
+      },
+      "day3": {
+        "title": "Reconnect",
+        "body": "You've disconnected for a few days — this doesn't mean your brain forgot the path. Lally's curve varies widely between individuals: scale down, refresh the trigger/anchor; choose the smallest clear step from today's card and restart with a real check-in.",
+        "action": "Think about a new anchor"
+      }
+    },
+    "actionGate": {
+      "defaultTitle": "Today's small step",
+      "strictTitle": "Complete the step first",
+      "softTitle": "Small step first, then confirm",
+      "strictBody": "Complete today's suggested step before confirming the day. It's short — for momentum.",
+      "softBody": "Check-in builds the habit; but a 30-second move genuinely primes the brain.",
+      "singleAction": "Single move",
+      "seconds": "{{count}} sec",
+      "startAction": "Start step",
+      "skipToCheckIn": "Confirm day directly",
+      "strictHint": "Strict mode on — you can turn it off in Profile → Advanced preferences."
+    },
+    "weekly": {
+      "title": "Weekly summary",
+      "completed": "{{done}}/7 completed this week"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "firstWeek": {
+      "title": "First week — small map",
+      "body": "The app is dense; these five small steps settle the initial feel.",
+      "stepCheckIn": "Check-in or action from Today's box",
+      "stepAction": "At least one live action (from card)",
+      "stepMind": "Write even one line in the Mind tab",
+      "stepJourney": "Open the Journey tab once",
+      "stepTomorrow": "Write a main item for tomorrow in Journey",
+      "dismiss": "Got it, hide"
+    },
+    "autoTrend": {
+      "title": "Last 7 days · automaticity",
+      "empty": "No data yet. Rate after check-in — your chart builds here in ~10 seconds.",
+      "daysRecorded": "{{count}}/{{total}} days logged",
+      "avgScore": "{{value}}/10",
+      "trend": {
+        "up": "Rising",
+        "down": "Falling",
+        "flat": "Steady"
+      },
+      "insight": {
+        "fluent": "Latest day felt fluent ({{score}}/10) — habit is settling in.",
+        "medium": "Latest day was medium ({{score}}/10) — small reps still count.",
+        "hard": "Latest day felt hard ({{score}}/10) — shrink the step, keep the anchor."
+      },
+      "legend": {
+        "fluent": "Fluent",
+        "medium": "Medium",
+        "hard": "Struggle"
+      },
+      "skip": "Skip (no chart)"
+    },
+    "automaticityRating": {
+      "kicker": "Day {{day}}",
+      "title": "Today's evaluation",
+      "subtitle": "Honest answers reflect your progress best.",
+      "reminder": "Skipping is fine. But if you don't log automaticity, your progress chart won't build; most days, a few seconds on this step is enough to see automation by day 66.",
+      "autoQuestion": "How \"automatic\" did this behaviour feel?",
+      "autoHint": "1: I thought and decided · 10: Fully automatic",
+      "autoLow": "Deliberate",
+      "autoHigh": "Automatic",
+      "effortQuestion": "How much strength / effort did it take?",
+      "effortHint": "1: No strain · 10: Very hard",
+      "effortLow": "Light",
+      "effortHigh": "Heavy effort",
+      "warning": "The behaviour felt automatic but took a lot of effort. Does the habit feel too big? Consider scaling back to a tiny version.",
+      "submit": "Complete",
+      "selectA11y": "Select: {{n}}"
+    },
+    "behavior": {
+      "doNow": "Do now",
+      "restart": "Restart",
+      "scaledDown": " · scaled down",
+      "singleMove": " · single move",
+      "seconds": " · {{count}} sec",
+      "autoLabel": "{{pct}}% automatic",
+      "prediction": "Estimated ~{{days}} days to automaticity — every step gets you closer."
+    },
+    "coachPulse": {
+      "title": "Weekly pulse"
+    },
+    "muscle": {
+      "activation": "Activation",
+      "consistency": "Consistency",
+      "resistance": "Resistance",
+      "focus": "Focus",
+      "recovery": "Recovery"
+    },
+    "status": {
+      "green": "On track",
+      "yellow": "At risk",
+      "red": "Needs attention"
+    }
+  },
+  "journey": {
+    "titlePremium": "Your Journey",
+    "titleFree": "Journey",
+    "subtitle": "66-day identity build · Tomorrow plan + map · Day {{day}}",
+    "subtitleFree": "66-day identity build · Tomorrow plan · Day {{day}}",
+    "progress": "Completion this period: {{pct}}%",
+    "progressWithAuto": "Completion this period: {{pct}}% · Avg. automaticity {{auto}}/10",
+    "progressFree": "Completion {{pct}}% · Day {{day}}/66",
+    "section": {
+      "todayPack": "TODAY'S PACK",
+      "phases": "66 DAYS · 3 PHASES",
+      "science": "SCIENCE & MEASUREMENT"
+    },
+    "locked": {
+      "title": "Premium journey panel",
+      "body": "66-day map, Identity Mirror, SDT pulse, phase training (4 cards) and a daily coach pack. Tomorrow plan is always free.",
+      "unlock": "Open panel"
+    },
+    "phaseTeaser": {
+      "kicker": "How does the brain work in this phase?",
+      "lockMore": "+3 more cards unlock with premium"
+    },
+    "phase": {
+      "active": "Current · Phase {{id}}",
+      "completed": "Completed",
+      "lockedHint": "Unlocks on Day {{day}}"
+    },
+    "milestone": {
+      "label": "MILESTONE",
+      "context": "TODAY'S CONTEXT"
+    },
+    "coach": {
+      "brainTitle": "How does the brain work in this phase?",
+      "brainDone": "You've completed this phase summary before — open to refresh.",
+      "brainCards": "4 short cards · ~30 sec · tailored to your phase",
+      "sentenceTitle": "A sentence from the Journey",
+      "sentenceSub": "One line in Mind in writing order · want to go to full Mind",
+      "lastSentence": "Your last line: \"{{snippet}}\""
+    },
+    "sdt": {
+      "title": "Motivation pulse (SDT)",
+      "sub": "Autonomy, competence, relatedness — weekly mini measurement",
+      "trend": "Last {{count}} weeks trend",
+      "fillFirst": "Fill in first survey",
+      "update": "Update this week"
+    },
+    "regression": {
+      "title": "Automaticity curve",
+      "body": "Estimated slope from first 14 days: +{{slope}} / day",
+      "at7": " · ~Day {{day}} for 7/10 band"
+    },
+    "share": {
+      "button": "Share progress",
+      "closeLabel": "Close"
+    },
+    "survey": {
+      "title": "Weekly survey",
+      "meta": "3 questions · approx. 1 min",
+      "sub": "Select a value between 1 (not at all) and 5 (very much) based on how you felt this week.",
+      "questionNum": "Question {{num}}",
+      "save": "Save and close",
+      "cancel": "Not now",
+      "selectLabel": "Select {{v}}"
+    },
+    "tomorrowPlan": {
+      "bridgeTitle": "Plan tomorrow from today",
+      "bridgeBody": "Today's check-in and micro steps align with this list. Leave a clear anchor for tomorrow morning.",
+      "sectionLabel": "TOMORROW'S SHORT LIST",
+      "kicker": "So tomorrow runs itself",
+      "action": "Clarify 1 main step",
+      "statusTomorrow": "Tomorrow",
+      "addMeta": "You can add a time or trigger",
+      "addSupport": "Add a small item",
+      "limitHint": "3 items is enough — keep it simple.",
+      "resetList": "Reset list",
+      "emptyTitle": "Build a short list for tomorrow",
+      "emptySub": "Pick one main micro-step. Morning reminder arrives; check-in on the Today screen.",
+      "addFirst": "Add first item"
+    },
+    "mapTeaser": {
+      "sectionLabel": "66 DAYS · PREVIEW",
+      "hint": "Tomorrow plan is always free. Tap the active phase — short preview; full day summary and map are premium.",
+      "badgeActive": "Now · Phase {{id}}",
+      "stats": "{{done}}/{{total}} days completed in this phase",
+      "unlockCta": "Open full map"
+    },
+    "phases": {
+      "1": {
+        "label": "Foundation",
+        "days": "Day 1–22",
+        "subtitle": "Tiny Habits kick in. Set your anchor, stay small."
+      },
+      "2": {
+        "label": "Consolidation",
+        "days": "Day 23–44",
+        "subtitle": "Identity shift begins. From 'someone who does' to 'someone who is'."
+      },
+      "3": {
+        "label": "Automaticity",
+        "days": "Day 45–66",
+        "subtitle": "The neural path completes. You do it without spending willpower."
+      }
+    }
+  },
+  "mind": {
+    "title": "Mind",
+    "subtitle": "Your journey journal",
+    "dayLine": "Now · Day {{day}}/66",
+    "newNote": "+ New note",
+    "moodPill": "From recent notes: in {{muscle}} mode",
+    "week": {
+      "section": "THIS WEEK",
+      "days": "{{done}}/7 days",
+      "pct": "{{pct}}% completed"
+    },
+    "today": {
+      "section": "TODAY'S REFLECTION",
+      "placeholderSuffix": "(short answer)",
+      "save": "Save"
+    },
+    "history": {
+      "section": "PAST REFLECTIONS",
+      "all": "All →",
+      "emptyTitle": "Your first reflection",
+      "emptyBody": "Write a sentence every day. Getting thoughts out opens space in your brain — without effort, without judgement.",
+      "dayLabel": "Day {{day}}"
+    },
+    "dump": {
+      "title": "Mind Dump",
+      "desc": "Write when your head is full, relax. What you write stays only on this device — tone analysis lightly feeds the behaviour engine.",
+      "notesCount": "{{count}} notes saved"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "modal": {
+      "title": "📝 Mind Dump",
+      "subtitle": "Write, save, relax",
+      "placeholder": "Write whatever comes to mind. Nobody will read it. You won't be judged.",
+      "save": "Save",
+      "saving": "saving…",
+      "saved": "saved",
+      "promptsLabel": "💡 STARTER SENTENCES",
+      "footerNote": "🕐 Automatically saved a few seconds after you stop typing.",
+      "closeLabel": "Close",
+      "moodAction": "You're in {{muscle}} mode — \"{{action}}\" could get you moving.",
+      "emptyTitle": "No notes yet",
+      "emptySubtitle": "Start writing your first thought. Nobody will read it.",
+      "historyLabel": "Previous notes",
+      "historyHint": "Tap to open. Long press the row to delete, then tap the bin.",
+      "filterJourneyOnly": "Journey only ({{count}})",
+      "filterEmpty": "No Journey lines found; close the filter to return to all notes.",
+      "fiveSecondCta": "Continue with the 5-second rule?",
+      "deleteTitle": "Delete note",
+      "deleteMessage": "This note will be permanently deleted. This action cannot be undone.",
+      "deleteCancel": "Cancel",
+      "deleteConfirm": "Delete"
+    }
+  },
+  "profile": {
+    "language": "Language",
+    "languageTitle": "App Language",
+    "languageSubtitle": "Interface language changes immediately, including daily principles, prompts, and journey cards.",
+    "languages": {
+      "tr": "Türkçe",
+      "en": "English",
+      "pt-BR": "Português (BR)"
+    },
+    "header": "Profile",
+    "statusActive": "Active",
+    "statusRest": "Rest",
+    "defaultName": "Hero",
+    "dayMeta": "Day {{day}}/66",
+    "progressPct": "{{pct}}% journey complete",
+    "shareStory": "Share progress as a story",
+    "stats": {
+      "title": "STATISTICS",
+      "streak": "streak",
+      "days": "days",
+      "daysUnit_one": "day",
+      "daysUnit_other": "days",
+      "pctValue": "{{pct}}%",
+      "automaticity": "Auto",
+      "completion": "Done"
+    },
+    "completedRounds": {
+      "title": "COMPLETED ROUNDS",
+      "days": "{{count}} days completed",
+      "avgAuto": " · avg. automaticity {{value}}"
+    },
+    "chart": {
+      "title": "LAST 14 DAYS",
+      "caption": "{{count}}/14 days"
+    },
+    "achievements": {
+      "title": "ACHIEVEMENTS",
+      "all": "All",
+      "unlocked": "Unlocked",
+      "locked": "Locked",
+      "sprout": {
+        "title": "First sprout",
+        "desc": "Journey started"
+      },
+      "streak3": {
+        "title": "3-day streak",
+        "desc": "First momentum"
+      },
+      "streak7": {
+        "title": "7-day streak",
+        "desc": "Discipline muscle"
+      },
+      "day21": {
+        "title": "21 days",
+        "desc": "Core habit"
+      },
+      "day30": {
+        "title": "30 days",
+        "desc": "One third done"
+      },
+      "day66": {
+        "title": "66 days",
+        "desc": "Journey complete"
+      },
+      "premiumAch": {
+        "title": "Premium",
+        "desc": "Full experience"
+      }
+    },
+    "coaching": {
+      "title": "COACHING FLOW",
+      "checkInStep": "Step before check-in",
+      "gateMode": {
+        "soft": "Soft — step recommended first",
+        "strict": "Strict — step required first",
+        "off": "Off"
+      },
+      "gateChips": {
+        "soft": "Soft",
+        "strict": "Strict",
+        "off": "Off"
+      }
+    },
+    "settings": {
+      "title": "SETTINGS",
+      "notifications": "Notifications",
+      "notifTimeLabel": "Morning {{h}}:{{m}}",
+      "commitment": "Edit your commitment",
+      "haptics": "Vibration",
+      "hapticsSub": "Completion feedback",
+      "theme": "Theme",
+      "themeSub": "Light",
+      "themeAlertTitle": "Theme",
+      "themeAlertMsg": "Only light theme is supported at the moment.",
+      "premiumRow": "Premium",
+      "premiumRowSub": "66-day map, Identity Mirror, SDT",
+      "subscription": "Manage subscription",
+      "subscriptionSub": "Store settings",
+      "privacyPolicy": "Privacy policy",
+      "privacyPolicySub": "Web",
+      "terms": "Terms of use",
+      "termsSub": "Subscription terms"
+    },
+    "data": {
+      "title": "DATA",
+      "privacy": "Privacy",
+      "privacySub": "What's stored on this device",
+      "backup": "Back up data",
+      "backupSub": "Export as JSON",
+      "delete": "Delete data",
+      "deleteSub": "All history and notes"
+    },
+    "footer": {
+      "notifCheck": "Check notification permission",
+      "quote": "Motivation is not a feeling, it's an action.",
+      "versionDay": "{{version}} · Kimlik · Day {{day}}",
+      "about": "About · v{{version}}",
+      "aboutAlertTitle": "Kimlik",
+      "aboutAlertMsg": "A habit coach that works on local principles."
+    },
+    "modal": {
+      "notifTitle": "Notifications",
+      "notifHint": "Main reminder time: {{time}}. Also use «Check notification permission from system» for permissions.",
+      "backupTitle": "Backup",
+      "achievementsTitle": "Achievements"
+    },
+    "dialog": {
+      "notifSuccess": {
+        "title": "Notifications on",
+        "msg": "Morning reminders will be scheduled according to your chosen time.",
+        "ok": "OK"
+      },
+      "notifSettings": {
+        "title": "Permission required",
+        "msg": "You need to enable notification permission in system settings so we can schedule notifications.",
+        "goSettings": "Open Settings",
+        "dismiss": "Dismiss"
+      },
+      "deleteAll": {
+        "title": "Delete all data",
+        "msg": "Your habit history, check-in records and mind notes will be deleted from this device. This action cannot be undone.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      }
+    },
+    "error": {
+      "title": "Could not read profile",
+      "body": "There may be a temporary issue with storage or permissions. You can try again to reload the profile.",
+      "retry": "Try again",
+      "loading": "Loading..."
+    },
+    "premiumBadge": "Premium",
+    "advanced": {
+      "sectionContext": "CONTEXT & RHYTHM",
+      "contextTitle": "Today's context",
+      "contextHint": "Context cue under the card; no AI reading you as a person.",
+      "contextDefault": "Default",
+      "contextHome": "Home",
+      "contextWork": "Work",
+      "contextTravel": "Travel",
+      "restUntil": "Rest · until {{date}}",
+      "restNone": "No rest break",
+      "restHint": "Pushes are lighter until this date; it lifts automatically (or cancel early).",
+      "rest3": "3-day break",
+      "rest7": "7-day break",
+      "restClear": "Clear",
+      "notifFineTune": "Notification fine-tuning",
+      "notifyMorning": "Morning notification",
+      "notifyEvening": "Evening reminder",
+      "notifyWeekend": "Weekend notifications",
+      "notifyPhaseMilestones": "Phase milestone push",
+      "backupTitle": "Local backup (JSON)",
+      "backupHint": "One file you can keep in Drive / Files. Import overwrites data from the chosen file.",
+      "exportBtn": "Export via share",
+      "importBtn": "Restore from JSON file",
+      "pasteBtn": "Restore by pasting",
+      "pasteModalTitle": "Backup JSON",
+      "pasteModalHint": "Open the .json in a text editor, copy all, paste here, then tap Apply.",
+      "pastePlaceholder": "Paste full backup JSON here (schemaVersion, profile, …)",
+      "apply": "Apply",
+      "alertBackup": "Backup",
+      "alertOk": "OK",
+      "restoreSuccess": "Backup applied (v1 or v2); records updated.",
+      "exportFail": "Could not create the file or open share. Check permissions and try again.",
+      "pickerUnavailableTitle": "File picker unavailable",
+      "pickerUnavailableMsg": "Expo Go or an outdated build may lack the document picker.\n\n• Full fix: rebuild — npm run android / npm run ios.\n\n• Quick option: copy backup .json and use «Restore by pasting».",
+      "pasteContinue": "Continue with paste",
+      "importFail": "Could not open or read the file.",
+      "importConfirmTitle": "Load backup",
+      "importConfirmMsg": "Current data will be replaced by the JSON you choose (cannot undo). Continue?",
+      "cancel": "Cancel",
+      "importConfirmBtn": "Load backup",
+      "pasteConfirmTitle": "Restore by pasting",
+      "pasteConfirmMsg": "Current data will be replaced by the JSON you paste (cannot undo).",
+      "continue": "Continue",
+      "pasteEmpty": "Paste the JSON text first.",
+      "pasteInvalid": "Not valid JSON, or the file was copied incompletely."
+    },
+    "commitment": {
+      "title": "Habit & anchor",
+      "labelHabit": "Identity goal (short phrase)",
+      "labelAnchor": "Anchor (routine)",
+      "labelWhy": "Why do you want this path?",
+      "placeholderHabit": "e.g. I am someone who moves every day",
+      "placeholderAnchor": "e.g. After I finish my coffee",
+      "placeholderWhy": "At least 10 characters",
+      "hint": "Changing the identity template requires re-selecting in onboarding; here you update your daily wording.",
+      "saving": "Saving…",
+      "save": "Save"
+    },
+    "goalProgress": {
+      "title": "66-day journey",
+      "dayCount": "{{day}} / 66 days",
+      "phase1": "Foundation",
+      "phase2": "Consolidation",
+      "phase3": "Automaticity",
+      "daysLeft": "{{count}} days left",
+      "target": "Target: {{date}}",
+      "completed": "🎯 66 days complete. This is now part of who you are."
+    },
+    "weeklySummary": {
+      "title": "Weekly summary",
+      "completedLine": "Completed days:",
+      "missedLine": "Missed in this window: {{count}}",
+      "slipHint": "Recently, slips often cluster near {{day}} (simple on-device count; no server).",
+      "consistentHint": "You look steady this week — keep one clear action flow.",
+      "shareText": "Share text",
+      "shareTitle": "Weekly summary",
+      "shareHeader": "Weekly summary ({{window}}) — {{habit}}",
+      "shareCompleted": "Completed days: {{done}}/7",
+      "shareMissed": "Missed days (window): {{count}}",
+      "shareSlip": "Note: recent slips often around {{day}}.",
+      "shareFooter": "— Kimlik (local data)",
+      "habitFallback": "habit",
+      "weekdays": [
+        "Sun",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat"
+      ],
+      "daypart": {
+        "morning": "morning (≈06–12)",
+        "afternoon": "afternoon (≈12–17)",
+        "evening": "evening (≈17–22)",
+        "night": "night (≈22–06)"
+      },
+      "noTimestamp": "Completed days in this window have no time stamp (older entries); no time-of-day summary.",
+      "peak": "Most common time of day in completions: {{part}}.",
+      "partialTimestamp": "Some completions lack time; summary is an approximate local snapshot."
+    },
+    "story": {
+      "sheetTitle": "Share card",
+      "watermark": "66 Day Discipline",
+      "bigLine": "Day {{day}} · {{pct}}% consistency",
+      "tagline": "Not motivation — discipline.",
+      "miniHint": "Add daily ratings for an automaticity line",
+      "shareBtn": "Share on story (text)",
+      "shareNote": "Only the text you share is used; nothing is sent to a server.",
+      "shareMessage": "Day {{day}}. {{pct}}% consistency. Still early, but the system is in place. #66DayDiscipline",
+      "shareGoal": "Goal: {{habit}}"
+    },
+    "privacy": {
+      "title": "Your data & privacy",
+      "bullets": [
+        "All personal data (profile, check-in history, Mind notes) stays on this device; nothing is sent to a server.",
+        "No account email — the app is tied to the device. Losing the phone or deleting the app may erase data permanently; no cloud backup.",
+        "Delete data removes everything from this device; cannot be undone.",
+        "Do now suggestions use no reading AI; rule-based signals from selected word patterns."
+      ],
+      "foot": "Premium purchases are billed via your store (Apple/Google); payment details are not stored by kimlik-app.",
+      "privacyLink": "Privacy policy (web)",
+      "termsLink": "Terms of use",
+      "ok": "OK"
+    }
+  },
+  "taskSheet": {
+    "dayBadge": "Day {{day}}",
+    "identityLabel": "Your identity",
+    "anchor": "Anchor: {{anchor}}",
+    "doneTodayTrue": "Completed today",
+    "doneTodayFalse": "Not yet completed",
+    "actionDuration": "{{sec}} sec · Start now",
+    "goJourney": "Go to Journey",
+    "close": "Close",
+    "actionSaved": "Step recorded."
+  },
+  "coachCard": {
+    "kicker": "Day {{day}} · {{phase}}",
+    "title": "Today's principle",
+    "titlePremium": "Coach pack — today's principle",
+    "milestone": "Milestone",
+    "premiumNote": "The map, Identity Mirror and SDT pulse are waiting for you in the Journey tab.",
+    "phase1": "Foundation",
+    "phase2": "Consolidation",
+    "phase3": "Automaticity"
+  },
+  "app": {
+    "profileLoadFailed": "Profile could not be read from this device",
+    "profileLoadFailedBody": "Storage or permissions may have temporarily caused an issue. Data is not lost; you can try again.",
+    "quickActionToday": "Today",
+    "quickActionTodaySub": "Go to Today's box"
+  },
+  "actions": {
+    "stand-up": {
+      "title": "Stand up"
+    },
+    "walk-5": {
+      "title": "Take 5 steps"
+    },
+    "shake-shoulders": {
+      "title": "Roll your shoulders"
+    },
+    "open-window": {
+      "title": "Open a window, breathe fresh air for 5 sec"
+    },
+    "drink-water": {
+      "title": "Take a sip of water"
+    },
+    "stand-tall": {
+      "title": "Stand tall, open your chest for 3 sec"
+    },
+    "jump-once": {
+      "title": "Do one jump in place"
+    },
+    "march-10": {
+      "title": "March in place, count to 10"
+    },
+    "tap-desk": {
+      "title": "Tap the desk twice, then move"
+    },
+    "wake-wrists": {
+      "title": "Circle your wrists for 5 sec"
+    },
+    "calf-raise-3": {
+      "title": "Rise on your toes 3 times"
+    },
+    "light-on": {
+      "title": "Turn on a light or open the curtain"
+    },
+    "door-threshold": {
+      "title": "Go to the doorway, step inside"
+    },
+    "interrupt-stand": {
+      "title": "Stand up now"
+    },
+    "anchor-touch": {
+      "title": "Touch your anchor"
+    },
+    "say-identity": {
+      "title": "Say who you are out loud"
+    },
+    "two-minute": {
+      "title": "Do the 2-minute version"
+    },
+    "tiny-rep": {
+      "title": "Do one rep"
+    },
+    "habit-whisper": {
+      "title": "Whisper your habit again"
+    },
+    "anchor-visualize": {
+      "title": "Picture your anchor for 5 sec"
+    },
+    "one-line-plan": {
+      "title": "Write today's one step in a line"
+    },
+    "tool-ready": {
+      "title": "Put the tool on the desk (book, mat, water…)"
+    },
+    "smallest-version-say": {
+      "title": "Say the smallest version out loud"
+    },
+    "repeat-anchor-twice": {
+      "title": "Say your anchor phrase twice"
+    },
+    "identity-nod": {
+      "title": "Say “I'm someone who does this” and nod"
+    },
+    "habit-object-touch": {
+      "title": "Touch your habit object once"
+    },
+    "mark-done-intent": {
+      "title": "Say “I'm doing it now” and go to your anchor"
+    },
+    "deep-breath": {
+      "title": "Take a deep breath"
+    },
+    "count-three": {
+      "title": "Count to 3 and start"
+    },
+    "phone-down": {
+      "title": "Turn your phone face down"
+    },
+    "no-explain": {
+      "title": "Start without explaining"
+    },
+    "five-countdown": {
+      "title": "Count 5-4-3-2-1 and make the first move"
+    },
+    "shoulders-drop": {
+      "title": "Drop your shoulders consciously for 5 sec"
+    },
+    "unclench-jaw": {
+      "title": "Relax your jaw, tongue on the palate"
+    },
+    "stop-scroll-thumb": {
+      "title": "Lift your thumb off the screen for 3 sec"
+    },
+    "say-start-now": {
+      "title": "Say “I'm starting now” — no delay"
+    },
+    "box-breath-4": {
+      "title": "In 4 sec, hold 4, out 4"
+    },
+    "feet-flat-press": {
+      "title": "Press feet into the floor for 5 sec"
+    },
+    "timer-3-start": {
+      "title": "Count down 3 and move"
+    },
+    "close-eyes": {
+      "title": "Close your eyes for 10 seconds"
+    },
+    "one-thing": {
+      "title": "Look at only one thing"
+    },
+    "screen-blank": {
+      "title": "Lift your head from the screen"
+    },
+    "blink-reset": {
+      "title": "Blink 10 times, then focus on one point"
+    },
+    "mute-notifications": {
+      "title": "Mute notifications for 1 hour"
+    },
+    "desk-clear-one": {
+      "title": "Remove one thing from the desk"
+    },
+    "read-one-word": {
+      "title": "Read the first word of your task"
+    },
+    "stare-one-point": {
+      "title": "Stare at a wall/point for 10 sec"
+    },
+    "headphones-on": {
+      "title": "Put on headphones or go silent"
+    },
+    "pen-cap-off": {
+      "title": "Uncap your pen, ready to write"
+    },
+    "single-task-say": {
+      "title": "Say your single task out loud"
+    },
+    "soft-restart": {
+      "title": "Stand up and take 1 step"
+    },
+    "smile": {
+      "title": "Smile at yourself in the mirror"
+    },
+    "stretch": {
+      "title": "Raise arms, open shoulders (once)"
+    },
+    "comeback": {
+      "title": "Spread fingertips, move elbows lightly"
+    },
+    "thank-self": {
+      "title": "Say “I tried today”"
+    },
+    "slow-exhale-3": {
+      "title": "Exhale slowly 3 times"
+    },
+    "gentle-neck-roll": {
+      "title": "Tilt your neck gently to one side"
+    },
+    "forgive-yesterday": {
+      "title": "Say “Yesterday is done, today is here”"
+    },
+    "hand-on-heart": {
+      "title": "Hand on chest, breathe for 5 sec"
+    },
+    "step-outside": {
+      "title": "Go to the door, look outside 5 sec"
+    },
+    "tpl-clear-mind-write": {
+      "title": "Reduce your mind to one sentence"
+    },
+    "tpl-clear-mind-open": {
+      "title": "Open Mind tab, let the cursor blink"
+    },
+    "tpl-clear-breath-box": {
+      "title": "4-4-4 breath, then write one thought"
+    },
+    "tpl-clear-list-one": {
+      "title": "Pick one of 3 things in your head, write it"
+    },
+    "tpl-clear-worry-out": {
+      "title": "Dump the worry on paper/note, close it"
+    },
+    "tpl-move-bounce-30": {
+      "title": "Bounce in place for 30 sec"
+    },
+    "tpl-move-pushup-1": {
+      "title": "Do 1 push-up"
+    },
+    "tpl-move-shoes": {
+      "title": "Pick up your workout shoes"
+    },
+    "tpl-move-squat-1": {
+      "title": "Do 1 squat"
+    },
+    "tpl-move-stretch-arms": {
+      "title": "Reach arms up, hold 5 sec"
+    },
+    "tpl-move-stairs-3": {
+      "title": "Go up or down 3 steps"
+    },
+    "tpl-learn-first-line": {
+      "title": "Open the source, look at the first line"
+    },
+    "tpl-learn-name": {
+      "title": "See the source name and close"
+    },
+    "tpl-learn-page-turn": {
+      "title": "Turn a page or scroll forward"
+    },
+    "tpl-learn-one-fact": {
+      "title": "Read one sentence of info"
+    },
+    "tpl-learn-bookmark": {
+      "title": "Bookmark where you left off"
+    },
+    "tpl-self-water": {
+      "title": "Put a glass of water on the desk, take a sip"
+    },
+    "tpl-self-glass": {
+      "title": "Just put the glass on the desk"
+    },
+    "tpl-self-wash-face": {
+      "title": "Splash face with cold water 5 sec"
+    },
+    "tpl-self-lotion-hand": {
+      "title": "Apply lotion to one hand"
+    },
+    "tpl-self-posture": {
+      "title": "Straighten shoulders, stand tall 5 sec"
+    },
+    "tpl-creator-open": {
+      "title": "Open the file, move cursor to first line"
+    },
+    "tpl-creator-word": {
+      "title": "Write or draw just one word"
+    },
+    "tpl-creator-idea": {
+      "title": "Write the one idea in your head as a sentence"
+    },
+    "tpl-creator-title-only": {
+      "title": "Write only the title line"
+    },
+    "tpl-creator-rough-line": {
+      "title": "Write one draft line, no editing"
+    },
+    "tpl-focus-tab": {
+      "title": "Close all tabs, leave one"
+    },
+    "tpl-focus-task": {
+      "title": "Say your one current task out loud"
+    },
+    "tpl-focus-timer": {
+      "title": "Start 25-min timer, turn phone over"
+    },
+    "tpl-focus-notify-off": {
+      "title": "Turn off notifications or focus mode"
+    },
+    "tpl-focus-desk-one": {
+      "title": "Leave only one work tool on the desk"
+    },
+    "tpl-focus-5min": {
+      "title": "Start a 5-minute focus timer"
+    },
+    "tpl-sleep-screen": {
+      "title": "Turn off screen, close eyes 10 sec"
+    },
+    "tpl-sleep-phone": {
+      "title": "Put phone away, turn your face"
+    },
+    "tpl-sleep-breath": {
+      "title": "In 4, hold 4, out 4"
+    },
+    "tpl-sleep-dim-light": {
+      "title": "Dim or turn off the light"
+    },
+    "tpl-sleep-alarm-set": {
+      "title": "Check tomorrow's alarm"
+    },
+    "tpl-sleep-gratitude": {
+      "title": "Whisper one good thing from today"
+    },
+    "tpl-social-name": {
+      "title": "Write the name of someone on your mind"
+    },
+    "tpl-social-msg": {
+      "title": "Draft a one-line message"
+    },
+    "tpl-social-smile": {
+      "title": "Pause with intent to smile at next person"
+    },
+    "tpl-social-wave-plan": {
+      "title": "Think who you'll wave to"
+    },
+    "tpl-social-send-hi": {
+      "title": "Type “hi” or “how are you”, sending optional"
+    },
+    "tpl-social-voice-draft": {
+      "title": "Record one sentence voice note"
+    },
+    "micro-clap": {
+      "title": "Clap once"
+    },
+    "micro-stretch-neck": {
+      "title": "Turn neck slowly left-right (once)"
+    },
+    "micro-feet": {
+      "title": "Press feet into floor, hold 3 sec"
+    },
+    "micro-posture": {
+      "title": "Pull shoulders back, open chest 2 sec"
+    },
+    "micro-sip": {
+      "title": "Take a sip if you have water"
+    },
+    "micro-window": {
+      "title": "Look out a window or into the distance 5 sec"
+    },
+    "micro-name-habit": {
+      "title": "Say your habit name out loud"
+    },
+    "micro-timer-10": {
+      "title": "Start a 10-second timer"
+    },
+    "micro-pen-paper": {
+      "title": "Open pen or phone notes"
+    },
+    "micro-one-word": {
+      "title": "Write today's intent in one word"
+    },
+    "micro-shoes-on": {
+      "title": "Put on or pick up your shoes"
+    },
+    "micro-door": {
+      "title": "Walk to the door, step on the threshold"
+    },
+    "micro-smile-mirror": {
+      "title": "Look at camera or mirror 2 sec"
+    },
+    "micro-inhale": {
+      "title": "Breathe in 4 sec, out 4 sec"
+    },
+    "micro-stand-stretch": {
+      "title": "Stand up, stretch arms once"
+    },
+    "micro-phone-away": {
+      "title": "Put phone one arm's length away"
+    },
+    "micro-anchor-say": {
+      "title": "Say your anchor out loud"
+    },
+    "micro-tiny-rep-2": {
+      "title": "Do the smallest rep twice"
+    },
+    "micro-commit": {
+      "title": "Say “I'm starting now” and move"
+    },
+    "micro-habit-start": {
+      "title": "Do the smallest part of your habit"
+    },
+    "micro-reset-breath": {
+      "title": "Breathe in nose, out mouth (3 times)"
+    }
+  },
+  "behavior": {
+    "reason": {
+      "interrupt": "Drop detected. One move is enough: {{title}}",
+      "mindDumpMulti": "In recent notes \"{{hint}}\" keeps echoing — now: {{title}}.",
+      "mindDumpSingle": "\"{{keyword}}\" showed up — now: {{title}}.",
+      "highEffort": "Yesterday was {{effort}}/10 tough. Today we scale down: {{title}}",
+      "coldStart": "First days: a small, clear step. {{title}}",
+      "declining": "The path felt hard lately. A soft jump: {{title}}",
+      "improving": "Recent days went well. Keep this rhythm: {{title}}",
+      "momentumDown": "Down for 2 days. We restart now: {{title}}",
+      "momentumUp": "You're doing well. Keep going: {{title}}"
+    },
+    "situation": {
+      "home": "Context · home: even the smallest version counts.",
+      "work": "Context · work break: 1–2 min clear move.",
+      "travel": "Context · travel: one micro-step that fits where you are."
+    }
+  },
+  "identityTemplates": {
+    "clear_mind": {
+      "title": "Someone with a clear mind",
+      "identityStatement": "I am someone with a clear mind who knows their priorities.",
+      "mirror": {
+        "lowEnergy": "As someone with a clear mind, opening the Mind tab today is enough. The system has your back.",
+        "resistance": "Someone with a clear mind turns resistance into writing. 10 seconds, one sentence.",
+        "identity": "From clutter to clarity. Your mind now recognizes space."
+      },
+      "phases": {
+        "phase_1": "Foundation — Write what's in your head.",
+        "phase_2": "Consolidation — Separate priorities.",
+        "phase_3": "Automaticity — A calmer mind."
+      }
+    },
+    "moving_person": {
+      "title": "Someone who moves",
+      "identityStatement": "I am someone who respects their body and moves every day.",
+      "mirror": {
+        "lowEnergy": "As someone who moves, put on your shoes or take 10 steps today.",
+        "resistance": "When resistance hits, someone who moves scales down — 1 rep is enough.",
+        "identity": "Movement is part of who you are. Your body is waiting."
+      },
+      "phases": {
+        "phase_1": "Foundation — Get moving.",
+        "phase_2": "Consolidation — Find your rhythm.",
+        "phase_3": "Automaticity — The body remembers."
+      }
+    },
+    "learner": {
+      "title": "Lifelong learner",
+      "identityStatement": "I am someone who learns a little every day.",
+      "phases": {
+        "phase_1": "Foundation — Open the source.",
+        "phase_2": "Consolidation — One page at a time.",
+        "phase_3": "Automaticity — Learning is default."
+      }
+    },
+    "self_care": {
+      "title": "Someone who takes care of themselves",
+      "identityStatement": "I am someone who takes small care of themselves every day.",
+      "phases": {
+        "phase_1": "Foundation — Water + breath.",
+        "phase_2": "Consolidation — Gentle routine.",
+        "phase_3": "Automaticity — Care is automatic."
+      }
+    },
+    "creator": {
+      "title": "Creator",
+      "identityStatement": "I am someone who creates, even in small doses.",
+      "phases": {
+        "phase_1": "Foundation — Open the file.",
+        "phase_2": "Consolidation — Ship small.",
+        "phase_3": "Automaticity — Create without friction."
+      }
+    },
+    "focused_worker": {
+      "title": "Deep focus person",
+      "identityStatement": "I am someone who protects focus and does one thing at a time.",
+      "phases": {
+        "phase_1": "Foundation — Close tabs.",
+        "phase_2": "Consolidation — Protect blocks.",
+        "phase_3": "Automaticity — Focus is habit."
+      }
+    },
+    "night_owl": {
+      "title": "Night rest person",
+      "identityStatement": "I am someone who winds down and protects sleep.",
+      "phases": {
+        "phase_1": "Foundation — Screen off.",
+        "phase_2": "Consolidation — Evening ritual.",
+        "phase_3": "Automaticity — Rest is identity."
+      }
+    },
+    "social_builder": {
+      "title": "Connection builder",
+      "identityStatement": "I am someone who nurtures connection in small ways.",
+      "phases": {
+        "phase_1": "Foundation — Write a name.",
+        "phase_2": "Consolidation — One message.",
+        "phase_3": "Automaticity — Connection is natural."
+      }
+    }
+  },
+  "dailyPrinciples": {
+    "1": {
+      "principle": "Getting started is hundreds of times more important than getting perfect.",
+      "science": "Open tasks (Zeigarnik): the action initiated pushes the mind to shut down.",
+      "action": "Download the habit to the smallest version today and start it only once."
+    },
+    "2": {
+      "principle": "Motivation is emotion; emotions pass, the system remains.",
+      "science": "Self-Determination Theory: sustainable behavior requires autonomy and meaning (Deci & Ryan).",
+      "action": "Write down your reason for 10 seconds, then just start at the trigger."
+    },
+    "4": {
+      "principle": "Small behavior exceeds big resistance.",
+      "science": "Implementation intentions increase planned trigger-action pair success (Gollwitzer).",
+      "action": "If-then: \\"
+    },
+    "5": {
+      "principle": "Instinct: disintegrating. Solution: designing the environment.",
+      "science": "Behavioral will: difficulty decreases when reducing friction in the environment (Thaler & Sunstein tendencies).",
+      "action": "Prepare the tool/preparation in 30 seconds in advance in the evening."
+    },
+    "6": {
+      "principle": "Identity is first the sentence, then the movement.",
+      "science": "Self-schema: consistent story about behaviors reinforces identity (BEM/ identity reflection).",
+      "action": "Sentence today: \\"
+    },
+    "7": {
+      "principle": "About 7 days is the first signal sufficient to open a new pathway to the brain.",
+      "science": "Synaptic plasticity is strengthened by repetition; duration varies between individuals (Lally variation).",
+      "action": "Go back to the mini version from day one and complete another round."
+    },
+    "8": {
+      "principle": "The thought of giving up is the brain's defense of the old way.",
+      "science": "Old habit: basal ganglia-dopamine cycle; new pathway is still weak (habit research).",
+      "action": "Positive detail: say out loud yesterday's 1 win."
+    },
+    "9": {
+      "principle": "Sometimes the reward is just a 'done' feeling.",
+      "science": "Reinforcement: complementary small rewards reinforce unity with dopamine; exaggeration.",
+      "action": "Give yourself a tiny, healthy 'sign reward' right after completion."
+    },
+    "10": {
+      "principle": "Stability is safer than intensity.",
+      "science": "Starting limit effect: small repetition is enough for growth; jumping breaks motivation.",
+      "action": "Instead of time or volume, just focus on the 'is there' box."
+    },
+    "11": {
+      "principle": "Stress is not goodwill, but demand that transcends the system.",
+      "science": "Cognitive load: procedural memory is suppressed when the worker fills the memory (baddeley models).",
+      "action": "Cut today's version to no more than 2 minutes."
+    },
+    "12": {
+      "principle": "The first quarter is the most expensive; the fee is no longer payable.",
+      "science": "Late start is more expensive to restore falling self-efficacy.",
+      "action": "Set the exact time limit for today's action: timer."
+    },
+    "13": {
+      "principle": "Friction is bad design, not bad will.",
+      "science": "Media engineering changes the behavior that designs the defaults well (choice architecture).",
+      "action": "Move bad triggers 1 step away (e.g. phone is in another room)."
+    },
+    "14": {
+      "principle": "Exposure to repetition leads to increased interest.",
+      "science": "The mere exposure makes the familiar selectable.",
+      "action": "Make the same micro-action intentionally boring: monotony switches to automation."
+    },
+    "15": {
+      "principle": "Community is a different brain mode than solitude.",
+      "science": "Social facilitation can slightly increase motivation in moderate difficulties; audience/support makes a difference.",
+      "action": "Tell someone your intentions in one sentence (micro-accountability)."
+    },
+    "16": {
+      "principle": "Time depends on the diameter, not the source.",
+      "science": "Implication intentions double execution by fixing time (meta-analyses).",
+      "action": "Put a 5-minute nest in the calendar and let it ring (notification or peer)."
+    },
+    "17": {
+      "principle": "Procrastination is not laziness; it is delayed healing.",
+      "science": "Difficulties with regulation create cognitive barriers; self-compassion does not exacerbate the label.",
+      "action": "Without judging procrastination, just 'now 30 s' of action."
+    },
+    "18": {
+      "principle": "Not once in a while: either trigger or postpone.",
+      "science": "If-then plans direct involuntary responses (Gollwitzer, implementation intentions).",
+      "action": "Rewrite today's 'then' moment in 1 sentence."
+    },
+    "19": {
+      "principle": "Being bored is the tunnel to automation.",
+      "science": "The automaticity curve averages 66+ days of variation; boredom is a process (Lally).",
+      "action": "Same repetition; variation only environment (e.g. 1 rep in different room)."
+    },
+    "20": {
+      "principle": "Boundaries are not a fence to freedom, but a framework.",
+      "science": "Restricted space reduces decision fatigue; self-management persists in the classroom (Baumeister).",
+      "action": "Ceil today's maximum time in 2 minutes (know the end, not the time spent)."
+    },
+    "21": {
+      "principle": "In the third week, he starts to carry the sentence 'I do'.",
+      "science": "Repetition strengthens procedural learning; 21 days have no magic, but the signal accumulates (popular myth vs science: duration varies in the individual).",
+      "action": "Add 'total X repetitions to date' to the list, really write a number."
+    },
+    "22": {
+      "principle": "When the installation phase is over, it's not about magnifying, it's about staying in the mirror.",
+      "science": "The phase transition creates a storm of motivation; coherence must be maintained (habit research).",
+      "action": "Swear by smallness: tomorrow, stay equal to or less than the version from phase 1 to day 1."
+    },
+    "23": {
+      "principle": "Motivation will fall; it's part of the plan, not the breakdown.",
+      "science": "The automaticity curve is slow and wavy (Lally and team, 2009).",
+      "action": "Don't measure motivation; just focus on maintaining 1 iteration today."
+    },
+    "24": {
+      "principle": "Identity, first sentence; then, many days again.",
+      "science": "Identity-based habits (clear) are compatible with neuroscience: self-concept drives behavior (self-schemes).",
+      "action": "Enlarge the sentence 'I am... someone who is' by 1 step, but keep the movement mini."
+    },
+    "25": {
+      "principle": "Consistency comes from visibility rather than temperament.",
+      "science": "Traceability and recording, self-monitoring, improve behavior at the % level (Harkin meta-analysis).",
+      "action": "Leave a single line confirmation (date + icon) for today's action."
+    },
+    "26": {
+      "principle": "Resisting resistance strengthens the inhibition muscle.",
+      "science": "Inhibition control is strengthened by exercise, but depleted (ego depletion debates; don't forget to rest).",
+      "action": "1 deep breath + 1 repetition at trigger moment; disable thinking briefly."
+    },
+    "27": {
+      "principle": "Appreciation is not by you, but by you.",
+      "science": "Feeling of competence nourishes internal motivation; measure, see improvement (SDT).",
+      "action": "Write yesterday's light or heavy exertion 1-10; no judgment, just data."
+    },
+    "29": {
+      "principle": "The external reward can extinguish the instinct; the measure does not escape.",
+      "science": "Risk of over-justification, uncontrolled external reinforcement (Lepper).",
+      "action": "Return to the reward, complete signal: small, tangible, now."
+    },
+    "30": {
+      "principle": "The question is no longer 'Did you do it?' but 'What version am I in?'",
+      "science": "Identity-based execution aligns with self-reference sentences (self-perception, cognitive fit).",
+      "action": "The same mini-variation for the third time under the name habit on day 30."
+    },
+    "31": {
+      "principle": "Stress, good opportunity, bad excuse: the choice is yours.",
+      "science": "Stress can disrupt automation; coping plans make a difference (implementation).",
+      "action": "If the stress is 7+, make the version halfway, keep the attendance record."
+    },
+    "32": {
+      "principle": "Recovery is a window to learning, not failure.",
+      "science": "Incomplete version + short analysis makes the next attempt predictable (growth mindset, Dweck; by measurement).",
+      "action": "If there was an abduction, 1 sentence: not the reason, 'tomorrow 30 sec' plan."
+    },
+    "33": {
+      "principle": "The mind sells procrastination as' not painful now '.",
+      "science": "Instant discounting underestimates future rewards; commitment device helps.",
+      "action": "Leave a social/binding mini commitment to someone or place."
+    },
+    "34": {
+      "principle": "The group breaks down selfishness; responsibility goes beyond reminding.",
+      "science": "Accountability increases success rates (Cook & Jackson support studies).",
+      "action": "Today, take the expectation of 'asked' or 'did you do it' from a person in 1 sentence."
+    },
+    "35": {
+      "principle": "Resistance, like muscle: refuse to rest, you punch a hole.",
+      "science": "Inhibition and self-regulation are limited; sleep and cognition inhibit exhaustion (Galliot glucose, discussions; summary: the fact of exhaustion).",
+      "action": "In an exhaustion signal, the target is 10 sec/1 repetition, no sleep/sugar priority (before sleep)."
+    },
+    "36": {
+      "principle": "Mirroring, not; reminder: you talk to yourself.",
+      "science": "Manages self-discourse, mood, and execution; healing language aligns with SDT.",
+      "action": "Today, calm the inner voice with the 3rd person sentence, then 1 action."
+    },
+    "37": {
+      "principle": "The line of progress is the triad of perception, measurement, and consistency.",
+      "science": "Goal-gradient: speed when approaching the end; small milestones momentum (Hull, 1932 — modern interpretation).",
+      "action": "Put 1 small flag in between: I'm in 37/44 reinforcement, 1 iteration today."
+    },
+    "38": {
+      "principle": "The internal contradiction is resolved in mirrors, in how many it grows.",
+      "science": "Cognitive contradiction, the need to reduce inconsistency, drives behavior (Festinger, measured interpretation).",
+      "action": "One sentence: 'I, who do this, try this once' (alleviate the contradiction with 1 movement)."
+    },
+    "39": {
+      "principle": "The timeline is longer than the emotion; consistency is short, accumulates.",
+      "science": "The exhausted day makes sense again on the next path, even 0.5 sec (the psychology of interruption).",
+      "action": "Light day, 1 action anyway: duration no more than 10 s."
+    },
+    "40": {
+      "principle": "Context is the exchange of clues, not punishment.",
+      "science": "Stimulus control, new response with new cues; behavioral analysis.",
+      "action": "List 1 bad environment variable, focus on 1 tomorrow."
+    },
+    "41": {
+      "principle": "Internal rewards are learned satisfaction, not external dependence.",
+      "science": "Internal reinforcement, advanced execution, carries long-term motivation (SDT).",
+      "action": "After completion, a clear inner sentence: 'This is a small moment that defines me.'"
+    },
+    "42": {
+      "principle": "Not just procrastinate, but quit early; the two are separate pockets.",
+      "science": "Stage model, intention-action distinction; recording the difference intervenes (Prochaska, in summary).",
+      "action": "If it has been postponed, ban the sentence 'don't quit'; just limit the hours."
+    },
+    "43": {
+      "principle": "Reinforcement last week: bottleneck, just your anchor.",
+      "science": "Lally, arrival at vending machine range 18-254 days; 66, average, your speed is different (Lally).",
+      "action": "Trigger you missed the most: Rename with 1 sentence (change name, same trigger)."
+    },
+    "44": {
+      "principle": "Phase 2 connected your identity phrases to the verb; phase 3 polishes the automaton.",
+      "science": "When the habit becomes automatic, the burden of consciousness decreases (Wood).",
+      "action": "Day 44: In 10 sec, 'where am I doing this without noticing?' 1 answer."
+    },
+    "45": {
+      "principle": "You are no longer 'deciding', you are remembering and noticing.",
+      "science": "Basal ganglia, automatics; prefrontal, handing over upper management (Willingham, procedural memory).",
+      "action": "Today, notice 1 moment at the moment of trigger (silent, 2 sec)."
+    },
+    "46": {
+      "principle": "Autopilot is savings, not guilt.",
+      "science": "Automation releases cognitive load; focus shifts to higher goals (dual-process).",
+      "action": "Celebrate the automaton: 1 sentence, not 'I left this to me', but 'I leave this to me'."
+    },
+    "47": {
+      "principle": "66 days, average; your duration may be different, this is normal.",
+      "science": "Lally variation: median/average distributed between 18-66+ weeks; person specific.",
+      "action": "Every day in phase 3: record 'difference', not 'point now': headlessness/fluency 1-5."
+    },
+    "48": {
+      "principle": "Boredom, not discipline, but the hissing of the system.",
+      "science": "Routine is the line of uninterrupted repetition (habitization) rather than the wave of dopamine.",
+      "action": "1 sentence in his bored mind: 'Boredom, signal: I went into automation.'"
+    },
+    "49": {
+      "principle": "What touches identity is measured by unforgettable movement.",
+      "science": "Self-schema updates are combined with consistent experimentation (cognitive-interpersonal acceptance).",
+      "action": "To someone, or in the mirror, with a 5-second voice: 'I'm the one who did this.'"
+    },
+    "50": {
+      "principle": "Redesigning is not stopping, but moving forward.",
+      "science": "Habit-continuity hypothesis: if the context changes, the habit stretches at the weak point (opportunity to intervene in the crisis).",
+      "action": "Test 1 context variable: different time, same micro-action."
+    },
+    "51": {
+      "principle": "Trust in automation, not letting go of control.",
+      "science": "Target lines, fine play in meta-plane, slip prevention (Gollwitzer, if-then).",
+      "action": "1 if-then backup: 'If recording drops, same anchor on the same day in 30 sec.'"
+    },
+    "52": {
+      "principle": "The day of recovery is not the day of failure; it is the day of the signal.",
+      "science": "Relapse prevention takes place by explaining the trigger and shrinking the plan (Marlatt).",
+      "action": "Probability of deterioration: trigger+emotion 1 sentence; solution: mini if-then."
+    },
+    "53": {
+      "principle": "Discipline is not punishment; it is deferred reward management.",
+      "science": "Time preferences, procrastination, and self-control (Mischel, biscuit, summary: delayed reward).",
+      "action": "No grand prize, small: today, 10 s of calm movement (stretch, etc.) upon completion."
+    },
+    "54": {
+      "principle": "You fill 66; 66 doesn't limit you.",
+      "science": "Adaptation: new threshold after goal, habit stacking/goal hierarchy.",
+      "action": "1 sentence target draft for 67+: 'Same anchor, one upper 2 min.' (draft today)."
+    },
+    "55": {
+      "principle": "Day 55: signal, your speed, you can leave the average.",
+      "science": "Lally distribution: person-specific variation, deviation from the mean is not extraordinary.",
+      "action": "If heavy: 'I am a slow voyage' 1 sentence; 1 action again 2 min and below."
+    },
+    "56": {
+      "principle": "Automatic, not asleep: unconscious execution.",
+      "science": "Implicit vs explicit procedural learning; reckless repetition (Willingham).",
+      "action": "When the action is over, the silent 'what happened?' question for 3 seconds is non-judgmental."
+    },
+    "57": {
+      "principle": "Contextual ache could be the signal for a new anchor trial in the last week.",
+      "science": "Context-stimulative (renewal) risk, yet the planned re-dimension closes (summary).",
+      "action": "Design 1 new, small anchor trial in 5 s, today just trial, no full performance."
+    },
+    "58": {
+      "principle": "Not you, but the system: rest your ego, align the pattern.",
+      "science": "System-1 automation, system-2 planning, system-1 wins in overlap, system-2 adjusts the environment (Stanovich).",
+      "action": "Permanently correct 1 default in the environment (e.g. light, door, bag location)."
+    },
+    "59": {
+      "principle": "At 7 to 66, the record holds the mirror, not the boast.",
+      "science": "Self-monitoring does not blind execution; reverse, eye-opening (Harkin).",
+      "action": "Summarize the difference -1-5 trend since 47 in 1 sentence (if not, write 'data yet')."
+    },
+    "60": {
+      "principle": "Habit is the key that opens the next door, not the end.",
+      "science": "Habit stacking, chain, trigger the previous one; Clear + behavior chain (Lally, easy when switching to automation).",
+      "action": "1 short, new, small 'after' 5 sec plan: +1 ring on top of existing line."
+    },
+    "61": {
+      "principle": "If the community carried you in 66, leave it open in 67 or limit it —consciously.",
+      "science": "Social benchmarking, extrinsic motivation, intrinsic weak influences (discussions, measure).",
+      "action": "Account, share, or privacy in 1 sentence: which is the sustainer, today's choice."
+    },
+    "62": {
+      "principle": "In the last 5, not the soul, but the rhythm: the ending does not play the rhythm, it carries it.",
+      "science": "Closing effects, risk of acceleration (goal-gradient) and exhaustion in the target approach; rhythm, protective.",
+      "action": "Today, the usual time, the usual place, the minimum variation, the maximum loyalty."
+    },
+    "63": {
+      "principle": "At 63, simplification wins, not oblivion.",
+      "science": "Cognitive simplification reduces over-planning in automation; minimalism accelerates execution (summary).",
+      "action": "1 item in the plan sneaks out, proceed as if nothing had happened (leave the driver at least)."
+    },
+    "65": {
+      "principle": "At 65, let go of continuity, not procrastination, to the next 66.",
+      "science": "Continuity does not last with big new goals, but with expansion with the same core.",
+      "action": "Same anchor + 1 must: tomorrow, just 1 minute, no difference, emphasis on continuation."
+    },
+    "66": {
+      "principle": "This is not a running end, but completing a contract that promises automation.",
+      "science": "Lally, individual variation in automation; 66, the symbol, the science person refuses to be peculiar 66 —but the ritual bridges.",
+      "action": "1 page or 1 sentence: Mark 'same/mini/art' from 67, just signature today."
+    }
+  },
+  "mindPrompts": {
+    "daily": [
+      "What single thing occupied your mind most today?",
+      "What are you thinking but haven't said out loud?",
+      "One small detail you're grateful for today?",
+      "One clear intention sentence for tomorrow?",
+      "Which thought kept you stuck today?",
+      "What's the smallest step you promised yourself today?",
+      "What do you feel in your body right now — one word?",
+      "What did you put off today, and why?",
+      "One sentence that reminds you who you are today?",
+      "Your energy is 1–10 today; if low, what can you shrink?",
+      "The moment you're proudest of today (even if small)?",
+      "One load you want to let go of right now?",
+      "When did you notice your anchor (trigger) today?",
+      "What will you do in the first 2 minutes tomorrow morning?"
+    ],
+    "modal": [
+      "What occupied my mind most today...",
+      "What I'm thinking but haven't said out loud...",
+      "A small detail I'm grateful for...",
+      "One clear intention for tomorrow...",
+      "What I actually put off today...",
+      "The smallest step I promised myself..."
+    ]
+  },
+  "journeyEducation": {
+    "1": [
+      {
+        "id": "p1-1",
+        "title": "When the brain is processing the new routine",
+        "body": "In the first phase, the frontal shell is more vigilant: movement often requires conscious choice. The brain devotes “attention” to a new pattern; it's not fatigue, it's the price of learning. Small, finishable steps in the early days create less resistance than big plans."
+      },
+      {
+        "id": "p1-2",
+        "title": "Where does resistance come from?",
+        "body": "The basal ganglia pattern is unclear when the habit is not yet automatic; that's why the body sometimes says “no.” Avoidance is normal. The goal is not zero avoidance — choosing the smallest return instead of guilt when a run is seen."
+      },
+      {
+        "id": "p1-3",
+        "title": "Small reward, big distance",
+        "body": "In the early phase, the big reward comes infrequently; the brain may shift to short-term comfort. A small completed step increases the feeling of completion. Reduce today's gain to the body or one sentence — that's enough evidence for the long journey."
+      },
+      {
+        "id": "p1-4",
+        "title": "Sentence for establishment phase",
+        "body": "In this phase, context and repeat wins: same row, same clue, same anchor. Your identity sentence should be short; you will give yourself \"one vote\" for each repetition. Discipline is the practice of reminding, not performance."
+      }
+    ],
+    "2": [
+      {
+        "id": "p2-1",
+        "title": "Intermediate period: boring but valuable",
+        "body": "In the reinforcement phase, some movement becomes familiar; the boring feeling may increase. This isn't usually a weakness — it's a byproduct of automation. Boring days paint the map “colorless but steady.”"
+      },
+      {
+        "id": "p2-2",
+        "title": "Context flexibility",
+        "body": "When circumstances change, the brain looks for new clues. Being prepared for small environment changes (location, duration, sequence) is a savior in the days of decline. Start in “good enough” condition without waiting for the perfect condition."
+      },
+      {
+        "id": "p2-3",
+        "title": "Identity and repetition",
+        "body": "In this phase, the sentence \"I am someone who does this\" becomes stronger as it is repeated. Attach the behavior to the person, but do not upload it like an exam — gentle repetition. If one day you are disrupted, the identity does not collapse with a single day; reconnecting is also part of the identity."
+      },
+      {
+        "id": "p2-4",
+        "title": "Sentence for reinforcement phase",
+        "body": "Stability outlives inspiration. Motivation is wavy; routine is the wave-breaking scaffold. The one small move made today makes the rest of tomorrow more likely."
+      }
+    ],
+    "3": [
+      {
+        "id": "p3-1",
+        "title": "The gateway to automation",
+        "body": "In the final phase, more repetition and context cohesion are in play; the brain's “I'll do it later” cost sometimes drops. This doesn't mean ’easy now‘ — it means getting closer to 'starting small‘."
+      },
+      {
+        "id": "p3-2",
+        "title": "Triggers and traps",
+        "body": "Even the automated routine is shaken by stress or lack of sleep. Keeping known triggers in writing is protective: fatigue, congestion, social pressure. The plan is not highly exciting, let's get ready to fall."
+      },
+      {
+        "id": "p3-3",
+        "title": "Identity reinforcement",
+        "body": "As you approach day 66, the goal isn't just to close a box — it's to align this behaviour with your sense of self. The more you feel 'I chose this', the more likely you are to keep going (close to subjective autonomy in SDT language)."
+      },
+      {
+        "id": "p3-4",
+        "title": "A line for the automation phase",
+        "body": "The goal is no longer a 'perfect day' but recovering quickly when you slip. The long road is the sum of small repairs. Even the smallest reconnection today carries you forward."
+      }
+    ]
+  },
+  "coachNotes": {
+    "day7": "The first week is behind you. The anchor is settling in — it gets easier now.",
+    "day14": "Two weeks. New connections are forming in the brain. Even if you don't feel it.",
+    "day22": "Critical point. Those who reach here usually finish.",
+    "day30": "30 days. The question is no longer 'are you doing it?' but 'who are you becoming?'",
+    "day44": "Phase 2 is done. You're not choosing anymore — you're doing.",
+    "day66": "66 days. This is yours now — no one can take it."
+  },
+  "checkInConfirmation": {
+    "subtitle": "Save quickly — you can think through the details later",
+    "other": "Other",
+    "otherPlaceholder": "Write briefly...",
+    "save": "Save and complete",
+    "custom": {
+      "title": "Where were you today on this identity path?",
+      "options": [
+        "I progressed as I wanted",
+        "I did it partly, left it unfinished",
+        "I struggled but tried",
+        "My energy was low",
+        "Other priorities took over",
+        "A quick note was enough"
+      ]
+    },
+    "mental-clarity": {
+      "title": "What did you catch today for mental clarity?",
+      "options": [
+        "I noted the anxiety/thought",
+        "I gathered my thoughts",
+        "I took a breath, even briefly",
+        "I reduced indecision",
+        "I just noticed",
+        "Not yet"
+      ]
+    },
+    "moving-body": {
+      "title": "What happened today on the movement side?",
+      "options": [
+        "I did the movement I planned",
+        "A short movement was enough",
+        "Even a walk / stretch counts",
+        "I ran out of time",
+        "I listened to my body",
+        "Left it half-done"
+      ]
+    },
+    "lifelong-learner": {
+      "title": "Where are you in your learning routine today?",
+      "options": [
+        "I read/watched something small",
+        "I took notes or reviewed",
+        "I took one step",
+        "Didn't happen today",
+        "I only got curious",
+        "I'll make up for it tomorrow"
+      ]
+    },
+    "self-care": {
+      "title": "What did you do for self-care today?",
+      "options": [
+        "I did a small kindness for myself",
+        "I allowed myself to rest",
+        "I set a boundary / said no",
+        "I took a short break",
+        "There was a moment of awareness",
+        "Today was hard"
+      ]
+    },
+    "creator": {
+      "title": "How was productivity / creativity today?",
+      "options": [
+        "I worked on it",
+        "A draft or idea came out",
+        "Some progress, even small",
+        "I lowered my expectations",
+        "Starting was enough",
+        "Didn't happen"
+      ]
+    },
+    "deep-focus": {
+      "title": "What would you say about focus today?",
+      "options": [
+        "I did a deep work block",
+        "I locked onto one task",
+        "I cut a distraction",
+        "Even a short block helped",
+        "Today was scattered",
+        "I didn't try"
+      ]
+    },
+    "night-owl": {
+      "title": "Where are you in your evening routine today?",
+      "options": [
+        "I did the step I planned",
+        "Energy was low but I tried",
+        "I gave up early",
+        "The day was busy",
+        "One small thing",
+        "Left it for tomorrow"
+      ]
+    },
+    "social-builder": {
+      "title": "How was connection / communication today?",
+      "options": [
+        "I reached out / wrote to someone",
+        "A tiny interaction",
+        "I listened or supported",
+        "I made time for myself",
+        "I felt alone today",
+        "Skipped it"
+      ]
+    }
+  }
+}

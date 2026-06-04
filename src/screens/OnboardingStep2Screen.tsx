@@ -12,11 +12,10 @@ import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import { Colors, Spacing, Radii, FontSizes, Shadows, ANCHOR_PRESETS, TIME_RANGES } from "../constants/theme";
+import { useTranslation } from "react-i18next";
 import { getIdentityTemplate, previewHabitPhraseForAnchor } from "../constants/identityTemplates";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep2">;
-
-const STEP_LABELS = ["Kimliğin", "Çapan", "Neden"] as const;
 
 const ANCHOR_EMOJIS: Record<string, string> = {
   "Kahvemi içtikten sonra": "☕",
@@ -36,9 +35,15 @@ const TIME_EMOJIS: Record<string, string> = {
 };
 
 function StepBar({ current }: { current: number }) {
+  const { t } = useTranslation();
+  const stepLabels = [
+    t("onboarding.steps.identity"),
+    t("onboarding.steps.anchor"),
+    t("onboarding.steps.why"),
+  ];
   return (
     <View style={styles.stepWrap}>
-      {STEP_LABELS.map((label, i) => {
+      {stepLabels.map((label, i) => {
         const done = i < current - 1;
         const active = i === current - 1;
         return (
@@ -72,6 +77,7 @@ function StepBar({ current }: { current: number }) {
 }
 
 export default function OnboardingStep2Screen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { habitName, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
 
@@ -118,17 +124,15 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
       >
         <StepBar current={2} />
 
-        <Text style={styles.title}>Bu kimliği nereye{"\n"}bağlayacaksın?</Text>
-        <Text style={styles.sub}>
-          Çapa, günlük önerilerini gerçek hayatına kilitleyen noktadır. Zaten yaptığın bir rutine ekle.
-        </Text>
+        <Text style={styles.title}>{t("onboarding.step2.title")}</Text>
+        <Text style={styles.sub}>{t("onboarding.step2.sub")}</Text>
 
         {/* Commitment preview */}
         <View style={styles.previewCard}>
-          <Text style={styles.previewKicker}>TAAHHÜDÜN</Text>
+          <Text style={styles.previewKicker}>{t("onboarding.step2.commitmentLabel")}</Text>
           {!selectedAnchor ? (
             <Text style={styles.previewPlaceholder}>
-              Bir çapa seçtiğinde taahhüt cümlen burada oluşacak…
+              {t("onboarding.step2.commitmentPlaceholder")}
             </Text>
           ) : (
             <Text style={styles.previewStatement}>
@@ -144,7 +148,7 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
           )}
           {template && (
             <Text style={styles.previewHint}>
-              {template.emoji} {template.title} — çapa ön seçili, istersen değiştir.
+              {template.emoji} {template.title} — {t("onboarding.step2.templateHint")}
             </Text>
           )}
         </View>
@@ -152,13 +156,11 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
         {/* Info note */}
         <View style={styles.infoRow}>
           <Info size={13} color={Colors.textTertiary} strokeWidth={2} />
-          <Text style={styles.infoText}>
-            Şablon yalnızca ilk öneriyi verir; çapayı ve saati istediğin zaman değiştirebilirsin.
-          </Text>
+          <Text style={styles.infoText}>{t("onboarding.step2.infoText")}</Text>
         </View>
 
         {/* Anchor options */}
-        <Text style={styles.sectionLabel}>Önce ne yapıyorsun?</Text>
+        <Text style={styles.sectionLabel}>{t("onboarding.step2.anchorLabel")}</Text>
         <View style={styles.anchorList}>
           {anchorOptions.map((anchor) => {
             const active = selectedAnchor === anchor;
@@ -185,7 +187,7 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
         </View>
 
         {/* Time range */}
-        <Text style={styles.sectionLabel}>Hangi saat aralığında?</Text>
+        <Text style={styles.sectionLabel}>{t("onboarding.step2.timeLabel")}</Text>
         <View style={styles.timeGrid}>
           {TIME_RANGES.map((t) => {
             const active = selectedTime === t.id;
@@ -222,7 +224,7 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
           activeOpacity={0.75}
         >
           <ChevronLeft size={18} color={Colors.textSecondary} strokeWidth={2} />
-          <Text style={styles.backText}>Geri</Text>
+          <Text style={styles.backText}>{t("common.back")}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.cta, !canContinue && styles.ctaDisabled]}
@@ -239,7 +241,7 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
           disabled={!canContinue}
           activeOpacity={0.85}
         >
-          <Text style={styles.ctaText}>Devam Et</Text>
+          <Text style={styles.ctaText}>{t("common.continue")}</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

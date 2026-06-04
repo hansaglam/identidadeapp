@@ -11,6 +11,20 @@ import {
 } from "date-fns";
 import { CheckinRecord } from "../types";
 
+/** i18n döngüsel import riskini önlemek için lazy yükleme */
+function weekdayShortLabels(): readonly string[] {
+  const { default: i18n } = require("../i18n/config") as typeof import("../i18n/config");
+  return [
+    i18n.t("home.weekdays.mon"),
+    i18n.t("home.weekdays.tue"),
+    i18n.t("home.weekdays.wed"),
+    i18n.t("home.weekdays.thu"),
+    i18n.t("home.weekdays.fri"),
+    i18n.t("home.weekdays.sat"),
+    i18n.t("home.weekdays.sun"),
+  ];
+}
+
 /** Takvim haftası (Pzt–Paz); bugünün bulunduğu ISO haftası. */
 export interface CalendarWeekDayCell {
   dateKey: string;
@@ -31,7 +45,7 @@ export function buildCalendarWeekAroundToday(
   const journeyStart = startOfDay(parseISO(startDate));
   const today = startOfDay(new Date());
   const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-  const labels = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"] as const;
+  const labels = weekdayShortLabels();
   const out: CalendarWeekDayCell[] = [];
   for (let i = 0; i < 7; i += 1) {
     const d = addDays(weekStart, i);

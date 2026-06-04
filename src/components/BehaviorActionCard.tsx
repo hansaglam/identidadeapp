@@ -4,16 +4,21 @@
  * Ana ekrandaki TEK büyük buton — sakin hiyerarşi (Tide-benzeri nefes alan düzen).
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { ArrowRight } from "lucide-react-native";
-import { UserState, MUSCLE_LABELS, STATUS_LABELS, STATUS_EMOJI } from "../engine";
+import { ArrowRight, Anchor } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
+import { UserState, STATUS_EMOJI } from "../engine";
+import type { MuscleType, Status } from "../engine/types";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
+import { buildAnchorStepUi } from "../utils/anchorStepCopy";
 
 interface Props {
   state: UserState;
   onPress: () => void;
   disabled?: boolean;
+  habitAnchor?: string;
+  habitName?: string;
   /** Ana ekran: dikey alanı kısalt, metinleri kırp */
   compact?: boolean;
   /** Bugün sekmesi: beyaz kart, hafif gölge */
@@ -48,16 +53,32 @@ export default function BehaviorActionCard({
   state,
   onPress,
   disabled = false,
+  habitAnchor,
+  habitName = "",
   compact = false,
   surface = false,
 }: Props) {
+  const { t } = useTranslation();
   const tint = STATUS_TINT[state.status];
   const a = state.suggestedAction;
+  const anchorUi = useMemo(
+    () =>
+      buildAnchorStepUi({
+        habitAnchor,
+        habitName,
+        actionId: a.id,
+        actionTitle: a.title,
+        duration: a.duration,
+      }),
+    [habitAnchor, habitName, a.id, a.title, a.duration]
+  );
+  const muscleLabel = t(`home.muscle.${a.type as MuscleType}`);
   const metaLine =
     a.type === "recovery"
-      ? `${MUSCLE_LABELS[a.type]} · tek hareket`
-      : `${MUSCLE_LABELS[a.type]} · ${a.duration} sn`;
-  const metaSuffix = state.scaledDown ? " · küçültüldü" : "";
+      ? `${muscleLabel}${t("home.behavior.singleMove")}`
+      : `${muscleLabel}${t("home.behavior.seconds", { count: a.duration })}`;
+  const metaSuffix = state.scaledDown ? t("home.behavior.scaledDown") : "";
+  const detailLine = anchorUi.hasAnchor ? anchorUi.cardLine : state.reason;
 
   const cardSurfaceStyle = surface
     ? [styles.cardSurface, compact && styles.cardCompact]
@@ -79,27 +100,37 @@ export default function BehaviorActionCard({
         >
           <Text style={styles.statusEmoji}>{STATUS_EMOJI[state.status]}</Text>
           <Text style={[styles.statusLabel, compact && styles.statusLabelCompact, { color: tint.tint }]}>
-            {STATUS_LABELS[state.status]}
+            {t(`home.status.${state.status as Status}`)}
           </Text>
         </View>
         <Text style={[styles.scoreText, compact && styles.scoreTextCompact, { color: tint.tint }]}>
-          %{state.automationScore} otomatik
+          {t("home.behavior.autoLabel", { pct: state.automationScore })}
         </Text>
       </View>
 
       <Text style={[styles.metaCaption, compact && styles.metaCaptionCompact, { color: tint.tint }]}>
-        {metaLine}
-        {metaSuffix}
+        {compact && anchorUi.hasAnchor
+          ? `${anchorUi.contextLabel} · ${metaLine}${metaSuffix}`
+          : `${metaLine}${metaSuffix}`}
       </Text>
+
+      {compact && anchorUi.anchorChip ? (
+        <View style={styles.anchorRow}>
+          <Anchor size={12} color={Colors.primary} strokeWidth={2.2} />
+          <Text style={styles.anchorText} numberOfLines={1}>
+            {anchorUi.anchorChip}
+          </Text>
+        </View>
+      ) : null}
 
       <Text style={[styles.title, compact && styles.titleCompact]} numberOfLines={compact ? 2 : undefined}>
         {a.title}
       </Text>
       <Text
         style={[styles.reason, compact && styles.reasonCompact]}
-        numberOfLines={compact ? 2 : undefined}
+        numberOfLines={compact ? 3 : undefined}
       >
-        {state.reason}
+        {detailLine}
       </Text>
 
       {!compact && (state.situationCue || state.phaseFocus) ? (
@@ -124,17 +155,17 @@ export default function BehaviorActionCard({
         activeOpacity={0.88}
         disabled={disabled}
         accessibilityRole="button"
-        accessibilityLabel={state.recoveryMode ? "Yeniden başla" : "Şimdi yap"}
+        accessibilityLabel={state.recoveryMode ? t("home.behavior.restart") : t("home.behavior.doNow")}
       >
         <Text style={[styles.ctaText, compact && styles.ctaTextCompact]}>
-          {state.recoveryMode ? "Yeniden başla" : "Şimdi yap"}
+          {state.recoveryMode ? t("home.behavior.restart") : t("home.behavior.doNow")}
         </Text>
         <ArrowRight size={compact ? 15 : 16} color="#fff" strokeWidth={2.2} />
       </TouchableOpacity>
 
       {!compact && state.predictionDays > 0 ? (
         <Text style={styles.prediction}>
-          Otomatikleşmeye tahmini ~{state.predictionDays} gün — her adım seni yaklaştırır.
+          {t("home.behavior.prediction", { days: state.predictionDays })}
         </Text>
       ) : null}
     </View>
@@ -159,8 +190,27 @@ const styles = StyleSheet.create({
     ...Shadows.card,
   },
   cardCompact: {
-    padding: Spacing.md,
+    padding: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     marginBottom: 0,
+    gap: 0,
+  },
+  anchorRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginBottom: 6,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: Radii.button,
+    backgroundColor: Colors.primaryLight,
+    alignSelf: "stretch",
+  },
+  anchorText: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
   },
   headerRow: {
     flexDirection: "row",
@@ -225,9 +275,9 @@ const styles = StyleSheet.create({
     letterSpacing: -0.2,
   },
   titleCompact: {
-    fontSize: FontSizes.lg,
-    lineHeight: 24,
-    marginBottom: 6,
+    fontSize: FontSizes.md,
+    lineHeight: 22,
+    marginBottom: 4,
   },
   reason: {
     fontSize: FontSizes.sm,
@@ -237,8 +287,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   reasonCompact: {
-    marginBottom: Spacing.sm,
-    lineHeight: 20,
+    marginBottom: 8,
+    fontSize: FontSizes.xs,
+    lineHeight: 17,
   },
   hintBlock: {
     gap: 6,
@@ -266,7 +317,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
   },
   ctaCompact: {
-    paddingVertical: 12,
+    paddingVertical: 11,
+    marginTop: 2,
   },
   ctaDisabled: {
     opacity: 0.55,

@@ -41,6 +41,13 @@ import {
   getTemplatePhaseFocus,
   type IdentityTemplate,
 } from "../constants/identityTemplates";
+import {
+  localizeAction,
+  localizeActionTitle,
+  localizeBehaviorReason,
+  localizeSituationCue,
+  getLocalizedTemplate,
+} from "../i18n/localizeContent";
 import { CheckinRecord } from "../types";
 import {
   inferAnchorActionContext,
@@ -370,49 +377,42 @@ function buildReason(
   mdAggregated: string[] | undefined,
   isInterruption: boolean
 ): string {
-  const title = suggestedAction.title;
+  const title = localizeActionTitle(suggestedAction.id, suggestedAction.title);
 
-  // Kesinti modu — en sert mesaj
   if (isInterruption) {
-    return `Düşüş yakalandı. Tek hareket yeter: ${title}`;
+    return localizeBehaviorReason("interrupt", { title });
   }
 
-  // Mind dump sinyali (birleştirilmiş tekrar eden kelimeler)
   if (mdKeyword) {
     if (mdAggregated && mdAggregated.length > 1) {
       const hint = mdAggregated.slice(0, 3).join(" · ");
-      return `Son notlarında "${hint}" yankılanıyor — şimdi: ${title}.`;
+      return localizeBehaviorReason("mindDumpMulti", { hint, title });
     }
-    return `"${mdKeyword}" yansıdı — şimdi: ${title}.`;
+    return localizeBehaviorReason("mindDumpSingle", { keyword: mdKeyword, title });
   }
 
-  // Yüksek efor (soğuk başlangıçtan önce)
   if (ctx.yEffort != null && ctx.yEffort >= 7) {
-    return `Dün ${ctx.yEffort}/10 zorlandın. Bugün küçültüyoruz: ${title}`;
+    return localizeBehaviorReason("highEffort", { effort: ctx.yEffort, title });
   }
 
-  // Soğuk başlangıç
   if (ctx.coldStart) {
-    return `İlk günler: küçük ve net bir adım. ${title}`;
+    return localizeBehaviorReason("coldStart", { title });
   }
 
-  // Yolculuk eğilimi + momentum
   if (ctx.journeyTrend === "declining" && ctx.momentum === "down") {
-    return `Son günlerde yol zorlandı. Yumuşak bir sıçrama: ${title}`;
+    return localizeBehaviorReason("declining", { title });
   }
   if (ctx.journeyTrend === "improving" && ctx.momentum === "up") {
-    return `Son günler iyi gidiyor. Bu ritmi koru: ${title}`;
+    return localizeBehaviorReason("improving", { title });
   }
 
-  // Düşen momentum
   if (ctx.momentum === "down") {
-    return `Son 2 gündür düştün. Şimdi tekrar başlıyoruz: ${title}`;
+    return localizeBehaviorReason("momentumDown", { title });
   }
 
-  // Yükselen momentum
   if (ctx.momentum === "up") {
     if (automationScore >= 70 && tpl) return tpl.mirror.identity;
-    return `İyi gidiyorsun. Devam et: ${title}`;
+    return localizeBehaviorReason("momentumUp", { title });
   }
 
   if (tpl) {
@@ -465,9 +465,10 @@ export function getUserState(data: UserBehaviorData): UserState {
   const predictionDays = calculatePredictionDays(data);
   const recovery = isRecoveryMode(status.consecutiveMisses);
   const weakMuscle = findWeakestMuscle(data.muscles);
-  const tpl = getIdentityTemplate(data.identityTagId);
+  const tplBase = getIdentityTemplate(data.identityTagId);
+  const tpl = getLocalizedTemplate(data.identityTagId) ?? tplBase;
   const yEffort = getYesterdayEffort(data.startDate, data.checkins);
-  const scaleThreshold = tpl?.scaleDownThreshold ?? 7;
+  const scaleThreshold = tplBase?.scaleDownThreshold ?? 7;
   const recentPreview = data.recentActions.slice(0, 12);
   const excludeRecentIds = [...new Set(recentPreview.map((r) => r.id))].slice(
     0,
@@ -503,8 +504,8 @@ export function getUserState(data: UserBehaviorData): UserState {
   //   Each tier excludes son tamamlanan id'ler mümkünse (excludeRecentIds).
   let candidateActions: Action[] = [];
 
-  if (tpl) {
-    const preferred = tpl.preferredActionIds
+  if (tplBase) {
+    const preferred = tplBase.preferredActionIds
       .map((id) => getActionById(id))
       .filter((a): a is Action => a !== null);
     const filtered = preferred.filter(
@@ -627,14 +628,14 @@ export function getUserState(data: UserBehaviorData): UserState {
   // ── 7. Assemble ────────────────────────────────────────────────────────────
   const insights: MuscleInsight[] = getInsights(data.muscles, null);
   const phaseFocus = tpl ? getTemplatePhaseFocus(tpl, data.dayNumber) : null;
-  const situationCue = situationCueFromPreset(data.contextPreset);
+  const situationCue = localizeSituationCue(data.contextPreset);
 
   return {
     status: status.status,
     automationScore,
     predictionDays,
     weakMuscle,
-    suggestedAction,
+    suggestedAction: localizeAction(suggestedAction),
     insights,
     recoveryMode: recovery,
     scaledDown,
@@ -647,18 +648,6 @@ export function getUserState(data: UserBehaviorData): UserState {
     uiMode,
     situationCue,
   };
-}
-
-function situationCueFromPreset(
-  preset: UserBehaviorData["contextPreset"] | undefined
-): string | null {
-  if (!preset) return null;
-  const m: Record<"home" | "work" | "travel", string> = {
-    home: "Bağlam · ev: en küçük sürüm bile yeter.",
-    work: "Bağlam · iş arası: 1–2 dk net hareket.",
-    travel: "Bağlam · seyahat: ortama uyan tek mikro-adım.",
-  };
-  return m[preset] ?? null;
 }
 
 // ─── Utility ─────────────────────────────────────────────────────────────────

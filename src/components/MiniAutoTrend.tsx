@@ -1,23 +1,36 @@
-import React, { useMemo, useState, useCallback } from "react";
-import { View, Text, StyleSheet, ScrollView, type LayoutChangeEvent } from "react-native";
-import Svg, { Polyline, Circle, Line } from "react-native-svg";
-import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
+import React, { useMemo } from "react";
+import { View, Text, StyleSheet } from "react-native";
+import { format, parseISO, isToday } from "date-fns";
+import { TrendingDown, TrendingUp, Minus } from "lucide-react-native";
+import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
+import { useTranslation } from "react-i18next";
+import { getDateFnsLocale } from "../utils/dateFnsLocale";
 import type { AutomaticityChartPoint } from "../utils/automaticityChart";
 
-const CHART_H = 40;
-const PAD_X = 4;
-const PAD_Y = 4;
-const Y_MIN = 1;
-const Y_MAX = 10;
+const BAR_MAX = 32;
+const BAR_MIN = 4;
 
-function yAt(v: number, innerH: number): number {
-  return PAD_Y + (1 - (v - Y_MIN) / (Y_MAX - Y_MIN)) * innerH;
+function valueColor(v: number): string {
+  if (v >= 7) return Colors.primary;
+  if (v >= 4) return "#E67E22";
+  return Colors.coral;
 }
 
-function segmentColor(avgV: number): string {
-  if (avgV >= 7) return Colors.primary;
-  if (avgV >= 4) return "#E67E22";
-  return Colors.coral;
+function valueBand(v: number): "fluent" | "medium" | "hard" {
+  if (v >= 7) return "fluent";
+  if (v >= 4) return "medium";
+  return "hard";
+}
+
+type Trend = "up" | "down" | "flat";
+
+function computeTrend(pts: { v: number }[]): Trend {
+  if (pts.length < 2) return "flat";
+  const a = pts[pts.length - 2]!.v;
+  const b = pts[pts.length - 1]!.v;
+  if (b > a + 0.4) return "up";
+  if (b < a - 0.4) return "down";
+  return "flat";
 }
 
 export interface MiniAutoTrendProps {
@@ -25,113 +38,124 @@ export interface MiniAutoTrendProps {
 }
 
 export default function MiniAutoTrend({ series }: MiniAutoTrendProps) {
-  const innerH = CHART_H - PAD_Y * 2;
-  const pts = useMemo(() => {
-    const withIdx: { i: number; v: number }[] = [];
-    series.forEach((p, i) => {
-      if (p.value != null) withIdx.push({ i, v: p.value });
-    });
-    return withIdx;
-  }, [series]);
+  const { t } = useTranslation();
+  const locale = getDateFnsLocale();
 
-  const hasData = pts.length > 0;
+  const rated = useMemo(
+    () => series.filter((p) => p.value != null) as (AutomaticityChartPoint & { value: number })[],
+    [series]
+  );
 
-  const trendArrow = useMemo(() => {
-    if (pts.length < 2) return "→";
-    const a = pts[pts.length - 2]!.v;
-    const b = pts[pts.length - 1]!.v;
-    if (b > a + 0.5) return "↗";
-    if (b < a - 0.5) return "↘";
-    return "→";
-  }, [pts]);
+  const avg = useMemo(() => {
+    if (!rated.length) return null;
+    const sum = rated.reduce((s, p) => s + p.value, 0);
+    return Math.round((sum / rated.length) * 10) / 10;
+  }, [rated]);
 
-  const [plotW, setPlotW] = useState(140);
+  const trend = useMemo(() => computeTrend(rated.map((p) => ({ v: p.value }))), [rated]);
+  const lastScore = rated.length ? rated[rated.length - 1]!.value : null;
+  const dominantBand = useMemo(() => {
+    if (!lastScore) return null;
+    return valueBand(lastScore);
+  }, [lastScore]);
 
-  const onLayout = useCallback((e: LayoutChangeEvent) => {
-    const w = Math.round(e.nativeEvent.layout.width) - PAD_X * 2;
-    if (w > 0) setPlotW(w);
-  }, []);
+  const hasData = rated.length > 0;
 
-  const n = Math.max(1, series.length - 1);
+  if (!hasData) {
+    return (
+      <View style={styles.card}>
+        <Text style={styles.title}>{t("home.autoTrend.title")}</Text>
+        <Text style={styles.empty}>{t("home.autoTrend.empty")}</Text>
+      </View>
+    );
+  }
 
-  const polylines = useMemo(() => {
-    if (pts.length < 2) return [] as { points: string; color: string }[];
-    const segs: { points: string; color: string }[] = [];
-    for (let s = 0; s < pts.length - 1; s += 1) {
-      const a = pts[s]!;
-      const b = pts[s + 1]!;
-      const avgV = (a.v + b.v) / 2;
-      const x0 = PAD_X + (a.i / n) * plotW;
-      const y0 = yAt(a.v, innerH);
-      const x1 = PAD_X + (b.i / n) * plotW;
-      const y1 = yAt(b.v, innerH);
-      segs.push({
-        points: `${x0},${y0} ${x1},${y1}`,
-        color: segmentColor(avgV),
-      });
-    }
-    return segs;
-  }, [pts, plotW, n, innerH]);
-
-  const vbW = plotW + PAD_X * 2;
+  const TrendIcon =
+    trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus;
 
   return (
     <View style={styles.card}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Son 7 gün · otomatiklik</Text>
-        {hasData ? <Text style={styles.arrow}>{trendArrow}</Text> : null}
-      </View>
-      {!hasData ? (
-        <Text style={styles.empty}>
-          Henüz veri yok. Bugünkü check-in&apos;de değerlendirme yap — 10 saniye yeter.
-        </Text>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.scrollInner}
-        >
-          <View style={{ minWidth: 180 }} onLayout={onLayout}>
-            <Svg width={vbW} height={CHART_H} viewBox={`0 0 ${vbW} ${CHART_H}`}>
-              {[4, 7].map((gv) => (
-                <Line
-                  key={gv}
-                  x1={PAD_X}
-                  y1={yAt(gv, innerH)}
-                  x2={plotW + PAD_X}
-                  y2={yAt(gv, innerH)}
-                  stroke={Colors.border}
-                  strokeWidth={1}
-                  strokeDasharray="2,4"
-                />
-              ))}
-              {polylines.map((seg, i) => (
-                <Polyline
-                  key={i}
-                  points={seg.points}
-                  fill="none"
-                  stroke={seg.color}
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              ))}
-              {pts.map((p) => (
-                <Circle
-                  key={`${p.i}-${p.v}`}
-                  cx={PAD_X + (p.i / n) * plotW}
-                  cy={yAt(p.v, innerH)}
-                  r={3}
-                  fill={segmentColor(p.v)}
-                  stroke="#fff"
-                  strokeWidth={1}
-                />
-              ))}
-            </Svg>
+        <View style={styles.headerLeft}>
+          <Text style={styles.title}>{t("home.autoTrend.title")}</Text>
+          <Text style={styles.sub}>
+            {t("home.autoTrend.daysRecorded", { count: rated.length, total: series.length })}
+          </Text>
+        </View>
+        <View style={styles.scoreBadge}>
+          <Text style={styles.scoreValue}>
+            {t("home.autoTrend.avgScore", { value: avg?.toFixed(1) ?? "—" })}
+          </Text>
+          <View style={[styles.trendPill, trend === "up" && styles.trendUp, trend === "down" && styles.trendDown]}>
+            <TrendIcon
+              size={11}
+              color={trend === "up" ? Colors.primaryDark : trend === "down" ? Colors.coral : Colors.textTertiary}
+              strokeWidth={2.5}
+            />
+            <Text
+              style={[
+                styles.trendText,
+                trend === "up" && styles.trendTextUp,
+                trend === "down" && styles.trendTextDown,
+              ]}
+            >
+              {t(`home.autoTrend.trend.${trend}`)}
+            </Text>
           </View>
-        </ScrollView>
-      )}
-      <Text style={styles.legend}>Yeşil: akıcı · Turuncu: orta · Kırmızı: zorlanma</Text>
+        </View>
+      </View>
+
+      {dominantBand && lastScore != null ? (
+        <Text style={styles.insight}>
+          {t(`home.autoTrend.insight.${dominantBand}`, { score: lastScore })}
+        </Text>
+      ) : null}
+
+      <View style={styles.barsRow}>
+        {series.map((p) => {
+          const hasVal = p.value != null;
+          const h = hasVal
+            ? Math.max(BAR_MIN, (p.value! / 10) * BAR_MAX)
+            : BAR_MIN;
+          const today = isToday(parseISO(p.dateKey));
+          const dayLabel = format(parseISO(p.dateKey), "EEEEE", { locale });
+          return (
+            <View key={p.dateKey} style={styles.barCell}>
+              <View style={styles.barTrack}>
+                <View
+                  style={[
+                    styles.barFill,
+                    {
+                      height: h,
+                      backgroundColor: hasVal ? valueColor(p.value!) : Colors.border,
+                      opacity: hasVal ? 1 : 0.35,
+                    },
+                    today && styles.barToday,
+                  ]}
+                />
+              </View>
+              <Text style={[styles.dayLabel, today && styles.dayLabelToday]}>{dayLabel}</Text>
+            </View>
+          );
+        })}
+      </View>
+
+      <View style={styles.legendRow}>
+        {(["fluent", "medium", "hard"] as const).map((band) => (
+          <View key={band} style={styles.legendItem}>
+            <View
+              style={[
+                styles.legendDot,
+                {
+                  backgroundColor:
+                    band === "fluent" ? Colors.primary : band === "medium" ? "#E67E22" : Colors.coral,
+                },
+              ]}
+            />
+            <Text style={styles.legendText}>{t(`home.autoTrend.legend.${band}`)}</Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
@@ -139,42 +163,150 @@ export default function MiniAutoTrend({ series }: MiniAutoTrendProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: Radii.card,
-    borderWidth: 1,
+    borderRadius: Radii.button,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    ...Shadows.card,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   headerRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "space-between",
-    marginBottom: Spacing.xs,
+    gap: Spacing.sm,
+    marginBottom: 6,
+  },
+  headerLeft: {
+    flex: 1,
+    minWidth: 0,
   },
   title: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
-    flex: 1,
-  },
-  arrow: {
-    fontSize: FontSizes.md,
-    color: Colors.textSecondary,
-    marginLeft: Spacing.sm,
-  },
-  empty: {
     fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 18,
-    paddingVertical: Spacing.xs,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+    letterSpacing: 0.2,
   },
-  scrollInner: { paddingVertical: 2 },
-  legend: {
+  sub: {
+    marginTop: 2,
     fontSize: 10,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
+  },
+  scoreBadge: {
+    alignItems: "flex-end",
+    gap: 4,
+  },
+  scoreValue: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.primaryDark,
+  },
+  trendPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: Radii.pill,
+    backgroundColor: Colors.surfaceMuted,
+  },
+  trendUp: {
+    backgroundColor: Colors.primaryLight,
+  },
+  trendDown: {
+    backgroundColor: Colors.coralLight,
+  },
+  trendText: {
+    fontSize: 10,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+  },
+  trendTextUp: {
+    color: Colors.primaryDark,
+  },
+  trendTextDown: {
+    color: Colors.coral,
+  },
+  insight: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 16,
+    marginBottom: 8,
+  },
+  empty: {
+    marginTop: 6,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 17,
+  },
+  barsRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 4,
+    height: BAR_MAX + 18,
+  },
+  barCell: {
+    flex: 1,
+    alignItems: "center",
+    minWidth: 0,
+  },
+  barTrack: {
+    width: "100%",
+    maxWidth: 28,
+    height: BAR_MAX,
+    justifyContent: "flex-end",
+    alignItems: "center",
+  },
+  barFill: {
+    width: "72%",
+    minWidth: 6,
+    borderRadius: 4,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
+  },
+  barToday: {
+    borderWidth: 1,
+    borderColor: Colors.primaryDark,
+  },
+  dayLabel: {
     marginTop: 4,
+    fontSize: 9,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textTransform: "uppercase",
+  },
+  dayLabelToday: {
+    color: Colors.primaryDark,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+  },
+  legendRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 8,
+    paddingTop: 6,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: Colors.border,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  legendDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+  },
+  legendText: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
   },
 });

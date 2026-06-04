@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { addDays, format } from "date-fns";
 import {
   View,
@@ -60,8 +61,12 @@ import {
   getCoachNote,
 } from "../constants/theme";
 import { getDailyPrinciple } from "../constants/identity-copy";
-import { DAILY_PRINCIPLES } from "../data/dailyPrinciples";
-import { getJourneyEducationCards, phaseIdFromDay } from "../constants/journeyPhaseEducation";
+import { phaseIdFromDay } from "../constants/journeyPhaseEducation";
+import {
+  getLocalizedCoachNote,
+  getLocalizedDailyPrinciple,
+  getLocalizedJourneyEducationCards,
+} from "../i18n/localizeContent";
 import { getJourneyMomentLine } from "../constants/journeyMoments";
 import { estimateAutomationFromFirst14Linear, getAverageAutomaticity } from "../utils/profileMetrics";
 import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs";
@@ -138,6 +143,7 @@ function useJourneyEntrance(isPremium: boolean) {
 type Props = BottomTabScreenProps<MainTabParamList, "Journey">;
 
 export default function JourneyScreen({ navigation }: Props) {
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const planScrollRef = useRef<ScrollView>(null);
@@ -192,12 +198,15 @@ export default function JourneyScreen({ navigation }: Props) {
 
   const dailyPrinciple = getDailyPrinciple(dayNumber);
   const dailyPrincipleRich = useMemo(
-    () => DAILY_PRINCIPLES.find((p) => p.day === dayNumber) ?? null,
-    [dayNumber]
+    () => getLocalizedDailyPrinciple(dayNumber) ?? null,
+    [dayNumber, i18n.language]
   );
-  const coachNote = getCoachNote(dayNumber);
+  const coachNote = getLocalizedCoachNote(dayNumber);
 
-  const journeyEduCards = useMemo(() => getJourneyEducationCards(dayNumber), [dayNumber]);
+  const journeyEduCards = useMemo(
+    () => getLocalizedJourneyEducationCards(dayNumber),
+    [dayNumber, i18n.language]
+  );
   const journeyEduPhaseId = useMemo<1 | 2 | 3>(() => {
     const p = dailyPrinciple?.phaseId;
     if (p === 1 || p === 2 || p === 3) return p;
@@ -382,9 +391,9 @@ export default function JourneyScreen({ navigation }: Props) {
             <View style={styles.hero}>
               <View style={styles.heroTop}>
                 <View style={styles.heroTitles}>
-                  <Text style={styles.title}>Yolculuğun</Text>
+                  <Text style={styles.title}>{t("journey.titlePremium")}</Text>
                   <Text style={styles.subtitle}>
-                    66 günlük kimlik inşası · Yarın planı + harita · Gün {dayNumber}
+                    {t("journey.subtitle", { day: dayNumber })}
                   </Text>
                 </View>
                 <View style={styles.dayPill}>
@@ -410,8 +419,9 @@ export default function JourneyScreen({ navigation }: Props) {
                 </View>
               </View>
               <Text style={styles.progressHint}>
-                Tamamlama bu dönemde %{Math.round(rate * 100)}
-                {avgAuto != null ? ` · Ort. otomatiklik ${avgAuto.toFixed(1)}/10` : ""}
+                {avgAuto != null
+                  ? t("journey.progressWithAuto", { pct: Math.round(rate * 100), auto: avgAuto.toFixed(1) })
+                  : t("journey.progress", { pct: Math.round(rate * 100) })}
               </Text>
             </View>
           </View>
@@ -419,9 +429,9 @@ export default function JourneyScreen({ navigation }: Props) {
           <View style={styles.freeHeader}>
             <View style={styles.heroTop}>
               <View style={styles.heroTitles}>
-                <Text style={styles.title}>Yolculuk</Text>
+                <Text style={styles.title}>{t("journey.titleFree")}</Text>
                 <Text style={styles.subtitle}>
-                  66 günlük kimlik inşası · Yarın planı · Gün {dayNumber}
+                  {t("journey.subtitleFree", { day: dayNumber })}
                 </Text>
               </View>
               <View style={styles.dayPill}>
@@ -444,7 +454,7 @@ export default function JourneyScreen({ navigation }: Props) {
               </View>
             </View>
             <Text style={styles.progressHint}>
-              Tamamlama %{Math.round(rate * 100)} · Gün {dayNumber}/66
+              {t("journey.progressFree", { pct: Math.round(rate * 100), day: dayNumber })}
             </Text>
           </View>
         )}
@@ -491,7 +501,7 @@ export default function JourneyScreen({ navigation }: Props) {
               <View style={styles.phaseTeaserWrap}>
                 <View style={styles.phaseTeaserHeader}>
                   <BookOpen size={14} color={Colors.primary} strokeWidth={2} />
-                  <Text style={styles.phaseTeaserKicker}>Bu fazda beyin nasıl çalışıyor?</Text>
+                  <Text style={styles.phaseTeaserKicker}>{t("journey.phaseTeaser.kicker")}</Text>
                 </View>
                 <Text style={styles.phaseTeaserTitle}>{journeyEduCards[0].title}</Text>
                 <Text style={styles.phaseTeaserBody} numberOfLines={3}>
@@ -499,7 +509,7 @@ export default function JourneyScreen({ navigation }: Props) {
                 </Text>
                 <View style={styles.phaseTeaserLockRow}>
                   <Lock size={13} color={Colors.primary} strokeWidth={2} />
-                  <Text style={styles.phaseTeaserLockText}>+3 kart daha premium ile açılıyor</Text>
+                  <Text style={styles.phaseTeaserLockText}>{t("journey.phaseTeaser.lockMore")}</Text>
                 </View>
               </View>
             ) : null}
@@ -507,17 +517,14 @@ export default function JourneyScreen({ navigation }: Props) {
             <View style={styles.lockIcon}>
               <Lock size={28} color={Colors.primary} strokeWidth={1.5} />
             </View>
-            <Text style={styles.lockedTitle}>Premium yolculuk paneli</Text>
-            <Text style={styles.lockedSub}>
-              66 gün haritası, Kimlik Aynası, SDT nabzı, faz eğitimi (4 kart) ve her gün için koç paketi.
-              Yarın planın her zaman ücretsiz.
-            </Text>
+            <Text style={styles.lockedTitle}>{t("journey.locked.title")}</Text>
+            <Text style={styles.lockedSub}>{t("journey.locked.body")}</Text>
             <TouchableOpacity
               style={styles.unlockBtn}
               onPress={() => setShowGate(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.unlockBtnText}>Paneli aç</Text>
+              <Text style={styles.unlockBtnText}>{t("journey.locked.unlock")}</Text>
               <ChevronRight size={18} color="#fff" strokeWidth={2} />
             </TouchableOpacity>
           </View>
@@ -532,17 +539,17 @@ export default function JourneyScreen({ navigation }: Props) {
           }}
         >
         <View style={styles.sectionLabelRow}>
-          <Text style={styles.sectionLabel}>BUGÜNÜN PAKETİ</Text>
+          <Text style={styles.sectionLabel}>{t("journey.section.todayPack")}</Text>
         </View>
         <View style={styles.packStack}>
           {coachNoteText ? (
             <View style={styles.milestoneCard}>
-              <Text style={styles.milestoneLabel}>KİLOMETRE TAŞI</Text>
+              <Text style={styles.milestoneLabel}>{t("journey.milestone.label")}</Text>
               <Text style={styles.milestoneText}>{coachNoteText}</Text>
             </View>
           ) : momentLine ? (
             <View style={styles.milestoneCard}>
-              <Text style={styles.milestoneLabel}>BUGÜNÜN BAĞLAMI</Text>
+              <Text style={styles.milestoneLabel}>{t("journey.milestone.context")}</Text>
               <Text style={styles.milestoneText}>{momentLine}</Text>
             </View>
           ) : null}
@@ -580,11 +587,11 @@ export default function JourneyScreen({ navigation }: Props) {
               <BookOpen size={20} color={ACTION_ICON} strokeWidth={2} />
             </View>
             <View style={styles.trainMid}>
-              <Text style={styles.trainTitle}>Bu fazda beyin nasıl çalışıyor?</Text>
+              <Text style={styles.trainTitle}>{t("journey.coach.brainTitle")}</Text>
               <Text style={styles.trainSub}>
                 {eduPhaseCompleted
-                  ? "Bu faz özetini daha önce tamamladın — yenilemek istersen aç."
-                  : "4 kısa kart · ~30 sn · bulunduğun faza göre"}
+                  ? t("journey.coach.brainDone")
+                  : t("journey.coach.brainCards")}
               </Text>
             </View>
             <ChevronRight size={20} color="#CBD5E1" strokeWidth={2} />
@@ -599,7 +606,7 @@ export default function JourneyScreen({ navigation }: Props) {
               <PenLine size={20} color={ACTION_ICON} strokeWidth={2} />
             </View>
             <View style={styles.trainMid}>
-              <Text style={styles.trainTitle}>Yolculuktan bir cümle</Text>
+              <Text style={styles.trainTitle}>{t("journey.coach.sentenceTitle")}</Text>
               <Text style={styles.trainSub}>Zihin’e yazılı sırayla tek satır · iste tam Zihine geç</Text>
               {eduPrefs?.lastMindSentenceSnippet ? (
                 <Text style={styles.mindEcho} numberOfLines={2}>
@@ -619,7 +626,7 @@ export default function JourneyScreen({ navigation }: Props) {
           }}
         >
         <View style={styles.sectionLabelRow}>
-          <Text style={styles.sectionLabel}>66 GÜN · 3 FAZ</Text>
+          <Text style={styles.sectionLabel}>{t("journey.section.phases")}</Text>
         </View>
 
         <ScrollView
@@ -648,7 +655,7 @@ export default function JourneyScreen({ navigation }: Props) {
                   <Text style={styles.phaseCardLockedLabel}>{phase.label}</Text>
                   <Lock size={28} color="#CBD5E1" strokeWidth={1.8} />
                   <Text style={styles.phaseCardLockedHint}>
-                    Gün {phase.startDay}&apos;te açılır
+                    {t("journey.phase.lockedHint", { day: phase.startDay })}
                   </Text>
                 </View>
               );
@@ -673,7 +680,7 @@ export default function JourneyScreen({ navigation }: Props) {
                 ) : (
                   <View style={styles.phaseActiveBadge}>
                     <Text style={styles.phaseActiveBadgeText}>
-                      Şu an · Faz {phase.id}
+                      {t("journey.phase.active", { id: phase.id })}
                     </Text>
                   </View>
                 )}
@@ -702,28 +709,28 @@ export default function JourneyScreen({ navigation }: Props) {
           }}
         >
         <View style={styles.sectionLabelRow}>
-          <Text style={styles.sectionLabel}>BİLİM & ÖLÇÜM</Text>
+          <Text style={styles.sectionLabel}>{t("journey.section.science")}</Text>
         </View>
 
         {dayNumber >= 14 && linearEstimate ? (
           <View style={[styles.regressionCard, styles.cardStackGap]}>
             <View style={styles.regressionRow}>
               <TrendingUp size={18} color={Colors.primary} strokeWidth={1.8} />
-              <Text style={styles.regressionTitle}>Otomatikleşme eğrisi</Text>
+              <Text style={styles.regressionTitle}>{t("journey.regression.title")}</Text>
             </View>
             <Text style={styles.regressionBody}>
-              İlk 14 güne göre tahmini eğim: +{linearEstimate.slopePerDay.toFixed(1)} / gün
+              {t("journey.regression.body", { slope: linearEstimate.slopePerDay.toFixed(1) })}
               {linearEstimate.predictedDayAt7
-                ? ` · ~Gün ${linearEstimate.predictedDayAt7}’te 7/10 bandı`
+                ? t("journey.regression.at7", { day: linearEstimate.predictedDayAt7 })
                 : ""}
             </Text>
           </View>
         ) : null}
 
         <View style={styles.sdtCard}>
-          <Text style={styles.sdtTitle}>Motivasyon nabzı (SDT)</Text>
+          <Text style={styles.sdtTitle}>{t("journey.sdt.title")}</Text>
           <Text style={styles.sdtSub}>
-            Özerklik, yetkinlik, bağlanma — haftalık mini ölçüm
+            {t("journey.sdt.sub")}
           </Text>
 
           {latest ? (
@@ -742,7 +749,7 @@ export default function JourneyScreen({ navigation }: Props) {
           {/* Son 4 hafta trend */}
           {scores.length > 1 ? (
             <View style={styles.sdtTrendBlock}>
-              <Text style={styles.sdtTrendTitle}>Son {Math.min(scores.length, 4)} hafta trendi</Text>
+              <Text style={styles.sdtTrendTitle}>{t("journey.sdt.trend", { count: Math.min(scores.length, 4) })}</Text>
               <View style={styles.sdtTrendRow}>
                 {scores.slice(0, 4).reverse().map((s, i) => {
                   const avg = ((s.autonomy + s.competence + s.relatedness) / 3);
@@ -777,14 +784,14 @@ export default function JourneyScreen({ navigation }: Props) {
           ) : null}
           {!latest ? (
             <TouchableOpacity style={styles.surveyBtn} onPress={() => setShowSurvey(true)}>
-              <Text style={styles.surveyBtnText}>İlk anketi doldur</Text>
+              <Text style={styles.surveyBtnText}>{t("journey.sdt.fillFirst")}</Text>
               <ChevronRight size={18} color={Colors.primary} strokeWidth={2} />
             </TouchableOpacity>
           ) : null}
 
           {latest && needsSurvey() ? (
             <TouchableOpacity onPress={() => setShowSurvey(true)}>
-              <Text style={styles.updateText}>Bu haftayı güncelle</Text>
+              <Text style={styles.updateText}>{t("journey.sdt.update")}</Text>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -820,7 +827,7 @@ export default function JourneyScreen({ navigation }: Props) {
               <View style={styles.shareIconWrap}>
                 <Share2 size={18} color="#10B981" strokeWidth={2} />
               </View>
-              <Text style={styles.shareText}>İlerlemeyi paylaş</Text>
+              <Text style={styles.shareText}>{t("journey.share.button")}</Text>
             </TouchableOpacity>
             <View style={styles.shareUnderline} />
           </View>
@@ -862,7 +869,7 @@ export default function JourneyScreen({ navigation }: Props) {
             style={styles.surveyBackdrop}
             onPress={() => setShowSurvey(false)}
             accessibilityRole="button"
-            accessibilityLabel="Kapat"
+            accessibilityLabel={t("journey.share.closeLabel")}
           />
           <View
             style={[
@@ -877,21 +884,21 @@ export default function JourneyScreen({ navigation }: Props) {
                   <ClipboardList size={20} color={Colors.primary} strokeWidth={1.8} />
                 </View>
                 <View>
-                  <Text style={styles.surveyTitle}>Haftalık anket</Text>
-                  <Text style={styles.surveyMeta}>3 soru · yaklaşık 1 dk</Text>
+                  <Text style={styles.surveyTitle}>{t("journey.survey.title")}</Text>
+                  <Text style={styles.surveyMeta}>{t("journey.survey.meta")}</Text>
                 </View>
               </View>
               <TouchableOpacity
                 style={styles.surveyClose}
                 onPress={() => setShowSurvey(false)}
                 hitSlop={12}
-                accessibilityLabel="Kapat"
+                accessibilityLabel={t("journey.share.closeLabel")}
               >
                 <X size={22} color={Colors.textTertiary} strokeWidth={2} />
               </TouchableOpacity>
             </View>
             <Text style={styles.surveySub}>
-              Bu haftaki hislerine göre 1 (hiç) ile 5 (çok) arasında bir değer seç.
+              {t("journey.survey.sub")}
             </Text>
 
             <ScrollView
@@ -905,7 +912,7 @@ export default function JourneyScreen({ navigation }: Props) {
                 return (
                   <View key={q.id} style={styles.questionCard}>
                     <View style={styles.questionBadge}>
-                      <Text style={styles.questionBadgeText}>Soru {index + 1}</Text>
+                      <Text style={styles.questionBadgeText}>{t("journey.survey.questionNum", { num: index + 1 })}</Text>
                       <Text style={styles.questionBadgeHint}>{q.label}</Text>
                     </View>
                     <Text style={styles.questionText}>{q.question}</Text>
@@ -920,7 +927,7 @@ export default function JourneyScreen({ navigation }: Props) {
                             activeOpacity={0.85}
                             accessibilityRole="button"
                             accessibilityState={{ selected }}
-                            accessibilityLabel={`${v} seç`}
+                            accessibilityLabel={t("journey.survey.selectLabel", { v })}
                           >
                             <Text style={[styles.scaleNum, selected && styles.scaleNumActive]}>
                               {v}
@@ -951,14 +958,14 @@ export default function JourneyScreen({ navigation }: Props) {
                 }}
                 activeOpacity={0.9}
               >
-                <Text style={styles.submitText}>Kaydet ve kapat</Text>
+                <Text style={styles.submitText}>{t("journey.survey.save")}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.cancelBtn}
                 onPress={() => setShowSurvey(false)}
                 hitSlop={{ top: 8, bottom: 8 }}
               >
-                <Text style={styles.cancelText}>Şimdi değil</Text>
+                <Text style={styles.cancelText}>{t("journey.survey.cancel")}</Text>
               </TouchableOpacity>
             </View>
           </View>

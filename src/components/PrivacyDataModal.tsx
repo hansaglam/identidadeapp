@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 import { PRIVACY_POLICY_URL, TERMS_URL } from "../constants/appLinks";
@@ -19,15 +20,14 @@ interface Props {
   onClose: () => void;
 }
 
-const BULLETS = [
-  "Tüm kişisel veriler (profil, check-in geçmişi, Zihin notların) bu cihazda saklanır; sunucuya gönderilmez.",
-  "Hesap e-postası yok — uygulama cihaza bağlıdır. Telefonu kaybetmek veya uygulamayı silmek verilerini kalıcı silebilir; mağaza yedeği oluşturmaz.",
-  "\"Verileri Sil\" seçeneği her şeyi bu cihazdan kaldırır; geri alınamaz.",
-  "Şimdi yap önerileri: metinleri okuyan yapay zekâ yoktur; seçili kelime kalıplarına göre kural tabanlı sinyal kullanılır.",
-] as const;
-
 export default function PrivacyDataModal({ visible, onClose }: Props) {
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
+
+  const bullets = useMemo(
+    () => t("profile.privacy.bullets", { returnObjects: true }) as string[],
+    [t, i18n.language]
+  );
 
   return (
     <Modal
@@ -40,7 +40,7 @@ export default function PrivacyDataModal({ visible, onClose }: Props) {
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, Spacing.md) }]}>
           <Pressable onPress={(e) => e.stopPropagation()}>
             <View style={styles.header}>
-              <Text style={styles.title}>Verilerin ve gizlilik</Text>
+              <Text style={styles.title}>{t("profile.privacy.title")}</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={8}>
                 <X size={18} color={Colors.textTertiary} strokeWidth={1.5} />
               </TouchableOpacity>
@@ -50,27 +50,26 @@ export default function PrivacyDataModal({ visible, onClose }: Props) {
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
             >
-              {BULLETS.map((line, i) => (
-                <Text key={i} style={styles.bullet}>
-                  <Text style={styles.bulletMark}>{"\u2022 "}</Text>
-                  {line}
-                </Text>
-              ))}
-              <Text style={styles.foot}>
-                Premium satın alma mağazan (Apple/Google) üzerinden faturalandırılır;
-                ödeme ayrıntıları kimlik-app tarafından tutulmaz.
-              </Text>
+              {Array.isArray(bullets)
+                ? bullets.map((line, i) => (
+                    <Text key={i} style={styles.bullet}>
+                      <Text style={styles.bulletMark}>{"\u2022 "}</Text>
+                      {line}
+                    </Text>
+                  ))
+                : null}
+              <Text style={styles.foot}>{t("profile.privacy.foot")}</Text>
               <View style={styles.linkRow}>
                 <TouchableOpacity onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
-                  <Text style={styles.linkText}>Gizlilik politikası (web)</Text>
+                  <Text style={styles.linkText}>{t("profile.privacy.privacyLink")}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={() => void Linking.openURL(TERMS_URL)}>
-                  <Text style={styles.linkText}>Kullanım koşulları</Text>
+                  <Text style={styles.linkText}>{t("profile.privacy.termsLink")}</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
             <TouchableOpacity style={styles.primaryBtn} onPress={onClose} activeOpacity={0.85}>
-              <Text style={styles.primaryBtnText}>Tamam</Text>
+              <Text style={styles.primaryBtnText}>{t("profile.privacy.ok")}</Text>
             </TouchableOpacity>
           </Pressable>
         </View>

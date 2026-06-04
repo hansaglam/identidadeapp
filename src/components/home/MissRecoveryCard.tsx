@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { RotateCcw, Zap } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
 import { getMissedDayMessage } from "../../utils/missProtocol";
 
 interface Props {
@@ -17,7 +18,8 @@ export default function MissRecoveryCard({
   onStartSmallestStep,
   onOpenCheckIn,
 }: Props) {
-  const msg = getMissedDayMessage(consecutiveMiss);
+  const { t } = useTranslation();
+  const msg = getMissedDayMessage(consecutiveMiss, t);
 
   return (
     <View style={styles.card}>
@@ -26,7 +28,7 @@ export default function MissRecoveryCard({
           <RotateCcw size={18} color={Colors.coral} strokeWidth={2} />
         </View>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Kaçırma protokolü</Text>
+          <Text style={styles.kicker}>{t("home.miss.kicker")}</Text>
           <Text style={styles.title}>{msg.title}</Text>
         </View>
       </View>
@@ -40,13 +42,15 @@ export default function MissRecoveryCard({
         <Zap size={16} color="#fff" strokeWidth={2.5} />
         <Text style={styles.primaryBtnText}>
           {suggestedActionTitle
-            ? `En küçük adım: ${suggestedActionTitle.slice(0, 42)}${suggestedActionTitle.length > 42 ? "…" : ""}`
-            : "En küçük adımı başlat"}
+            ? t("home.miss.smallestStep", {
+                title: `${suggestedActionTitle.slice(0, 42)}${suggestedActionTitle.length > 42 ? "…" : ""}`,
+              })
+            : t("home.miss.startSmallest")}
         </Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.secondaryBtn} onPress={onOpenCheckIn} activeOpacity={0.85}>
-        <Text style={styles.secondaryBtnText}>Günü onaylamaya geç</Text>
+        <Text style={styles.secondaryBtnText}>{t("home.miss.goToCheckIn")}</Text>
       </TouchableOpacity>
     </View>
   );

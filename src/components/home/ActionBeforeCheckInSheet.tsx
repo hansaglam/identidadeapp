@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Zap, ArrowRight } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
 import type { Action } from "../../engine";
 
 interface Props {
@@ -29,7 +30,8 @@ export default function ActionBeforeCheckInSheet({
   onContinueCheckIn,
   onClose,
 }: Props) {
-  const title = suggestedAction?.title ?? "Bugünün küçük adımı";
+  const { t } = useTranslation();
+  const title = suggestedAction?.title ?? t("home.actionGate.defaultTitle");
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -42,12 +44,10 @@ export default function ActionBeforeCheckInSheet({
               <Zap size={22} color={Colors.primary} strokeWidth={2.2} />
             </View>
             <Text style={styles.title}>
-              {strict ? "Önce adımı tamamla" : "Önce küçük adım, sonra onay"}
+              {strict ? t("home.actionGate.strictTitle") : t("home.actionGate.softTitle")}
             </Text>
             <Text style={styles.body}>
-              {strict
-                ? "Günü onaylamadan önce bugünün önerilen adımını bitir. Süre kısa — momentum için."
-                : "Check-in alışkanlığı güçlendirir; ama 30 saniyelik bir hareket beyni gerçekten hazırlar."}
+              {strict ? t("home.actionGate.strictBody") : t("home.actionGate.softBody")}
             </Text>
             {suggestedAction ? (
               <View style={styles.actionPreview}>
@@ -56,8 +56,8 @@ export default function ActionBeforeCheckInSheet({
                 </Text>
                 <Text style={styles.actionPreviewMeta}>
                   {suggestedAction.duration > 0
-                    ? `${suggestedAction.duration} sn`
-                    : "Tek hareket"}
+                    ? t("home.actionGate.seconds", { count: suggestedAction.duration })
+                    : t("home.actionGate.singleAction")}
                 </Text>
               </View>
             ) : null}
@@ -67,7 +67,7 @@ export default function ActionBeforeCheckInSheet({
               onPress={onStartAction}
               activeOpacity={0.88}
             >
-              <Text style={styles.primaryBtnText}>Adımı başlat</Text>
+              <Text style={styles.primaryBtnText}>{t("home.actionGate.startAction")}</Text>
               <ArrowRight size={16} color="#fff" strokeWidth={2.5} />
             </TouchableOpacity>
 
@@ -77,12 +77,10 @@ export default function ActionBeforeCheckInSheet({
                 onPress={onContinueCheckIn}
                 activeOpacity={0.85}
               >
-                <Text style={styles.secondaryBtnText}>Doğrudan günü onayla</Text>
+                <Text style={styles.secondaryBtnText}>{t("home.actionGate.skipToCheckIn")}</Text>
               </TouchableOpacity>
             ) : (
-              <Text style={styles.strictHint}>
-                Sıkı mod açık — Profil → Gelişmiş tercihlerden kapatabilirsin.
-              </Text>
+              <Text style={styles.strictHint}>{t("home.actionGate.strictHint")}</Text>
             )}
           </View>
         </SafeAreaView>

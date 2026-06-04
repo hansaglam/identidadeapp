@@ -1,16 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Lightbulb, FlaskConical, Zap, Sparkles } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
-import { getCoachNote } from "../../constants/identity-copy";
 import { phaseIdFromDay } from "../../constants/journeyPhaseEducation";
-import { DAILY_PRINCIPLES } from "../../data/dailyPrinciples";
-
-const PHASE_LABELS: Record<1 | 2 | 3, string> = {
-  1: "Kuruluş",
-  2: "Pekiştirme",
-  3: "Otomatikleşme",
-};
+import {
+  getLocalizedCoachNote,
+  getLocalizedDailyPrinciple,
+} from "../../i18n/localizeContent";
 
 interface Props {
   dayNumber: number;
@@ -18,8 +15,20 @@ interface Props {
 }
 
 export default function DailyCoachCard({ dayNumber, isPremium = false }: Props) {
-  const dailyEntry = DAILY_PRINCIPLES.find((p) => p.day === dayNumber) ?? null;
-  const milestone = getCoachNote(dayNumber);
+  const { t, i18n } = useTranslation();
+  const phaseLabels: Record<1 | 2 | 3, string> = {
+    1: t("coachCard.phase1"),
+    2: t("coachCard.phase2"),
+    3: t("coachCard.phase3"),
+  };
+  const dailyEntry = React.useMemo(
+    () => getLocalizedDailyPrinciple(dayNumber) ?? null,
+    [dayNumber, i18n.language]
+  );
+  const milestone = React.useMemo(
+    () => getLocalizedCoachNote(dayNumber),
+    [dayNumber, i18n.language]
+  );
   const phaseId = (dailyEntry?.phase ?? phaseIdFromDay(dayNumber)) as 1 | 2 | 3;
 
   if (!dailyEntry && !milestone) return null;
@@ -36,10 +45,10 @@ export default function DailyCoachCard({ dayNumber, isPremium = false }: Props) 
         </View>
         <View style={styles.headerText}>
           <Text style={styles.kicker}>
-            {isPremium ? "✦ " : ""}Gün {dayNumber} · {PHASE_LABELS[phaseId]}
+            {isPremium ? "✦ " : ""}{t("coachCard.kicker", { day: dayNumber, phase: phaseLabels[phaseId] })}
           </Text>
           <Text style={styles.title}>
-            {isPremium ? "Koç paketi — bugünün ilkesi" : "Bugünün ilkesi"}
+            {isPremium ? t("coachCard.titlePremium") : t("coachCard.title")}
           </Text>
         </View>
       </View>
@@ -64,14 +73,14 @@ export default function DailyCoachCard({ dayNumber, isPremium = false }: Props) 
 
       {milestone ? (
         <View style={styles.milestoneWrap}>
-          <Text style={styles.milestoneLabel}>Kilometre taşı</Text>
+          <Text style={styles.milestoneLabel}>{t("coachCard.milestone")}</Text>
           <Text style={styles.milestoneBody}>{milestone}</Text>
         </View>
       ) : null}
 
       {isPremium && (
         <Text style={styles.premiumNote}>
-          Yolculuk sekmesinde harita, Kimlik Aynası ve SDT nabzın seni bekliyor.
+          {t("coachCard.premiumNote")}
         </Text>
       )}
     </View>

@@ -9,6 +9,7 @@ import * as Haptics from "expo-haptics";
 import { Zap } from "lucide-react-native";
 import { Colors, FontSizes } from "../../constants/theme";
 import { useBehaviorStore } from "../../store/useBehaviorStore";
+import { useTranslation } from "react-i18next";
 import { trackEvent } from "../../utils/analytics";
 import BehaviorActionCard from "../BehaviorActionCard";
 import LiveActionModal from "../LiveActionModal";
@@ -21,6 +22,8 @@ export interface HeroActionSectionHandle {
 
 interface Props {
   userBehaviorState: UserState | null;
+  habitAnchor?: string;
+  habitName?: string;
   hapticsEnabled: boolean;
   onToast: (msg: string) => void;
   onActionRecorded?: () => void;
@@ -28,9 +31,10 @@ interface Props {
 
 const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
   function HeroActionSection(
-    { userBehaviorState, hapticsEnabled, onToast, onActionRecorded },
+    { userBehaviorState, habitAnchor, habitName, hapticsEnabled, onToast, onActionRecorded },
     ref
   ) {
+    const { t } = useTranslation();
     const [liveAction, setLiveAction] = useState<Action | null>(null);
     const [showLiveModal, setShowLiveModal] = useState(false);
     const [showInterruptModal, setShowInterruptModal] = useState(false);
@@ -73,7 +77,7 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
       setShowLiveModal(false);
       setShowInterruptModal(false);
       onActionRecorded?.();
-      onToast("Adım kaydedildi. Disiplin kası güçleniyor.");
+      onToast(t("home.toast.actionRecorded"));
     }, [userBehaviorState, hapticsEnabled, onToast, onActionRecorded]);
 
     const handleInterruptDone = useCallback(async () => {
@@ -95,11 +99,13 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
       <View style={styles.wrap}>
         <View style={styles.labelRow}>
           <Zap size={13} color={Colors.primary} strokeWidth={2.5} />
-          <Text style={styles.label}>Bugünün adımı</Text>
+          <Text style={styles.label}>{t("home.hero.todayStep")}</Text>
         </View>
 
         <BehaviorActionCard
           state={userBehaviorState}
+          habitAnchor={habitAnchor}
+          habitName={habitName}
           onPress={handleActionPress}
           compact
           surface
@@ -108,6 +114,8 @@ const HeroActionSection = forwardRef<HeroActionSectionHandle, Props>(
         <LiveActionModal
           visible={showLiveModal}
           action={liveAction}
+          habitAnchor={habitAnchor}
+          habitName={habitName}
           onComplete={handleActionComplete}
           onCancel={handleActionCancel}
         />

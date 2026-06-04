@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
+import { useCheckinsStore } from "./checkinsStore";
 import { useUserStore } from "./userStore";
 import { uuid } from "../utils/uuid";
 import {
@@ -256,6 +257,8 @@ export const useTomorrowPlanStore = create<TomorrowPlanState>((set, get) => ({
   },
 
   toggleItem: async (date, id) => {
+    const checkin = useCheckinsStore.getState().checkins[date];
+    if (checkin?.completed) return;
     const existing = get().listsByDate[date];
     if (!existing) return;
     const now = new Date().toISOString();

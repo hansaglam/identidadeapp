@@ -29,15 +29,15 @@ export const MIND_MODAL_START_PHRASES: readonly string[] = [
 ];
 
 export function getDailyMindPrompt(dayNumber: number): string {
-  const seed = dayNumber + new Date().getDate();
-  return MIND_DUMP_DAILY_PROMPTS[Math.abs(seed) % MIND_DUMP_DAILY_PROMPTS.length]!;
+  const {
+    getLocalizedDailyMindPrompt,
+  } = require("../i18n/localizeContent") as typeof import("../i18n/localizeContent");
+  return getLocalizedDailyMindPrompt(dayNumber);
 }
 
 export function getMindModalStartPhrases(dayNumber: number): readonly string[] {
-  const daily = getDailyMindPrompt(dayNumber);
-  const base = [...MIND_MODAL_START_PHRASES];
-  if (!base.includes(daily)) {
-    return [daily, ...base.slice(0, 3)];
-  }
-  return base;
+  const {
+    getLocalizedMindModalStartPhrases,
+  } = require("../i18n/localizeContent") as typeof import("../i18n/localizeContent");
+  return getLocalizedMindModalStartPhrases(dayNumber);
 }

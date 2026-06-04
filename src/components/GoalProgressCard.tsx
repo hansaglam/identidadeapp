@@ -1,15 +1,12 @@
 /**
  * GoalProgressCard — 66 günlük yolculuk özeti.
- *
- * - Tahmini bitiş tarihi
- * - Faz göstergesi (Kuruluş / Pekiştirme / Otomatikleşme)
- * - Görsel ilerleme barı (faz renkli segmentler)
  */
 
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { addDays, format, parseISO } from "date-fns";
-import { tr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
+import { getDateFnsLocale } from "../utils/dateFnsLocale";
 import { Colors, FontSizes, Radii, Spacing, Shadows } from "../constants/theme";
 
 interface Props {
@@ -17,52 +14,45 @@ interface Props {
   startDate: string;
 }
 
-const PHASES = [
-  { label: "Kuruluş", start: 1, end: 22, color: Colors.primary },
-  { label: "Pekiştirme", start: 23, end: 44, color: Colors.purple },
-  { label: "Otomatikleşme", start: 45, end: 66, color: Colors.coral },
-] as const;
-
-function currentPhase(day: number) {
-  return PHASES.find((p) => day >= p.start && day <= p.end) ?? PHASES[2];
-}
-
 export default function GoalProgressCard({ dayNumber, startDate }: Props) {
-  const progress = Math.min(dayNumber / 66, 1);
-  const phase = currentPhase(dayNumber);
+  const { t, i18n } = useTranslation();
+
+  const phases = useMemo(
+    () =>
+      [
+        { label: t("profile.goalProgress.phase1"), start: 1, end: 22, color: Colors.primary },
+        { label: t("profile.goalProgress.phase2"), start: 23, end: 44, color: Colors.purple },
+        { label: t("profile.goalProgress.phase3"), start: 45, end: 66, color: Colors.coral },
+      ] as const,
+    [t, i18n.language]
+  );
+
+  const phase = phases.find((p) => dayNumber >= p.start && dayNumber <= p.end) ?? phases[2];
   const daysLeft = Math.max(66 - dayNumber, 0);
   const finishDate = addDays(parseISO(startDate), 65);
-  const finishStr = format(finishDate, "d MMMM yyyy", { locale: tr });
+  const finishStr = format(finishDate, "d MMM yyyy", { locale: getDateFnsLocale() });
 
   return (
     <View style={styles.card}>
-      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.label}>66 Günlük Yolculuk</Text>
+        <View style={styles.headerMain}>
+          <Text style={styles.label}>{t("profile.goalProgress.title")}</Text>
           <Text style={styles.dayCount}>
-            {dayNumber} / 66 gün
+            {t("profile.goalProgress.dayCount", { day: dayNumber })}
           </Text>
         </View>
         <View style={[styles.phasePill, { backgroundColor: phase.color + "22" }]}>
-          <Text style={[styles.phaseText, { color: phase.color }]}>
-            {phase.label}
-          </Text>
+          <Text style={[styles.phaseText, { color: phase.color }]}>{phase.label}</Text>
         </View>
       </View>
 
-      {/* Segmented progress bar */}
       <View style={styles.barTrack}>
-        {PHASES.map((p) => {
+        {phases.map((p) => {
           const segTotal = p.end - p.start + 1;
           const filled = Math.max(0, Math.min(dayNumber - p.start + 1, segTotal));
           const fillRatio = filled / segTotal;
-          const segWidth = segTotal / 66;
           return (
-            <View
-              key={p.label}
-              style={[styles.barSegment, { flex: segTotal }]}
-            >
+            <View key={p.label} style={[styles.barSegment, { flex: segTotal }]}>
               <View
                 style={[
                   styles.barFill,
@@ -77,15 +67,11 @@ export default function GoalProgressCard({ dayNumber, startDate }: Props) {
         })}
       </View>
 
-      {/* Phase labels */}
       <View style={styles.phaseLabels}>
-        {PHASES.map((p) => (
+        {phases.map((p) => (
           <Text
             key={p.label}
-            style={[
-              styles.phaseLabelText,
-              dayNumber >= p.start && { color: p.color },
-            ]}
+            style={[styles.phaseLabelText, dayNumber >= p.start && { color: p.color }]}
           >
             G{p.start}
           </Text>
@@ -93,18 +79,19 @@ export default function GoalProgressCard({ dayNumber, startDate }: Props) {
         <Text style={styles.phaseLabelText}>G66</Text>
       </View>
 
-      {/* Footer */}
       <View style={styles.footer}>
         {daysLeft > 0 ? (
           <>
-            <Text style={styles.footerLeft}>
-              <Text style={styles.footerEmphasis}>{daysLeft} gün</Text> kaldı
+            <Text style={styles.footerLeft} numberOfLines={1}>
+              {t("profile.goalProgress.daysLeft", { count: daysLeft })}
             </Text>
-            <Text style={styles.footerRight}>Hedef: {finishStr}</Text>
+            <Text style={styles.footerRight} numberOfLines={1}>
+              {t("profile.goalProgress.target", { date: finishStr })}
+            </Text>
           </>
         ) : (
-          <Text style={[styles.footerLeft, { color: Colors.primary }]}>
-            🎯 66 gün tamamlandı. Bu artık kim olduğunun bir parçası.
+          <Text style={[styles.footerLeft, styles.footerComplete]}>
+            {t("profile.goalProgress.completed")}
           </Text>
         )}
       </View>
@@ -115,45 +102,52 @@ export default function GoalProgressCard({ dayNumber, startDate }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: Radii.card,
+    borderRadius: Radii.button,
     borderWidth: 1,
     borderColor: Colors.border,
-    padding: Spacing.lg,
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
-    ...Shadows.card,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    gap: 8,
+    marginBottom: Spacing.sm,
+    ...Shadows.soft,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    gap: 8,
+  },
+  headerMain: {
+    flex: 1,
+    minWidth: 0,
   },
   label: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_500Medium",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
     color: Colors.textTertiary,
     textTransform: "uppercase",
-    letterSpacing: 1,
-    marginBottom: 2,
+    letterSpacing: 0.8,
+    marginBottom: 1,
   },
   dayCount: {
-    fontSize: FontSizes.xl,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
     color: Colors.textPrimary,
   },
   phasePill: {
     borderRadius: Radii.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    flexShrink: 0,
   },
   phaseText: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_500Medium",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
   },
   barTrack: {
-    height: 6,
+    height: 4,
     flexDirection: "row",
-    gap: 3,
+    gap: 2,
     borderRadius: Radii.full,
     overflow: "hidden",
   },
@@ -169,34 +163,40 @@ const styles = StyleSheet.create({
   phaseLabels: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: -Spacing.xs,
+    marginTop: -2,
   },
   phaseLabelText: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
+    fontSize: 9,
+    fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
   },
   footer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    borderTopWidth: 1,
+    gap: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: Colors.border,
-    paddingTop: Spacing.sm,
-    marginTop: -Spacing.xs,
+    paddingTop: 6,
+    marginTop: 0,
   },
   footerLeft: {
-    fontSize: FontSizes.sm,
+    flex: 1,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
-  footerEmphasis: {
+  footerComplete: {
+    flex: 1,
     fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
+    color: Colors.primary,
   },
   footerRight: {
-    fontSize: FontSizes.xs,
+    flexShrink: 1,
+    maxWidth: "52%",
+    fontSize: 9,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
+    textAlign: "right",
   },
 });

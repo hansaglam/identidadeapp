@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -86,6 +87,7 @@ export default function AdvancedPreferencesCard({
   onPatch,
   visibleSections,
 }: Props) {
+  const { t } = useTranslation();
   const all: AdvancedPreferenceSection[] = ["context", "rest", "notifications", "backup"];
   const sections = visibleSections ?? all;
   const show = (k: AdvancedPreferenceSection) => sections.includes(k);
@@ -105,12 +107,12 @@ export default function AdvancedPreferencesCard({
   const applyParsedUnknown = async (raw: unknown) => {
     const parsed = parseExportPayloadFromUnknown(raw);
     if ("error" in parsed) {
-      Alert.alert("Yedek", parsed.error);
+      Alert.alert(t("profile.advanced.alertBackup"), parsed.error);
       return;
     }
     await applyExportPayload(parsed);
     await reloadAllStoresAfterRestore();
-    Alert.alert("Tamam", "Yedek uygulandı (v1 veya v2); kayıtlar güncellendi.");
+    Alert.alert(t("profile.advanced.alertOk"), t("profile.advanced.restoreSuccess"));
     setPasteOpen(false);
     setPasteText("");
   };
@@ -157,10 +159,7 @@ export default function AdvancedPreferencesCard({
         },
       });
     } catch {
-      Alert.alert(
-        "Yedek",
-        "Dosya oluşturulamadı veya paylaşım açılamadı. İzinleri kontrol edip tekrar dene."
-      );
+      Alert.alert(t("profile.advanced.alertBackup"), t("profile.advanced.exportFail"));
     } finally {
       setBusy(false);
     }
@@ -175,83 +174,89 @@ export default function AdvancedPreferencesCard({
     if ("cancel" in result && result.cancel) return;
     if ("nativeMissing" in result && result.nativeMissing) {
       Alert.alert(
-        "Dosya seçici kullanılamıyor",
-        "Expo Go veya güncellenmemiş derlemede dosya seçici modülü bulunmayabilir.\n\n" +
-          "• Tam çözüm: projeyi yeniden derle — npm run android / npm run ios.\n\n" +
-          "• Hızlı seçenek: yedek .json içeriğini panodan açıp «Yapıştırarak geri yükle» ile yükle.",
+        t("profile.advanced.pickerUnavailableTitle"),
+        t("profile.advanced.pickerUnavailableMsg"),
         [
-          { text: "Tamam", style: "cancel" },
+          { text: t("profile.advanced.alertOk"), style: "cancel" },
           {
-            text: "Yapıştır ile devam et",
+            text: t("profile.advanced.pasteContinue"),
             onPress: () => setPasteOpen(true),
           },
         ]
       );
       return;
     }
-    Alert.alert("Yedek", "Dosya açılamadı veya okunamadı.");
+    Alert.alert(t("profile.advanced.alertBackup"), t("profile.advanced.importFail"));
   };
 
   const importTap = () => {
     Alert.alert(
-      "Yedeği yükle",
-      "Mevcut veriler seçtiğin JSON ile değiştirilir (geri alınamaz). Devam etmek istiyor musun?",
+      t("profile.advanced.importConfirmTitle"),
+      t("profile.advanced.importConfirmMsg"),
       [
-        { text: "Vazgeç", style: "cancel" },
-        { text: "Yedeği yükle", style: "destructive", onPress: () => void wrap(runFileImport) },
+        { text: t("profile.advanced.cancel"), style: "cancel" },
+        {
+          text: t("profile.advanced.importConfirmBtn"),
+          style: "destructive",
+          onPress: () => void wrap(runFileImport),
+        },
       ]
     );
   };
 
   const openPasteRestore = () => {
     Alert.alert(
-      "Yapıştırarak geri yükle",
-      "Mevcut veriler yapıştırdığın JSON ile değiştirilir (geri alınamaz).",
+      t("profile.advanced.pasteConfirmTitle"),
+      t("profile.advanced.pasteConfirmMsg"),
       [
-        { text: "Vazgeç", style: "cancel" },
-        { text: "Devam", style: "destructive", onPress: () => setPasteOpen(true) },
+        { text: t("profile.advanced.cancel"), style: "cancel" },
+        { text: t("profile.advanced.continue"), style: "destructive", onPress: () => setPasteOpen(true) },
       ]
     );
   };
 
   const applyPaste = () =>
     wrap(async () => {
-      const t = pasteText.trim();
-      if (!t) {
-        Alert.alert("Yedek", "Önce JSON metnini yapıştır.");
+      const rawText = pasteText.trim();
+      if (!rawText) {
+        Alert.alert(t("profile.advanced.alertBackup"), t("profile.advanced.pasteEmpty"));
         return;
       }
       try {
-        const raw = JSON.parse(t) as unknown;
+        const raw = JSON.parse(rawText) as unknown;
         await applyParsedUnknown(raw);
       } catch {
-        Alert.alert("Yedek", "Geçerli bir JSON değil veya dosya kesik kopyalanmış olabilir.");
+        Alert.alert(t("profile.advanced.alertBackup"), t("profile.advanced.pasteInvalid"));
       }
     });
 
   const ctxOpts: { id: NonNullable<UserProfile["contextPreset"]>; label: string }[] = [
-    { id: "home", label: "Ev" },
-    { id: "work", label: "İş" },
-    { id: "travel", label: "Seyahat" },
+    { id: "home", label: t("profile.advanced.contextHome") },
+    { id: "work", label: t("profile.advanced.contextWork") },
+    { id: "travel", label: t("profile.advanced.contextTravel") },
   ];
 
   const restLabel = profile.restModeUntilISO
-    ? `Mola · ${profile.restModeUntilISO.slice(0, 10)} tarihine kadar`
-    : "Mola yok";
+    ? t("profile.advanced.restUntil", { date: profile.restModeUntilISO.slice(0, 10) })
+    : t("profile.advanced.restNone");
 
   return (
     <>
       <View style={[styles.card, { backgroundColor: Colors.surface, borderColor: Colors.border }]}>
         {show("context") ? (
           <>
-            <Text style={[styles.section, { color: Colors.textTertiary }]}>BAĞLAM VE RİTİM</Text>
+            <Text style={[styles.section, { color: Colors.textTertiary }]}>
+              {t("profile.advanced.sectionContext")}
+            </Text>
 
             <View style={styles.rowHead}>
               <MapPin size={16} color={Colors.purple} strokeWidth={1.6} />
-              <Text style={[styles.head, { color: Colors.textPrimary }]}>Bugün bağlamı</Text>
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>
+                {t("profile.advanced.contextTitle")}
+              </Text>
             </View>
             <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-              Kart altında bağlam ipucu; kişiyi okuyan yapay zekâ yok.
+              {t("profile.advanced.contextHint")}
             </Text>
             <View style={styles.chipRow}>
               <TouchableOpacity
@@ -266,7 +271,9 @@ export default function AdvancedPreferencesCard({
                 ]}
                 onPress={() => void setContext(null)}
               >
-                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>Varsayılan</Text>
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>
+                  {t("profile.advanced.contextDefault")}
+                </Text>
               </TouchableOpacity>
               {ctxOpts.map((c) => {
                 const sel = profile.contextPreset === c.id;
@@ -302,24 +309,30 @@ export default function AdvancedPreferencesCard({
               <Text style={[styles.head, { color: Colors.textPrimary }]}>{restLabel}</Text>
             </View>
             <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-              Bu tarihe kadar push’lar hafifletilir; süre sonunda otomatik kalkar (istersen önce iptal et).
+              {t("profile.advanced.restHint")}
             </Text>
             <View style={styles.chipRow}>
               <TouchableOpacity
                 style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
                 onPress={() => void restQuick(2)}
               >
-                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>3 gün mola</Text>
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>
+                  {t("profile.advanced.rest3")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.chip, { borderWidth: 1, borderColor: Colors.border, backgroundColor: Colors.bg }]}
                 onPress={() => void restQuick(6)}
               >
-                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>7 gün mola</Text>
+                <Text style={[styles.chipText, { color: Colors.textSecondary }]}>
+                  {t("profile.advanced.rest7")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.chip, { borderWidth: 1, borderColor: Colors.coral }]} onPress={() => void setRest(null)}>
                 <X size={14} color={Colors.coral} />
-                <Text style={[styles.chipText, { color: Colors.coral, marginLeft: 6 }]}>Kaldır</Text>
+                <Text style={[styles.chipText, { color: Colors.coral, marginLeft: 6 }]}>
+                  {t("profile.advanced.restClear")}
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -331,33 +344,35 @@ export default function AdvancedPreferencesCard({
           <>
             <View style={styles.rowHead}>
               <Bell size={16} color={Colors.primary} strokeWidth={1.6} />
-              <Text style={[styles.head, { color: Colors.textPrimary }]}>Bildirim ince ayar</Text>
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>
+                {t("profile.advanced.notifFineTune")}
+              </Text>
             </View>
 
             <ToggleLine
               icon={<Sunrise size={14} color={Colors.textSecondary} />}
-              title="Sabah bildirimi"
+              title={t("profile.advanced.notifyMorning")}
               value={profile.notifyMorningEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyMorningEnabled: v })}
             />
             <ToggleLine
               icon={<Sunset size={14} color={Colors.textSecondary} />}
-              title="Akşam hatırlatması"
+              title={t("profile.advanced.notifyEvening")}
               value={profile.notifyEveningEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyEveningEnabled: v })}
             />
             <ToggleLine
               icon={<Calendar size={14} color={Colors.textSecondary} />}
-              title="Hafta sonu bildirimleri"
+              title={t("profile.advanced.notifyWeekend")}
               value={profile.notifyWeekendEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyWeekendEnabled: v })}
             />
             <ToggleLine
               icon={<Bell size={14} color={Colors.textSecondary} />}
-              title="Faz milestone push"
+              title={t("profile.advanced.notifyPhaseMilestones")}
               value={profile.notifyPhaseMilestones !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyPhaseMilestones: v })}
@@ -371,10 +386,12 @@ export default function AdvancedPreferencesCard({
           <>
             <View style={styles.rowHead}>
               <Archive size={16} color={Colors.textSecondary} strokeWidth={1.6} />
-              <Text style={[styles.head, { color: Colors.textPrimary }]}>Yerel yedek (JSON)</Text>
+              <Text style={[styles.head, { color: Colors.textPrimary }]}>
+                {t("profile.advanced.backupTitle")}
+              </Text>
             </View>
             <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-              Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.
+              {t("profile.advanced.backupHint")}
             </Text>
             <TouchableOpacity
               style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
@@ -386,7 +403,7 @@ export default function AdvancedPreferencesCard({
               ) : (
                 <>
                   <Share2 size={16} color="#fff" strokeWidth={2} />
-                  <Text style={styles.exportTxt}>Paylaşım olarak dışa aktar</Text>
+                  <Text style={styles.exportTxt}>{t("profile.advanced.exportBtn")}</Text>
                 </>
               )}
             </TouchableOpacity>
@@ -396,7 +413,9 @@ export default function AdvancedPreferencesCard({
               disabled={busy}
             >
               <Upload size={16} color={Colors.primary} strokeWidth={1.8} />
-              <Text style={[styles.importTxt, { color: Colors.primary }]}>JSON dosyasından geri yükle</Text>
+              <Text style={[styles.importTxt, { color: Colors.primary }]}>
+                {t("profile.advanced.importBtn")}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.pasteBtn, { borderColor: Colors.borderStrong }]}
@@ -404,7 +423,9 @@ export default function AdvancedPreferencesCard({
               disabled={busy}
             >
               <ClipboardPaste size={16} color={Colors.textSecondary} strokeWidth={1.8} />
-              <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>Yapıştırarak geri yükle</Text>
+              <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>
+                {t("profile.advanced.pasteBtn")}
+              </Text>
             </TouchableOpacity>
           </>
         ) : null}
@@ -417,9 +438,11 @@ export default function AdvancedPreferencesCard({
         >
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setPasteOpen(false)} />
           <View style={[styles.modalSheet, { backgroundColor: Colors.surface, borderColor: Colors.border }]}>
-            <Text style={[styles.modalTitle, { color: Colors.textPrimary }]}>Yedek JSON</Text>
+            <Text style={[styles.modalTitle, { color: Colors.textPrimary }]}>
+              {t("profile.advanced.pasteModalTitle")}
+            </Text>
             <Text style={[styles.modalHint, { color: Colors.textTertiary }]}>
-              .json dosyasını metin düzenleyicide açıp tüm içeriği kopyala; buraya yapıştırıp «Uygula»ya bas.
+              {t("profile.advanced.pasteModalHint")}
             </Text>
             <TextInput
               style={[
@@ -434,13 +457,15 @@ export default function AdvancedPreferencesCard({
               onChangeText={setPasteText}
               multiline
               textAlignVertical="top"
-              placeholder="Tam yedek JSON metnini buraya yapıştır (schemaVersion, profile, …)"
+              placeholder={t("profile.advanced.pastePlaceholder")}
               placeholderTextColor={Colors.textTertiary}
               editable={!busy}
             />
             <View style={styles.modalActions}>
               <TouchableOpacity style={styles.modalCancel} onPress={() => setPasteOpen(false)} disabled={busy}>
-                <Text style={[styles.modalCancelTxt, { color: Colors.textSecondary }]}>İptal</Text>
+                <Text style={[styles.modalCancelTxt, { color: Colors.textSecondary }]}>
+                  {t("profile.advanced.cancel")}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.modalApply, { backgroundColor: Colors.primary }]}
@@ -450,7 +475,7 @@ export default function AdvancedPreferencesCard({
                 {busy ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={styles.modalApplyTxt}>Uygula</Text>
+                  <Text style={styles.modalApplyTxt}>{t("profile.advanced.apply")}</Text>
                 )}
               </TouchableOpacity>
             </View>

@@ -1,29 +1,10 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Share } from "react-native";
-import { Share2 } from "lucide-react-native";
+import { View, Text, StyleSheet } from "react-native";
+import { CalendarRange } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { CheckinRecord } from "../types";
-import { buildWeeklyDigest, type WeeklyDigest } from "../utils/weeklySummary";
+import { buildWeeklyDigest } from "../utils/weeklySummary";
 import { Spacing, Radii, FontSizes, Colors, Shadows } from "../constants/theme";
-
-function formatDigestShare(digest: WeeklyDigest, habitName: string): string {
-  const h = habitName.trim() || "alışkanlık";
-  let t = `Haftalık özet (${digest.windowLabel}) — ${h}\n`;
-  t += `Tamamlanan günler: ${digest.completedDays}/7\n`;
-  if (digest.missedDaysInWindow > 0) {
-    t += `Kaçırılan günler (pencere): ${digest.missedDaysInWindow}\n`;
-  }
-  if (digest.slipProneWeekdayShort) {
-    t += `Dikkat: son günlerde aksamalar genelde ${digest.slipProneWeekdayShort} çevresinde.\n`;
-  }
-  if (digest.completionTimePeak) {
-    t += `${digest.completionTimePeak}\n`;
-  }
-  if (digest.completionTimeCaveat) {
-    t += `${digest.completionTimeCaveat}\n`;
-  }
-  t += "\n— Kimlik (yerel veri)";
-  return t;
-}
 
 interface Props {
   startDate: string;
@@ -31,110 +12,174 @@ interface Props {
   habitName: string;
 }
 
-export default function WeeklySummaryCard({ startDate, checkins, habitName }: Props) {
+export default function WeeklySummaryCard({ startDate, checkins }: Props) {
+  const { t, i18n } = useTranslation();
   const digest = useMemo(
     () => buildWeeklyDigest(startDate, checkins),
-    [startDate, checkins]
+    [startDate, checkins, i18n.language]
   );
 
-  const onShare = () => {
-    Share.share({
-      message: formatDigestShare(digest, habitName),
-      title: "Haftalık özet",
-    }).catch(() => {});
-  };
+  const slipHint = digest.slipProneWeekdayShort
+    ? t("profile.weeklySummary.slipHint", { day: digest.slipProneWeekdayShort })
+    : t("profile.weeklySummary.consistentHint");
 
   return (
-    <View style={[styles.card, { backgroundColor: Colors.surface, borderColor: Colors.border }, Shadows.card]}>
-      <Text style={[styles.title, { color: Colors.textPrimary }]}>Haftalık özet</Text>
-      <Text style={[styles.sub, { color: Colors.textTertiary }]}>{digest.windowLabel}</Text>
-      <Text style={[styles.line, { color: Colors.textSecondary }]}>
-        Tamamlanan günler:{" "}
-        <Text style={{ fontFamily: "Inter_500Medium", color: Colors.primary }}>
-          {digest.completedDays}/7
-        </Text>
-      </Text>
+    <View style={[styles.card, Shadows.soft]}>
+      <View style={styles.header}>
+        <View style={styles.headerIcon}>
+          <CalendarRange size={14} color={Colors.primary} strokeWidth={2} />
+        </View>
+        <View style={styles.headerText}>
+          <Text style={styles.title}>{t("profile.weeklySummary.title")}</Text>
+          <Text style={styles.sub}>{digest.windowLabel}</Text>
+        </View>
+      </View>
+
+      <View style={styles.metricRow}>
+        <Text style={styles.metricLabel}>{t("profile.weeklySummary.completedLine")}</Text>
+        <View style={styles.metricBadge}>
+          <Text style={styles.metricValue}>
+            {digest.completedDays}
+            <Text style={styles.metricDenom}>/7</Text>
+          </Text>
+        </View>
+      </View>
+
       {digest.missedDaysInWindow > 0 ? (
-        <Text style={[styles.line, { color: Colors.textSecondary }]}>
-          Bu pencerede kaçırılan: {digest.missedDaysInWindow}
-        </Text>
+        <View style={styles.infoRow}>
+          <Text style={styles.infoText}>
+            {t("profile.weeklySummary.missedLine", { count: digest.missedDaysInWindow })}
+          </Text>
+        </View>
       ) : null}
+
       {digest.completionTimePeak ? (
-        <Text style={[styles.hint, { color: Colors.textSecondary }]}>{digest.completionTimePeak}</Text>
+        <View style={styles.insightBox}>
+          <Text style={styles.insightText}>{digest.completionTimePeak}</Text>
+        </View>
       ) : null}
+
       {digest.completionTimeCaveat ? (
-        <Text style={[styles.caveat, { color: Colors.textTertiary }]}>{digest.completionTimeCaveat}</Text>
+        <Text style={styles.caveat}>{digest.completionTimeCaveat}</Text>
       ) : null}
-      {digest.slipProneWeekdayShort ? (
-        <Text style={[styles.hint, { color: Colors.textTertiary }]}>
-          Son günlerde aksamalar çoğunlukla{" "}
-          <Text style={{ color: Colors.gold, fontFamily: "Inter_500Medium" }}>
-            {digest.slipProneWeekdayShort}
-          </Text>{" "}
-          günlerine yakın görünüyor (basit yerel sayım; sunucu yok).
-        </Text>
-      ) : (
-        <Text style={[styles.hint, { color: Colors.textTertiary }]}>
-          Bu hafta tutarlı görünüyorsun — tek net hareket akışına devam.
-        </Text>
-      )}
-      <TouchableOpacity
-        style={[styles.shareRow, { borderTopColor: Colors.border }]}
-        onPress={onShare}
-        activeOpacity={0.85}
-      >
-        <Share2 size={16} color={Colors.primary} strokeWidth={1.8} />
-        <Text style={[styles.shareText, { color: Colors.primary }]}>Metni paylaş</Text>
-      </TouchableOpacity>
+
+      <Text style={styles.footerHint}>{slipHint}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radii.card,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.button,
     borderWidth: 1,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    gap: 4,
+    borderColor: Colors.border,
+    padding: Spacing.sm,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.sm,
+    gap: 6,
   },
-  title: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
-  },
-  sub: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    marginBottom: Spacing.xs,
-  },
-  line: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 20,
-  },
-  caveat: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    fontStyle: "italic",
-    lineHeight: 17,
-    marginTop: Spacing.xs,
-  },
-  hint: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    lineHeight: 18,
-    marginTop: Spacing.xs,
-  },
-  shareRow: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
+    gap: 8,
+    marginBottom: 2,
   },
-  shareText: {
+  headerIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  title: {
     fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textPrimary,
+  },
+  sub: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    marginTop: 1,
+  },
+  metricRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.surfaceMuted,
+    borderRadius: Radii.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    gap: 8,
+  },
+  metricLabel: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 15,
+  },
+  metricBadge: {
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.pill,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: "rgba(47, 156, 134, 0.18)",
+  },
+  metricValue: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.primaryDark,
+  },
+  metricDenom: {
+    fontSize: 11,
     fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+  },
+  infoRow: {
+    paddingHorizontal: 1,
+  },
+  infoText: {
+    fontSize: 11,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 15,
+  },
+  insightBox: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.sm,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "rgba(47, 156, 134, 0.12)",
+  },
+  insightText: {
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+    lineHeight: 15,
+  },
+  caveat: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    fontStyle: "italic",
+    lineHeight: 14,
+    paddingHorizontal: 1,
+  },
+  footerHint: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 14,
+    paddingTop: 2,
+    paddingHorizontal: 1,
   },
 });

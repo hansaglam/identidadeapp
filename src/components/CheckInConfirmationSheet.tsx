@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -13,9 +14,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { getCheckInConfirmationCopy } from "../constants/checkInConfirmationCopy";
-
-const OTHER_LABEL = "Diğer";
+import {
+  getCheckInConfirmationCopy,
+  getCheckInConfirmationOtherLabel,
+} from "../constants/checkInConfirmationCopy";
 
 export interface CheckInConfirmationSheetProps {
   visible: boolean;
@@ -32,9 +34,11 @@ export default function CheckInConfirmationSheet({
   hapticsEnabled,
   onSave,
 }: CheckInConfirmationSheetProps) {
+  const { t, i18n } = useTranslation();
+  const otherLabel = useMemo(() => getCheckInConfirmationOtherLabel(), [i18n.language]);
   const { title, options } = useMemo(
     () => getCheckInConfirmationCopy(identitySlug),
-    [identitySlug]
+    [identitySlug, i18n.language]
   );
 
   const [selected, setSelected] = useState<string | null>(null);
@@ -47,9 +51,9 @@ export default function CheckInConfirmationSheet({
     }
   }, [visible]);
 
-  const isOther = selected === OTHER_LABEL;
+  const isOther = selected === otherLabel;
   const canSave =
-    !!selected && (selected !== OTHER_LABEL || otherText.trim().length > 0);
+    !!selected && (selected !== otherLabel || otherText.trim().length > 0);
 
   const fireSelectHaptic = useCallback(() => {
     if (hapticsEnabled) {
@@ -61,11 +65,11 @@ export default function CheckInConfirmationSheet({
     (label: string) => {
       fireSelectHaptic();
       setSelected(label);
-      if (label !== OTHER_LABEL) {
+      if (label !== otherLabel) {
         setOtherText("");
       }
     },
-    [fireSelectHaptic]
+    [fireSelectHaptic, otherLabel]
   );
 
   const handleSave = useCallback(async () => {
@@ -74,9 +78,9 @@ export default function CheckInConfirmationSheet({
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
     const note = selected;
-    const detail = selected === OTHER_LABEL ? otherText.trim() : null;
+    const detail = selected === otherLabel ? otherText.trim() : null;
     await onSave(note, detail);
-  }, [canSave, selected, otherText, hapticsEnabled, onSave]);
+  }, [canSave, selected, otherText, hapticsEnabled, onSave, otherLabel]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onRequestClose}>
@@ -94,7 +98,7 @@ export default function CheckInConfirmationSheet({
             <View style={styles.handle} />
 
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>Hızlıca kaydet, detayları sonra düşün</Text>
+            <Text style={styles.subtitle}>{t("checkInConfirmation.subtitle")}</Text>
 
             <View style={styles.grid}>
               {options.map((label) => {
@@ -113,11 +117,11 @@ export default function CheckInConfirmationSheet({
             </View>
 
             <TouchableOpacity
-              style={[styles.otherRow, selected === OTHER_LABEL && styles.optionBtnActive]}
-              onPress={() => handleSelect(OTHER_LABEL)}
+              style={[styles.otherRow, selected === otherLabel && styles.optionBtnActive]}
+              onPress={() => handleSelect(otherLabel)}
               activeOpacity={0.85}
             >
-              <Text style={styles.optionText}>{OTHER_LABEL}</Text>
+              <Text style={styles.optionText}>{otherLabel}</Text>
             </TouchableOpacity>
 
             {isOther ? (
@@ -125,7 +129,7 @@ export default function CheckInConfirmationSheet({
                 style={styles.otherInput}
                 value={otherText}
                 onChangeText={setOtherText}
-                placeholder="Kısaca yaz..."
+                placeholder={t("checkInConfirmation.otherPlaceholder")}
                 placeholderTextColor="#94A3B8"
                 multiline
               />
@@ -137,7 +141,7 @@ export default function CheckInConfirmationSheet({
               disabled={!canSave}
               activeOpacity={0.9}
             >
-              <Text style={styles.saveBtnText}>Kaydet ve Tamamla</Text>
+              <Text style={styles.saveBtnText}>{t("checkInConfirmation.save")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </SafeAreaView>

@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Check } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { Spacing, Radii, FontSizes, Colors, Shadows } from "../constants/theme";
 
 interface Props {
@@ -24,22 +25,21 @@ export default function FirstWeekGuideCard({
   journeyOpened,
   hasTomorrowPlan,
 }: Props) {
+  const { t } = useTranslation();
   if (dayNumber > 7 || dismissed) return null;
 
   const steps: { ok: boolean; label: string }[] = [
-    { ok: todayDone, label: "Bugün kutusundan check-in veya aksiyon" },
-    { ok: recentActionsCount > 0, label: "En az bir canlı aksiyon (karttan)" },
-    { ok: mindDumpCount >= 1, label: 'Zihin sekmesinde bir satır bile yaz' },
-    { ok: journeyOpened, label: "Yolculuk sekmesini bir kez aç" },
-    { ok: hasTomorrowPlan, label: "Yolculuk’ta yarın için ana madde yaz" },
+    { ok: todayDone, label: t("home.firstWeek.stepCheckIn") },
+    { ok: recentActionsCount > 0, label: t("home.firstWeek.stepAction") },
+    { ok: mindDumpCount >= 1, label: t("home.firstWeek.stepMind") },
+    { ok: journeyOpened, label: t("home.firstWeek.stepJourney") },
+    { ok: hasTomorrowPlan, label: t("home.firstWeek.stepTomorrow") },
   ];
 
   return (
     <View style={[styles.card, { borderColor: Colors.border, backgroundColor: Colors.surface }, Shadows.card]}>
-      <Text style={[styles.head, { color: Colors.textPrimary }]}>İlk hafta — küçük harita</Text>
-      <Text style={[styles.body, { color: Colors.textSecondary }]}>
-        Uygulama yoğun; bu beş küçük adım ilk hissi oturtur.
-      </Text>
+      <Text style={[styles.head, { color: Colors.textPrimary }]}>{t("home.firstWeek.title")}</Text>
+      <Text style={[styles.body, { color: Colors.textSecondary }]}>{t("home.firstWeek.body")}</Text>
       <View style={styles.rows}>
         {steps.map((s) => (
           <View style={styles.row} key={s.label}>
@@ -58,7 +58,7 @@ export default function FirstWeekGuideCard({
         ))}
       </View>
       <TouchableOpacity onPress={onDismiss} hitSlop={12}>
-        <Text style={[styles.dismiss, { color: Colors.textTertiary }]}>Anladım, gizle</Text>
+        <Text style={[styles.dismiss, { color: Colors.textTertiary }]}>{t("home.firstWeek.dismiss")}</Text>
       </TouchableOpacity>
     </View>
   );

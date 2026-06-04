@@ -1,7 +1,13 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { CheckCircle2, ChevronRight, Lock } from "lucide-react-native";
 import { JOURNEY_PHASES } from "../../constants/theme";
+import {
+  localizeJourneyPhaseLabel,
+  localizeJourneyPhaseDays,
+  localizeJourneyPhaseSubtitle,
+} from "../../i18n/localizeContent";
 import { getPhaseOpenTheme } from "./journeyPhaseTheme";
 import JourneyPhaseMiniGrid from "./JourneyPhaseMiniGrid";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
@@ -21,6 +27,7 @@ export default function JourneyMapTeaser({
   onUnlock,
   onDayPress,
 }: Props) {
+  const { t } = useTranslation();
   const activePhase = useMemo(() => {
     return (
       JOURNEY_PHASES.find(
@@ -36,10 +43,8 @@ export default function JourneyMapTeaser({
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.sectionLabel}>66 GÜN · ÖNİZLEME</Text>
-      <Text style={styles.hint}>
-        Yarın planın ücretsiz. Aktif faza dokun — kısa önizleme; tam gün özeti ve harita premium.
-      </Text>
+      <Text style={styles.sectionLabel}>{t("journey.mapTeaser.sectionLabel")}</Text>
+      <Text style={styles.hint}>{t("journey.mapTeaser.hint")}</Text>
 
       <View
         style={[
@@ -54,16 +59,18 @@ export default function JourneyMapTeaser({
       >
         <View style={styles.badge}>
           <Text style={[styles.badgeText, { color: theme.badgeText }]}>
-            Şu an · Faz {activePhase.id}
+            {t("journey.mapTeaser.badgeActive", { id: activePhase.id })}
           </Text>
         </View>
-        <Text style={styles.phaseTitle}>{activePhase.label}</Text>
-        <Text style={styles.phaseRange}>{activePhase.days}</Text>
+        <Text style={styles.phaseTitle}>
+          {localizeJourneyPhaseLabel(pid)}
+        </Text>
+        <Text style={styles.phaseRange}>{localizeJourneyPhaseDays(pid)}</Text>
         <Text style={styles.phaseSub} numberOfLines={3}>
-          {activePhase.subtitle}
+          {localizeJourneyPhaseSubtitle(pid)}
         </Text>
         <Text style={styles.stats}>
-          Bu fazda {doneInPhase}/{phaseGrid.length} gün tamamlandı
+          {t("journey.mapTeaser.stats", { done: doneInPhase, total: phaseGrid.length })}
         </Text>
         <JourneyPhaseMiniGrid
           phase={activePhase}
@@ -78,14 +85,16 @@ export default function JourneyMapTeaser({
         {JOURNEY_PHASES.filter((p) => p.id !== activePhase.id).map((p) => (
           <View key={p.id} style={styles.lockedChip}>
             <Lock size={12} color={Colors.textTertiary} strokeWidth={2} />
-            <Text style={styles.lockedChipText}>{p.label}</Text>
+            <Text style={styles.lockedChipText}>
+              {localizeJourneyPhaseLabel(p.id as 1 | 2 | 3)}
+            </Text>
           </View>
         ))}
       </View>
 
       <TouchableOpacity style={styles.cta} onPress={onUnlock} activeOpacity={0.85}>
         <CheckCircle2 size={18} color="#fff" strokeWidth={2} />
-        <Text style={styles.ctaText}>Tam haritayı aç</Text>
+        <Text style={styles.ctaText}>{t("journey.mapTeaser.unlockCta")}</Text>
         <ChevronRight size={18} color="#fff" strokeWidth={2} />
       </TouchableOpacity>
     </View>

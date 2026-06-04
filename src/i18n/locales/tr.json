@@ -1,0 +1,1820 @@
+{
+  "common": {
+    "continue": "Devam Et",
+    "back": "Geri",
+    "save": "Kaydet",
+    "cancel": "İptal",
+    "done": "Tamam",
+    "close": "Kapat",
+    "loading": "Yükleniyor...",
+    "retry": "Tekrar dene",
+    "error": "Hata",
+    "success": "Başarılı",
+    "yes": "Evet",
+    "no": "Hayır",
+    "or": "veya",
+    "days": "gün",
+    "noRegistration": "Kayıt gerekmez · Veriler yalnızca cihazında",
+    "dismiss": "Vazgeç",
+    "openSettings": "Ayarlara git",
+    "delete": "Sil"
+  },
+  "tabs": {
+    "today": "Bugün",
+    "mind": "Zihin",
+    "journey": "Yolculuk",
+    "profile": "Profil"
+  },
+  "welcome": {
+    "headline": "Motivasyon bir\nduygu değil.",
+    "headlineSub": "Her gün tek hareket, dürüst check-in,\ndüştüğünde yeniden bağlan.",
+    "cta": "Başla",
+    "stats": {
+      "days": "gün",
+      "noReg": "Kayıt",
+      "noRegValue": "Sıfır",
+      "local": "Yerel",
+      "localLabel": "veri"
+    },
+    "features": {
+      "0": {
+        "title": "Tek net hareket",
+        "sub": "Her gün sıfır karar yorgunluğu — kart sana söyler."
+      },
+      "1": {
+        "title": "Çapa sistemi",
+        "sub": "Mevcut rutinine bağla; yeni zaman dilimi açmana gerek yok."
+      },
+      "2": {
+        "title": "Toparlanma için tasarlı",
+        "sub": "Düştüğünde cezalandırmaz, yeniden bağlanmana yardım eder."
+      }
+    }
+  },
+  "onboarding": {
+    "steps": {
+      "identity": "Kimliğin",
+      "anchor": "Çapan",
+      "why": "Neden"
+    },
+    "step1": {
+      "title": "66 gün sonunda\nkim olmak istiyorsun?",
+      "sub": "Bir kimlik seç ya da kendin yaz. Çapa ve zamanı bir sonraki adımda rutinine bağlayacaksın.",
+      "infoTitle": "Aynı motor, senin yönün",
+      "infoBody": "Listede bire bir örtüşen satır olmayabilir — en yakınını seç. Özü çapa ve alışkanlık adınla kendin netleştirirsin.",
+      "customLabel": "Kendi cümlemi yazacağım",
+      "customBlurb": "Özel bir ifade yaz; çapa ve zamanı bir sonraki adımda belirlersin.",
+      "customPlaceholder": "Örn: Her gün su içen, kendine bakan biri…",
+      "previewIdentity": "Kimlik ifadesi",
+      "previewMicro": "İlk mikro-adım",
+      "footerHint": "Devam etmek için bir kimlik seç"
+    },
+    "step2": {
+      "title": "Bu kimliği nereye\nbağlayacaksın?",
+      "sub": "Çapa, günlük önerilerini gerçek hayatına kilitleyen noktadır. Zaten yaptığın bir rutine ekle.",
+      "commitmentLabel": "TAAHHÜDÜN",
+      "commitmentPlaceholder": "Bir çapa seçtiğinde taahhüt cümlen burada oluşacak…",
+      "infoText": "Şablon yalnızca ilk öneriyi verir; çapayı ve saati istediğin zaman değiştirebilirsin.",
+      "anchorLabel": "Önce ne yapıyorsun?",
+      "timeLabel": "Hangi saat aralığında?",
+      "templateHint": "çapa ön seçili, istersen değiştir."
+    },
+    "step3": {
+      "title": "Neden bu kimliği\nistemiştin?",
+      "sub": "Bir cümle bile yeter. Bu motivasyonunu saklıyoruz — zor günlerde hatırlatmak için.",
+      "placeholder": "Örn: Kendimi daha dinç hissetmek istiyorum…",
+      "systemTitle": "Bu sistem sana ne yapar?",
+      "promises": {
+        "0": "Her gün 1 aksiyon önerir — sıfır düşünme, sıfır karar yorgunluğu.",
+        "1": "Momentum ve efor sinyallerini okuyarak sana özel hareket seçer.",
+        "2": "Düşüş yakaladığında müdahale eder. Streak kırmaz, cezalandırmaz."
+      },
+      "notifTitle": "Bildirim izni",
+      "notifBody": "Sabah yönlendirmesi ve akşam hatırlatması için kullanılır. Ayarlardan kapatabilirsin.",
+      "skipNotif": "Şimdilik geç",
+      "startCta": "Başla"
+    }
+  },
+  "premium": {
+    "headline": "Kişisel Disiplin Programı",
+    "narrative1": "Bunu sadece bir uygulama için ödemiyorsun.",
+    "narrativeEmphasis": "Kendine bir karar veriyorsun.",
+    "narrative2": "Ciddiye alacağın bir süreç başlatıyorsun.",
+    "optOut": "Premium şart değil — ücretsiz devam etmek tamamen uygun; dilediğinde buradan seçebilirsin.",
+    "panelLabel": "Programda neler var",
+    "commitmentEffect": "Yatırım yapanların sürdürme ihtimali genelde 2–3 kat daha yüksektir (commitment effect).",
+    "extensionNote": "Beklenen otomatikleşme oluşmazsa destek üzerinden süre uzatma talep edebilirsin.",
+    "ctaLabel": "Karar veriyorum",
+    "ctaButton": "Disiplin Programını Başlat",
+    "ctaButtonWithPrice": "Disiplin Programını Başlat — {{price}}",
+    "dismiss": "Şimdi değil",
+    "dismissSub": "Uygulamayı ücretsiz kullanmaya devam et",
+    "restore": "Satın alımları geri yükle",
+    "subscriptionNote": "Aylık abonelik · Otomatik yenilenir · İstediğin zaman iptal",
+    "purchaseError": "Satın alma işlemi tamamlanamadı. Tekrar dene veya geri yükle.",
+    "restoreSuccess": "Geri Yüklendi",
+    "restoreSuccessBody": "Aboneliğin başarıyla geri yüklendi. Tüm premium özelliklere erişebilirsin.",
+    "restoreNotFound": "Aktif bir abonelik bulunamadı. Hangi hesapla satın aldığını kontrol et.",
+    "restoreError": "Geri yükleme başarısız. İnternet ve mağaza hesabını kontrol et.",
+    "legalManage": "Aboneliği yönet",
+    "benefits": [
+      "66 gün yolculuk haritası — her güne dokun, tam özet",
+      "Günlük koç paketi: ilke · bilim · aksiyona geç",
+      "Kimlik Aynası — zihin notlarından seni yansıtır",
+      "Haftalık SDT anketi + faz eğitimi (4 kart · ~30 sn)",
+      "Sınırsız Zihin notu · yarın planı her zaman ücretsiz"
+    ],
+    "triggers": {
+      "journey": "Yarın planı her zaman ücretsiz. Premium açılınca: 66 gün yolculuk haritası, her güne dokunarak tam özet, Kimlik Aynası, haftalık SDT anketi, faz eğitimi ve bugünün koç paketi (ilke + bilim + aksiyon).",
+      "day7": "7. gün: yolculuk haritası tam açılıyor. Premium ile 66 günün tamamını görürsün, her güne dokunarak o günün check-in, plan ve koç özetine ulaşırsın. Faz eğitimi ve Kimlik Aynası da seni bekliyor.",
+      "day22": "22. gün ortasındasın — alışkanlık pekişmeye başlıyor. Tam yolculuk haritası, 3 faz geçmişi, güne dokununca tam özet ve Kimlik Aynası ile bu süreci bilinçli yürüt.",
+      "profile": "Premium: 66 gün yolculuk haritası, Kimlik Aynası, haftalık SDT anketi, faz eğitimi ve her gün için koç paketi (ilke + bilim + aksiyon) ile yolculuğunu derinleştir."
+    }
+  },
+  "home": {
+    "greeting": {
+      "morning": "Günaydın ☀️",
+      "afternoon": "İyi günler",
+      "evening": "İyi akşamlar 🌙",
+      "night": "İyi geceler 🌙"
+    },
+    "defaultName": "dostum",
+    "streakDays": "{{count}} gün",
+    "loading": "Yükleniyor...",
+    "profileErrorTitle": "Profil dosyası açılamadı",
+    "profileErrorBody": "Depolama geçici veya eksik izin yüzünden okunamadı olabilir. Tekrar deneyebilirsin.",
+    "restartTitle": "Yeniden başla",
+    "identityCard": "Kimliğin · gün {{day}}",
+    "identityFallback": "{{habitName}} yolunda ilerliyorsun.",
+    "fiveDefaultTrigger": "Şimdi derin nefes al, omuzlarını bırak — ardından alışkanlık için tek net hareketi yap.",
+    "toast": {
+      "dayComplete": "Bugün tamamlandı.",
+      "actionRecorded": "Adım kaydedildi. Disiplin kası güçleniyor.",
+      "trainingRecorded": "Antrenman kaydedildi. Disiplin kası güçleniyor."
+    },
+    "hero": {
+      "todayStep": "Bugünün adımı"
+    },
+    "anchorStep": {
+      "context": {
+        "default": "Çapan",
+        "morning_routine": "Sabah çapası",
+        "midday": "Öğle çapası",
+        "sleep_winddown": "Gece çapası",
+        "phone_away": "Telefon çapası"
+      },
+      "card": {
+        "withAnchor": "«{{anchor}}» anında {{title}} — {{habit}} için tek hamle.",
+        "noAnchor": "{{title}} · {{habit}} yolunda küçük bir dokunuş."
+      },
+      "modal": {
+        "prepare": "Hazırlan",
+        "afterMove": "Sonra tek net hareket",
+        "close": "Kapat",
+        "breath": "{{seconds}} sn · nefesini koru",
+        "breathVisualize": "{{seconds}} sn · sadece canlandır, zorlama",
+        "recoveryHint": "Kendi ritminde. Tek küçük hamle yeter.",
+        "recoveryDone": "Bunu yaptım",
+        "continue": "Devam et",
+        "done": "Tamam"
+      },
+      "muscleHeadline": {
+        "activation": "Harekete geç",
+        "consistency": "Küçük tekrar",
+        "resistance": "Direnci yumuşat",
+        "focus": "Odağı topla",
+        "recovery": "Toparlanma"
+      },
+      "doneSubline": {
+        "activation": "Başlatma refleksin bir tur daha güçlendi.",
+        "consistency": "Çapa + tekrar kayda geçti.",
+        "resistance": "Direnç anında ilerledin.",
+        "focus": "Dikkatini tek noktaya topladın.",
+        "recovery": "Küçük adım yolu yeniden açar."
+      },
+      "guide": {
+        "_fallback": {
+          "lead": "{{contextLabel}}: «{{anchor}}» — ardından {{title}}.",
+          "lead_default": "{{title}} · {{habit}} için net bir hamle.",
+          "step1": "Çapa cümlesini bir kez tekrar et",
+          "step2": "{{habit}} için en küçük fiziksel adımı at"
+        },
+        "anchor-visualize": {
+          "lead": "«{{anchor}}» anını 5 sn canlandır — sonra {{habit}}.",
+          "lead_midday": "Öğle tabağını bıraktığın an: «{{anchor}}» — 5 sn canlandır.",
+          "lead_morning_routine": "Sabah rutinin: «{{anchor}}» — 5 sn zihinde oyna.",
+          "lead_sleep_winddown": "Yatağa girmeden önce: «{{anchor}}» — yarınki ilk hamleyi düşün.",
+          "lead_phone_away": "Telefonu bıraktığın an: «{{anchor}}» — 5 sn canlandır.",
+          "step1": "Çapayı yüksek sesle veya içinden tekrar et",
+          "step2": "{{habit}} için ilk hareketi gözünde bitir"
+        },
+        "anchor-touch": {
+          "lead": "«{{anchor}}» dediğin yerde dur — çapana fiziksel dokun.",
+          "lead_midday": "Öğle sonrası: masaya/avuca dokun, «{{anchor}}» de.",
+          "step1": "Çapa nesnesine veya yere bir kez dokun",
+          "step2": "Hemen ardından {{habit}} için 1 sn hareket"
+        },
+        "repeat-anchor-twice": {
+          "lead": "«{{anchor}}» cümlesini iki kez, net söyle.",
+          "step1": "İlk tekrar: çapayı hatırlat",
+          "step2": "İkinci tekrar: «{{habit}}» ile bağla"
+        },
+        "mark-done-intent": {
+          "lead": "«Şimdi yapıyorum» de — «{{anchor}}» ile {{habit}}.",
+          "step1": "Yüksek sesle veya fısıltıyla niyet cümlesi",
+          "step2": "Çapaya git, ilk hareketi başlat"
+        },
+        "micro-anchor-say": {
+          "lead": "«{{anchor}}» cümlesini yüksek sesle söyle.",
+          "step1": "Çapayı tam cümleyle tekrar et",
+          "step2": "{{habit}} için tek tekrar veya 2 sn hareket"
+        },
+        "habit-whisper": {
+          "lead": "«{{anchor}}» sonrası {{habit}} — fısıltıyla.",
+          "step1": "Alışkanlık adını bir kez fısılda",
+          "step2": "Çapaya uygun en küçük hareketi yap"
+        },
+        "say-identity": {
+          "lead": "Kimlik cümlen + «{{anchor}}» bağlantısı.",
+          "step1": "Kim olduğunu bir cümleyle söyle",
+          "step2": "«{{anchor}}» ile {{habit}} hamlesini başlat"
+        },
+        "two-minute": {
+          "lead": "«{{anchor}}» sonrası 2 dk sürüm — {{habit}}.",
+          "step1": "Zaman kutusunu aklında başlat (2 dk)",
+          "step2": "Çapada durduğun yerde küçük sürümü yap"
+        },
+        "tiny-rep": {
+          "lead": "«{{anchor}}» — tek tekrar, {{habit}}.",
+          "step1": "Çapayı hatırla",
+          "step2": "En küçük fiziksel tekrarı tamamla"
+        }
+      }
+    },
+    "checkIn": {
+      "sectionDone": "Bugün tamam",
+      "sectionPending": "Günün onayı",
+      "accessibility": "Günü onayla",
+      "doneCaption": "Bugün tamamlandı",
+      "streakConsecutive": "{{count}} gün üst üste",
+      "streakGreat": "{{count}} gün üst üste — harika gidiyorsun",
+      "plannedYesterday": "Dün planladın: {{text}}",
+      "tapToComplete": "Tamamlamak için dokun"
+    },
+    "plans": {
+      "emptyTodayTitle": "Bugün için plan yok",
+      "emptyTodayBody": "Dün Yolculuk'ta yazdığın liste burada görünür. İlk planı yarın için kurabilirsin.",
+      "tomorrowKicker": "Yarının küçük listesi",
+      "tomorrowReady": "{{count}} madde hazır",
+      "tomorrowEmpty": "Henüz plan yok",
+      "primaryStep": "Ana adım",
+      "tomorrowHint": "Yarın sabah net bir çapa için 1 ana + en fazla 2 destek maddesi ekle.",
+      "editOnJourney": "Yolculuk'ta düzenle",
+      "planOnJourney": "Yolculuk'ta planla",
+      "todayPlan": "Bugünün planı",
+      "planDone": "Plan tamamlandı.",
+      "planDoneShort": "Tamam",
+      "planProgress": "{{done}}/{{total}}",
+      "planHint": "İşaretle veya check-in ile günü onayla.",
+      "planHintShort": "Dokunarak işaretle · günü check-in ile kilitle"
+    },
+    "miss": {
+      "kicker": "Kaçırma protokolü",
+      "smallestStep": "En küçük adım: {{title}}",
+      "startSmallest": "En küçük adımı başlat",
+      "goToCheckIn": "Günü onaylamaya geç",
+      "day1": {
+        "title": "Süreç devam ediyor",
+        "body": "1 gün kaçırmak, 66 günlük yolun yaklaşık %1,5'u. Nöral yol açık — Bugün kartıyla aynı yönde küçük bir tekrar yeter.",
+        "action": "Bugünkü tekrar"
+      },
+      "day2": {
+        "title": "Küçültme zamanı",
+        "body": "Arka arkaya iki gün atlanması, büyütülmüş hedefe işaret ediyor. Davranışı 2 dakikaya indirip aynı çapayı koru; Bugün kartında küçük sürümü seçip dürüst check-in yap.",
+        "action": "Hedefi küçült"
+      },
+      "day3": {
+        "title": "Yeniden bağlama",
+        "body": "Birkaç gün koptun — bu, beynin yolu unuttuğu anlamına gelmez. Lally'nin eğrisi bireyler arası çok açılır: küçül, tetik/çapayı tazele; Bugün kartından en küçük net adımı seçip gerçek check-in ile yeniden başla.",
+        "action": "Yeni çapayı düşün"
+      }
+    },
+    "actionGate": {
+      "defaultTitle": "Bugünün küçük adımı",
+      "strictTitle": "Önce adımı tamamla",
+      "softTitle": "Önce küçük adım, sonra onay",
+      "strictBody": "Günü onaylamadan önce bugünün önerilen adımını bitir. Süre kısa — momentum için.",
+      "softBody": "Check-in alışkanlığı güçlendirir; ama 30 saniyelik bir hareket beyni gerçekten hazırlar.",
+      "singleAction": "Tek hareket",
+      "seconds": "{{count}} sn",
+      "startAction": "Adımı başlat",
+      "skipToCheckIn": "Doğrudan günü onayla",
+      "strictHint": "Sıkı mod açık — Profil → Gelişmiş tercihlerden kapatabilirsin."
+    },
+    "weekly": {
+      "title": "Haftalık özet",
+      "completed": "Bu hafta {{done}}/7 tamamlandı"
+    },
+    "weekdays": {
+      "mon": "Pzt",
+      "tue": "Sal",
+      "wed": "Çar",
+      "thu": "Per",
+      "fri": "Cum",
+      "sat": "Cmt",
+      "sun": "Paz"
+    },
+    "firstWeek": {
+      "title": "İlk hafta — küçük harita",
+      "body": "Uygulama yoğun; bu beş küçük adım ilk hissi oturtur.",
+      "stepCheckIn": "Bugün kutusundan check-in veya aksiyon",
+      "stepAction": "En az bir canlı aksiyon (karttan)",
+      "stepMind": "Zihin sekmesinde bir satır bile yaz",
+      "stepJourney": "Yolculuk sekmesini bir kez aç",
+      "stepTomorrow": "Yolculuk'ta yarın için ana madde yaz",
+      "dismiss": "Anladım, gizle"
+    },
+    "autoTrend": {
+      "title": "Son 7 gün · otomatiklik",
+      "empty": "Henüz veri yok. Check-in sonrası 10 sn değerlendirme — grafik burada oluşur.",
+      "daysRecorded": "{{count}}/{{total}} gün kayıtlı",
+      "avgScore": "{{value}}/10",
+      "trend": {
+        "up": "Yükseliyor",
+        "down": "Düşüyor",
+        "flat": "Sabit"
+      },
+      "insight": {
+        "fluent": "Son gün akıcı ({{score}}/10) — alışkanlık yerleşiyor.",
+        "medium": "Son gün orta ({{score}}/10) — küçük tekrar işe yarıyor.",
+        "hard": "Son gün zorlanma ({{score}}/10) — küçült, çapayı koru."
+      },
+      "legend": {
+        "fluent": "Akıcı",
+        "medium": "Orta",
+        "hard": "Zorlanma"
+      },
+      "skip": "Atla (grafik oluşmaz)"
+    },
+    "automaticityRating": {
+      "kicker": "Gün {{day}}",
+      "title": "Bugünkü değerlendirme",
+      "subtitle": "Dürüst cevaplar, ilerlemeni en iyi yansıtır.",
+      "reminder": "Atlamak serbest. Ama otomatikliğini kaydetmezsen ilerleme grafiğin oluşmaz; 66 gün sonunda otomatikleşmeyi görmek için çoğu gün birkaç saniye bu adımı tamamlaman yeter.",
+      "autoQuestion": "Bu davranış ne kadar \"kendiliğinden\" oldu?",
+      "autoHint": "1: Düşündüm, karar verdim · 10: Tamamen otomatik",
+      "autoLow": "Düşünerek",
+      "autoHigh": "Otomatik",
+      "effortQuestion": "Ne kadar güç / çaba harcadın?",
+      "effortHint": "1: Hiç zorlanmadım · 10: Çok zorlandım",
+      "effortLow": "Hafif",
+      "effortHigh": "Ağır çaba",
+      "warning": "Davranış otomatik ama çok güç harcadın. Alışkanlık büyük mü geldi? Tiny haline dönmeyi düşün.",
+      "submit": "Tamamla",
+      "selectA11y": "Seç: {{n}}"
+    },
+    "behavior": {
+      "doNow": "Şimdi yap",
+      "restart": "Yeniden başla",
+      "scaledDown": " · küçültüldü",
+      "singleMove": " · tek hareket",
+      "seconds": " · {{count}} sn",
+      "autoLabel": "%{{pct}} otomatik",
+      "prediction": "Otomatikleşmeye tahmini ~{{days}} gün — her adım seni yaklaştırır."
+    },
+    "coachPulse": {
+      "title": "Haftalık nabız"
+    },
+    "muscle": {
+      "activation": "Aktivasyon",
+      "consistency": "Tutarlılık",
+      "resistance": "Direnç",
+      "focus": "Odak",
+      "recovery": "Toparlanma"
+    },
+    "status": {
+      "green": "Yolda",
+      "yellow": "Riskli",
+      "red": "Müdahale Gerekli"
+    }
+  },
+  "journey": {
+    "titlePremium": "Yolculuğun",
+    "titleFree": "Yolculuk",
+    "subtitle": "66 günlük kimlik inşası · Yarın planı + harita · Gün {{day}}",
+    "subtitleFree": "66 günlük kimlik inşası · Yarın planı · Gün {{day}}",
+    "progress": "Tamamlama bu dönemde %{{pct}}",
+    "progressWithAuto": "Tamamlama bu dönemde %{{pct}} · Ort. otomatiklik {{auto}}/10",
+    "progressFree": "Tamamlama %{{pct}} · Gün {{day}}/66",
+    "section": {
+      "todayPack": "BUGÜNÜN PAKETİ",
+      "phases": "66 GÜN · 3 FAZ",
+      "science": "BİLİM & ÖLÇÜM"
+    },
+    "locked": {
+      "title": "Premium yolculuk paneli",
+      "body": "66 gün haritası, Kimlik Aynası, SDT nabzı, faz eğitimi (4 kart) ve her gün için koç paketi. Yarın planın her zaman ücretsiz.",
+      "unlock": "Paneli aç"
+    },
+    "phaseTeaser": {
+      "kicker": "Bu fazda beyin nasıl çalışıyor?",
+      "lockMore": "+3 kart daha premium ile açılıyor"
+    },
+    "phase": {
+      "active": "Şu an · Faz {{id}}",
+      "completed": "Tamamlandı",
+      "lockedHint": "Gün {{day}}'te açılır"
+    },
+    "milestone": {
+      "label": "KİLOMETRE TAŞI",
+      "context": "BUGÜNÜN BAĞLAMI"
+    },
+    "coach": {
+      "brainTitle": "Bu fazda beyin nasıl çalışıyor?",
+      "brainDone": "Bu faz özetini daha önce tamamladın — yenilemek istersen aç.",
+      "brainCards": "4 kısa kart · ~30 sn · bulunduğun faza göre",
+      "sentenceTitle": "Yolculuktan bir cümle",
+      "sentenceSub": "Zihin'e yazılı sırayla tek satır · iste tam Zihine geç",
+      "lastSentence": "Son satırın: \"{{snippet}}\""
+    },
+    "sdt": {
+      "title": "Motivasyon nabzı (SDT)",
+      "sub": "Özerklik, yetkinlik, bağlanma — haftalık mini ölçüm",
+      "trend": "Son {{count}} hafta trendi",
+      "fillFirst": "İlk anketi doldur",
+      "update": "Bu haftayı güncelle"
+    },
+    "regression": {
+      "title": "Otomatikleşme eğrisi",
+      "body": "İlk 14 güne göre tahmini eğim: +{{slope}} / gün",
+      "at7": " · ~Gün {{day}}'te 7/10 bandı"
+    },
+    "share": {
+      "button": "İlerlemeyi paylaş",
+      "closeLabel": "Kapat"
+    },
+    "survey": {
+      "title": "Haftalık anket",
+      "meta": "3 soru · yaklaşık 1 dk",
+      "sub": "Bu haftaki hislerine göre 1 (hiç) ile 5 (çok) arasında bir değer seç.",
+      "questionNum": "Soru {{num}}",
+      "save": "Kaydet ve kapat",
+      "cancel": "Şimdi değil",
+      "selectLabel": "{{v}} seç"
+    },
+    "tomorrowPlan": {
+      "bridgeTitle": "Yarını bugünden planla",
+      "bridgeBody": "Ana ekrandaki check-in ve mikro adımlar bu listeyle uyumlu. Yarın sabah net bir çapa bırak.",
+      "sectionLabel": "YARININ KÜÇÜK LİSTESİ",
+      "kicker": "Yarın otomatikleşsin diye",
+      "action": "1 ana adımı netleştir",
+      "statusTomorrow": "Yarın",
+      "addMeta": "Saat veya tetikleyici ekleyebilirsin",
+      "addSupport": "Küçük madde ekle",
+      "limitHint": "3 madde yeterli — basit tut.",
+      "resetList": "Listeyi sıfırla",
+      "emptyTitle": "Yarın için küçük liste kur",
+      "emptySub": "Tek ana mikro adımı seç. Sabah hatırlatma gelir, check-in Bugün ekranından yapılır.",
+      "addFirst": "İlk maddeyi ekle"
+    },
+    "mapTeaser": {
+      "sectionLabel": "66 GÜN · ÖNİZLEME",
+      "hint": "Yarın planın ücretsiz. Aktif faza dokun — kısa önizleme; tam gün özeti ve harita premium.",
+      "badgeActive": "Şu an · Faz {{id}}",
+      "stats": "Bu fazda {{done}}/{{total}} gün tamamlandı",
+      "unlockCta": "Tam haritayı aç"
+    },
+    "phases": {
+      "1": {
+        "label": "Kuruluş",
+        "days": "Gün 1–22",
+        "subtitle": "Tiny Habits devreye giriyor. Çapayı kur, küçük kal."
+      },
+      "2": {
+        "label": "Pekiştirme",
+        "days": "Gün 23–44",
+        "subtitle": "Kimlik dönüşümü başlıyor. 'Yapan biri' olmaktan 'olan biri' olmaya."
+      },
+      "3": {
+        "label": "Otomatikleşme",
+        "days": "Gün 45–66",
+        "subtitle": "Nöral yol tamamlanıyor. Artık enerji harcamadan yapıyorsun."
+      }
+    }
+  },
+  "mind": {
+    "title": "Zihin",
+    "subtitle": "Yolculuk günlüğün",
+    "dayLine": "Şu an · Gün {{day}}/66",
+    "newNote": "+ Yeni not",
+    "moodPill": "Son notlarından: {{muscle}} modunda",
+    "week": {
+      "section": "BU HAFTA",
+      "days": "{{done}}/7 gün",
+      "pct": "%{{pct}} tamamlandı"
+    },
+    "today": {
+      "section": "BUGÜNÜN YANSIMASI",
+      "placeholderSuffix": "(kısa cevap)",
+      "save": "Kaydet"
+    },
+    "history": {
+      "section": "GEÇMİŞ YANSIMA",
+      "all": "Tümü →",
+      "emptyTitle": "İlk yansıma senin",
+      "emptyBody": "Her gün bir cümle yaz. Düşüncelerini dışarı bırakmak beynin için alan açar — zorlamadan, yargılanmadan.",
+      "dayLabel": "Gün {{day}}"
+    },
+    "dump": {
+      "title": "Zihin Boşalt",
+      "desc": "Kafan doluyken yaz, rahatla. Yazdıkların sadece bu cihazda kalır — ton analizi davranış motoruna hafifçe yansır.",
+      "notesCount": "{{count}} not kayıtlı"
+    },
+    "weekdays": {
+      "mon": "pzt",
+      "tue": "sal",
+      "wed": "çar",
+      "thu": "per",
+      "fri": "cum",
+      "sat": "cmt",
+      "sun": "paz"
+    },
+    "modal": {
+      "title": "📝 Zihin Boşalt",
+      "subtitle": "Yaz, kaydet, rahatla",
+      "placeholder": "Aklına ne gelirse yaz. Kimse okumayacak. Yargılanmayacaksın.",
+      "save": "Kaydet",
+      "saving": "kaydediliyor…",
+      "saved": "kaydedildi",
+      "promptsLabel": "💡 BAŞLANGIÇ CÜMLELERİ",
+      "footerNote": "🕐 Yazmayı bıraktığında birkaç saniye içinde otomatik kaydedilir.",
+      "closeLabel": "Kapat",
+      "moodAction": "{{muscle}} modunadasın — \"{{action}}\" seni harekete geçirebilir.",
+      "emptyTitle": "Henüz not yok",
+      "emptySubtitle": "İlk düşünceni yazmaya başla. Kimse okumayacak.",
+      "historyLabel": "Önceki notlar",
+      "historyHint": "Açmak için dokun. Silmek için satıra uzun bas, sonra çöp kutusuna dokun.",
+      "filterJourneyOnly": "Sadece Yolculuk ({{count}})",
+      "filterEmpty": "Aradığın Yolculuk satırı yok; filtreyi kapatıp tüm notlara dönebilirsin.",
+      "fiveSecondCta": "5 saniye kuralı ile devam et?",
+      "deleteTitle": "Notu sil",
+      "deleteMessage": "Bu not kalıcı olarak silinecek. Bu işlem geri alınamaz.",
+      "deleteCancel": "Vazgeç",
+      "deleteConfirm": "Sil"
+    }
+  },
+  "profile": {
+    "language": "Dil",
+    "languageTitle": "Uygulama Dili",
+    "languageSubtitle": "Arayüz dili anında değişir; günlük ilkeler, ipuçları ve yolculuk kartları da seçilen dile uyar.",
+    "languages": {
+      "tr": "Türkçe",
+      "en": "English",
+      "pt-BR": "Português (BR)"
+    },
+    "header": "Profil",
+    "statusActive": "Aktif",
+    "statusRest": "Mola",
+    "defaultName": "Kahraman",
+    "dayMeta": "Gün {{day}}/66",
+    "progressPct": "%{{pct}} yolculuk tamamlandı",
+    "shareStory": "İlerlemeyi hikaye olarak paylaş",
+    "stats": {
+      "title": "İSTATİSTİKLER",
+      "streak": "seri",
+      "days": "gün",
+      "daysUnit_one": "gün",
+      "daysUnit_other": "gün",
+      "pctValue": "%{{pct}}",
+      "automaticity": "Otomatiklik",
+      "completion": "Tamamlama"
+    },
+    "completedRounds": {
+      "title": "TAMAMLANAN TURLAR",
+      "days": "{{count}} gün tamamlandı",
+      "avgAuto": " · ort. otomatiklik {{value}}"
+    },
+    "chart": {
+      "title": "SON 14 GÜN",
+      "caption": "{{count}}/14 gün"
+    },
+    "achievements": {
+      "title": "BAŞARIMLAR",
+      "all": "Tümü",
+      "unlocked": "Açıldı",
+      "locked": "Kilitli",
+      "sprout": {
+        "title": "İlk filiz",
+        "desc": "Yolculuk başladı"
+      },
+      "streak3": {
+        "title": "3 gün seri",
+        "desc": "İlk momentum"
+      },
+      "streak7": {
+        "title": "7 gün seri",
+        "desc": "Disiplin kası"
+      },
+      "day21": {
+        "title": "21 gün",
+        "desc": "Çekirdek alışkanlık"
+      },
+      "day30": {
+        "title": "30 gün",
+        "desc": "Üçte bir geçildi"
+      },
+      "day66": {
+        "title": "66 gün",
+        "desc": "Yolculuk tamamlandı"
+      },
+      "premiumAch": {
+        "title": "Premium",
+        "desc": "Tam deneyim"
+      }
+    },
+    "coaching": {
+      "title": "KOÇLUK AKIŞI",
+      "checkInStep": "Check-in öncesi adım",
+      "gateMode": {
+        "soft": "Yumuşak — önce adım önerilir",
+        "strict": "Sıkı — önce adım zorunlu",
+        "off": "Kapalı"
+      },
+      "gateChips": {
+        "soft": "Yumuşak",
+        "strict": "Sıkı",
+        "off": "Kapalı"
+      }
+    },
+    "settings": {
+      "title": "AYARLAR",
+      "notifications": "Bildirimler",
+      "notifTimeLabel": "Sabah {{h}}:{{m}}",
+      "commitment": "Taahhüdünü düzenle",
+      "haptics": "Titreşim",
+      "hapticsSub": "Tamamlama geri bildirimi",
+      "theme": "Tema",
+      "themeSub": "Açık",
+      "themeAlertTitle": "Tema",
+      "themeAlertMsg": "Şu an yalnızca açık tema destekleniyor.",
+      "premiumRow": "Premium",
+      "premiumRowSub": "66 gün haritası, Kimlik Aynası, SDT",
+      "subscription": "Aboneliği yönet",
+      "subscriptionSub": "Mağaza ayarları",
+      "privacyPolicy": "Gizlilik politikası",
+      "privacyPolicySub": "Web",
+      "terms": "Kullanım koşulları",
+      "termsSub": "Abonelik şartları"
+    },
+    "data": {
+      "title": "VERİ",
+      "privacy": "Gizlilik",
+      "privacySub": "Bu cihazda ne tutuluyor",
+      "backup": "Verileri yedekle",
+      "backupSub": "JSON olarak dışa aktar",
+      "delete": "Verileri sil",
+      "deleteSub": "Tüm geçmiş ve notlar"
+    },
+    "footer": {
+      "notifCheck": "Bildirim iznini kontrol et",
+      "quote": "Motivasyon bir duygu değil, bir eylem.",
+      "versionDay": "{{version}} · Kimlik · Gün {{day}}",
+      "about": "Hakkında · v{{version}}",
+      "aboutAlertTitle": "Kimlik",
+      "aboutAlertMsg": "Yerel ilkelerle çalışan bir alışkanlık koçu."
+    },
+    "modal": {
+      "notifTitle": "Bildirimler",
+      "notifHint": "Ana hatırlatma saati: {{time}}. İzin için ayrıca «Bildirim iznini sistemden kontrol et» kullan.",
+      "backupTitle": "Yedek",
+      "achievementsTitle": "Başarımlar"
+    },
+    "dialog": {
+      "notifSuccess": {
+        "title": "Bildirimler açık",
+        "msg": "Sabah hatırlatmaların seçtiğin saate göre planlanacak.",
+        "ok": "Tamam"
+      },
+      "notifSettings": {
+        "title": "İzin gerekli",
+        "msg": "Bildirimleri zamanlayabilmemiz için sistem ayarlarından bildirim iznini açman gerekiyor.",
+        "goSettings": "Ayarlara git",
+        "dismiss": "Vazgeç"
+      },
+      "deleteAll": {
+        "title": "Tüm verileri sil",
+        "msg": "Alışkanlık geçmişin, check-in kayıtların ve zihin notların bu cihazdan silinecek. Bu işlem geri alınamaz.",
+        "confirm": "Sil",
+        "cancel": "Vazgeç"
+      }
+    },
+    "error": {
+      "title": "Profil okunamadı",
+      "body": "Depolama veya izin kaynaklı geçici bir sorun olabilir. Tekrar deneyerek profili yeniden yükleyebilirsin.",
+      "retry": "Tekrar dene",
+      "loading": "Yükleniyor..."
+    },
+    "premiumBadge": "Premium",
+    "advanced": {
+      "sectionContext": "BAĞLAM VE RİTİM",
+      "contextTitle": "Bugün bağlamı",
+      "contextHint": "Kart altında bağlam ipucu; kişiyi okuyan yapay zekâ yok.",
+      "contextDefault": "Varsayılan",
+      "contextHome": "Ev",
+      "contextWork": "İş",
+      "contextTravel": "Seyahat",
+      "restUntil": "Mola · {{date}} tarihine kadar",
+      "restNone": "Mola yok",
+      "restHint": "Bu tarihe kadar push'lar hafifletilir; süre sonunda otomatik kalkar (istersen önce iptal et).",
+      "rest3": "3 gün mola",
+      "rest7": "7 gün mola",
+      "restClear": "Kaldır",
+      "notifFineTune": "Bildirim ince ayar",
+      "notifyMorning": "Sabah bildirimi",
+      "notifyEvening": "Akşam hatırlatması",
+      "notifyWeekend": "Hafta sonu bildirimleri",
+      "notifyPhaseMilestones": "Faz milestone push",
+      "backupTitle": "Yerel yedek (JSON)",
+      "backupHint": "Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.",
+      "exportBtn": "Paylaşım olarak dışa aktar",
+      "importBtn": "JSON dosyasından geri yükle",
+      "pasteBtn": "Yapıştırarak geri yükle",
+      "pasteModalTitle": "Yedek JSON",
+      "pasteModalHint": ".json dosyasını metin düzenleyicide açıp tüm içeriği kopyala; buraya yapıştırıp «Uygula»ya bas.",
+      "pastePlaceholder": "Tam yedek JSON metnini buraya yapıştır (schemaVersion, profile, …)",
+      "apply": "Uygula",
+      "alertBackup": "Yedek",
+      "alertOk": "Tamam",
+      "restoreSuccess": "Yedek uygulandı (v1 veya v2); kayıtlar güncellendi.",
+      "exportFail": "Dosya oluşturulamadı veya paylaşım açılamadı. İzinleri kontrol edip tekrar dene.",
+      "pickerUnavailableTitle": "Dosya seçici kullanılamıyor",
+      "pickerUnavailableMsg": "Expo Go veya güncellenmemiş derlemede dosya seçici modülü bulunmayabilir.\n\n• Tam çözüm: projeyi yeniden derle — npm run android / npm run ios.\n\n• Hızlı seçenek: yedek .json içeriğini panodan açıp «Yapıştırarak geri yükle» ile yükle.",
+      "pasteContinue": "Yapıştır ile devam et",
+      "importFail": "Dosya açılamadı veya okunamadı.",
+      "importConfirmTitle": "Yedeği yükle",
+      "importConfirmMsg": "Mevcut veriler seçtiğin JSON ile değiştirilir (geri alınamaz). Devam etmek istiyor musun?",
+      "cancel": "Vazgeç",
+      "importConfirmBtn": "Yedeği yükle",
+      "pasteConfirmTitle": "Yapıştırarak geri yükle",
+      "pasteConfirmMsg": "Mevcut veriler yapıştırdığın JSON ile değiştirilir (geri alınamaz).",
+      "continue": "Devam",
+      "pasteEmpty": "Önce JSON metnini yapıştır.",
+      "pasteInvalid": "Geçerli bir JSON değil veya dosya kesik kopyalanmış olabilir."
+    },
+    "commitment": {
+      "title": "Alışkanlık ve bağ",
+      "labelHabit": "Kimlik hedefin (kısa ifade)",
+      "labelAnchor": "Çapa (rütin)",
+      "labelWhy": "Bu yönü neden istiyorsun?",
+      "placeholderHabit": "Örn: Her gün hareket eden biriyim",
+      "placeholderAnchor": "Örn: Kahvemi içtikten sonra",
+      "placeholderWhy": "En az 10 karakter",
+      "hint": "Kimlik şablonunu değiştirmek onboarding'den yeniden seçim gerektirir; burada günlük ifadeni güncellersin.",
+      "saving": "Kaydediliyor...",
+      "save": "Kaydet"
+    },
+    "goalProgress": {
+      "title": "66 Günlük Yolculuk",
+      "dayCount": "{{day}} / 66 gün",
+      "phase1": "Kuruluş",
+      "phase2": "Pekiştirme",
+      "phase3": "Otomatikleşme",
+      "daysLeft": "{{count}} gün kaldı",
+      "target": "Hedef: {{date}}",
+      "completed": "🎯 66 gün tamamlandı. Bu artık kim olduğunun bir parçası."
+    },
+    "weeklySummary": {
+      "title": "Haftalık özet",
+      "completedLine": "Tamamlanan günler:",
+      "missedLine": "Bu pencerede kaçırılan: {{count}}",
+      "slipHint": "Son günlerde aksamalar çoğunlukla {{day}} günlerine yakın görünüyor (basit yerel sayım; sunucu yok).",
+      "consistentHint": "Bu hafta tutarlı görünüyorsun — tek net hareket akışına devam.",
+      "shareText": "Metni paylaş",
+      "shareTitle": "Haftalık özet",
+      "shareHeader": "Haftalık özet ({{window}}) — {{habit}}",
+      "shareCompleted": "Tamamlanan günler: {{done}}/7",
+      "shareMissed": "Kaçırılan günler (pencere): {{count}}",
+      "shareSlip": "Dikkat: son günlerde aksamalar genelde {{day}} çevresinde.",
+      "shareFooter": "— Kimlik (yerel veri)",
+      "habitFallback": "alışkanlık",
+      "weekdays": [
+        "Paz",
+        "Pzt",
+        "Sal",
+        "Çar",
+        "Per",
+        "Cum",
+        "Cmt"
+      ],
+      "daypart": {
+        "morning": "sabah (≈06–12)",
+        "afternoon": "öğleden sonra (≈12–17)",
+        "evening": "akşam (≈17–22)",
+        "night": "gece (≈22–06)"
+      },
+      "noTimestamp": "Bu penceredeki tamamlanan günlerde saat kaydı yok (eski kayıtlar veya sıfırlanan giriş); dilim özeti çıkmıyor.",
+      "peak": "Tamamlamalarında en sık görülen zaman dilimi: {{part}}.",
+      "partialTimestamp": "Bazı tamamlamalarda saat bilgisi yok; dilim özeti yaklaşık bir yerel fotoğraf."
+    },
+    "story": {
+      "sheetTitle": "Paylaşım kartı",
+      "watermark": "66 Gün Disiplin",
+      "bigLine": "Gün {{day}} · %{{pct}} tutarlılık",
+      "tagline": "Motivasyon değil, disiplin.",
+      "miniHint": "Otomatiklik çizgisi için günlük puan ekle",
+      "shareBtn": "Story'de paylaş (metin)",
+      "shareNote": "Paylaşımda yalnızca seçtiğin metin kullanılır; sunucuya veri gitmez.",
+      "shareMessage": "Gün {{day}}. %{{pct}} tutarlılık. Henüz başındayım ama sistem kuruldu. #66GunDisiplin",
+      "shareGoal": "Hedef: {{habit}}"
+    },
+    "privacy": {
+      "title": "Verilerin ve gizlilik",
+      "bullets": [
+        "Tüm kişisel veriler (profil, check-in geçmişi, Zihin notların) bu cihazda saklanır; sunucuya gönderilmez.",
+        "Hesap e-postası yok — uygulama cihaza bağlıdır. Telefonu kaybetmek veya uygulamayı silmek verilerini kalıcı silebilir; mağaza yedeği oluşturmaz.",
+        "\"Verileri Sil\" seçeneği her şeyi bu cihazdan kaldırır; geri alınamaz.",
+        "Şimdi yap önerileri: metinleri okuyan yapay zekâ yoktur; seçili kelime kalıplarına göre kural tabanlı sinyal kullanılır."
+      ],
+      "foot": "Premium satın alma mağazan (Apple/Google) üzerinden faturalandırılır; ödeme ayrıntıları kimlik-app tarafından tutulmaz.",
+      "privacyLink": "Gizlilik politikası (web)",
+      "termsLink": "Kullanım koşulları",
+      "ok": "Tamam"
+    }
+  },
+  "taskSheet": {
+    "dayBadge": "Gün {{day}}",
+    "identityLabel": "Kimlik cümlen",
+    "anchor": "Çapa: {{anchor}}",
+    "doneTodayTrue": "Bugün tamamlandı",
+    "doneTodayFalse": "Henüz tamamlanmadı",
+    "actionDuration": "{{sec}} sn · Şimdi başla",
+    "goJourney": "Yolculuk'a git",
+    "close": "Kapat",
+    "actionSaved": "Adım kaydedildi."
+  },
+  "coachCard": {
+    "kicker": "Gün {{day}} · {{phase}}",
+    "title": "Bugünün ilkesi",
+    "titlePremium": "Koç paketi — bugünün ilkesi",
+    "milestone": "Kilometre taşı",
+    "premiumNote": "Yolculuk sekmesinde harita, Kimlik Aynası ve SDT nabzın seni bekliyor.",
+    "phase1": "Kuruluş",
+    "phase2": "Pekiştirme",
+    "phase3": "Otomatikleşme"
+  },
+  "app": {
+    "profileLoadFailed": "Profil bu cihazdan okunamadı",
+    "profileLoadFailedBody": "Depolama veya izin geçici bir sorun çıkarmış olabilir. Veriler kaybolmuş sayılmaz; tekrar deneyebilirsin.",
+    "quickActionToday": "Bugün",
+    "quickActionTodaySub": "Bugün kutusuna git"
+  },
+  "actions": {
+    "stand-up": {
+      "title": "Ayağa kalk"
+    },
+    "walk-5": {
+      "title": "5 adım yürü"
+    },
+    "shake-shoulders": {
+      "title": "Omuzlarını silk"
+    },
+    "open-window": {
+      "title": "Pencereyi aç, 5 sn temiz hava al"
+    },
+    "drink-water": {
+      "title": "Bir yudum su iç"
+    },
+    "stand-tall": {
+      "title": "Dik dur, göğsünü 3 sn aç"
+    },
+    "jump-once": {
+      "title": "Yerinde bir kez zıpla"
+    },
+    "march-10": {
+      "title": "Olduğun yerde 10 adım say"
+    },
+    "tap-desk": {
+      "title": "Masaya iki kez vur, sonra hareket et"
+    },
+    "wake-wrists": {
+      "title": "Bileklerini 5 sn dairesel çevir"
+    },
+    "calf-raise-3": {
+      "title": "3 kez parmak uçlarında yüksel"
+    },
+    "light-on": {
+      "title": "Işığı aç veya perdeyi arala"
+    },
+    "door-threshold": {
+      "title": "Kapı eşiğine git, bir adım içeri"
+    },
+    "interrupt-stand": {
+      "title": "Şimdi ayağa kalk"
+    },
+    "anchor-touch": {
+      "title": "Çapana dokun"
+    },
+    "say-identity": {
+      "title": "Kim olduğunu yüksek sesle söyle"
+    },
+    "two-minute": {
+      "title": "2 dakikalık versiyonu yap"
+    },
+    "tiny-rep": {
+      "title": "Tek tekrar yap"
+    },
+    "habit-whisper": {
+      "title": "Alışkanlığını fısıltıyla tekrar et"
+    },
+    "anchor-visualize": {
+      "title": "Çapayı gözünde canlandır, 5 sn"
+    },
+    "one-line-plan": {
+      "title": "Bugünkü tek adımı bir satıra yaz"
+    },
+    "tool-ready": {
+      "title": "Gereken aracı masaya koy (kitap, mat, su…)"
+    },
+    "smallest-version-say": {
+      "title": "En küçük sürümü yüksek sesle söyle"
+    },
+    "repeat-anchor-twice": {
+      "title": "Çapa cümlesini iki kez söyle"
+    },
+    "identity-nod": {
+      "title": "“Bunu yapan biriyim” de ve başını salla"
+    },
+    "habit-object-touch": {
+      "title": "Alışkanlık nesene bir kez dokun"
+    },
+    "mark-done-intent": {
+      "title": "“Şimdi yapıyorum” de ve çapaya git"
+    },
+    "deep-breath": {
+      "title": "Derin nefes al"
+    },
+    "count-three": {
+      "title": "3'e kadar say ve başla"
+    },
+    "phone-down": {
+      "title": "Telefonu yüz üstü çevir"
+    },
+    "no-explain": {
+      "title": "Açıklamadan başla"
+    },
+    "five-countdown": {
+      "title": "5-4-3-2-1 say ve ilk hareketi yap"
+    },
+    "shoulders-drop": {
+      "title": "Omuzlarını bilinçli bırak, 5 sn"
+    },
+    "unclench-jaw": {
+      "title": "Çeneni gevşet, dili damağa bırak"
+    },
+    "stop-scroll-thumb": {
+      "title": "Başparmağını ekrandan 3 sn çek"
+    },
+    "say-start-now": {
+      "title": "“Şimdi başlıyorum” de — erteleme yok"
+    },
+    "box-breath-4": {
+      "title": "4 sn al, 4 sn tut, 4 sn ver"
+    },
+    "feet-flat-press": {
+      "title": "Ayak tabanını yere bastır, 5 sn"
+    },
+    "timer-3-start": {
+      "title": "3 sn geri say ve harekete geç"
+    },
+    "close-eyes": {
+      "title": "10 saniye gözlerini kapat"
+    },
+    "one-thing": {
+      "title": "Sadece bir şeye bak"
+    },
+    "screen-blank": {
+      "title": "Ekrandan başını kaldır"
+    },
+    "blink-reset": {
+      "title": "10 kez göz kırp, sonra tek noktaya bak"
+    },
+    "mute-notifications": {
+      "title": "Bildirimleri 1 saat sessize al"
+    },
+    "desk-clear-one": {
+      "title": "Masadan tek bir şeyi kaldır"
+    },
+    "read-one-word": {
+      "title": "Görevindeki ilk kelimeyi oku"
+    },
+    "stare-one-point": {
+      "title": "Duvar/noktaya 10 sn bak"
+    },
+    "headphones-on": {
+      "title": "Kulaklığı tak veya sessiz moda geç"
+    },
+    "pen-cap-off": {
+      "title": "Kalemin kapağını çıkar, yazmaya hazır ol"
+    },
+    "single-task-say": {
+      "title": "Tek görevini yüksek sesle söyle"
+    },
+    "soft-restart": {
+      "title": "Ayağa kalk ve 1 adım at"
+    },
+    "smile": {
+      "title": "Aynaya gülümse"
+    },
+    "stretch": {
+      "title": "Kollarını yukarı kaldır, omuzlarını aç (bir kere)"
+    },
+    "comeback": {
+      "title": "Parmak uçlarını aç, dirseklerini hafif oynat"
+    },
+    "thank-self": {
+      "title": "“Bugün de denedim” de"
+    },
+    "slow-exhale-3": {
+      "title": "3 kez yavaş nefes ver"
+    },
+    "gentle-neck-roll": {
+      "title": "Boynunu yavaşça bir yana eğ (tek)"
+    },
+    "forgive-yesterday": {
+      "title": "“Dün bitti, bugün var” de"
+    },
+    "hand-on-heart": {
+      "title": "Elini göğsüne koy, 5 sn nefes al"
+    },
+    "step-outside": {
+      "title": "Kapıya git, 5 sn dışarı bak"
+    },
+    "tpl-clear-mind-write": {
+      "title": "Zihnini tek cümleye indir"
+    },
+    "tpl-clear-mind-open": {
+      "title": "Zihin ekranını aç, imleç yansın"
+    },
+    "tpl-clear-breath-box": {
+      "title": "4-4-4 nefes, sonra tek düşünceyi yaz"
+    },
+    "tpl-clear-list-one": {
+      "title": "Kafandaki 3 şeyden birini seç, yaz"
+    },
+    "tpl-clear-worry-out": {
+      "title": "Endişeyi kağıda/ nota at, kapat"
+    },
+    "tpl-move-bounce-30": {
+      "title": "30 sn olduğun yerde zıpla"
+    },
+    "tpl-move-pushup-1": {
+      "title": "1 şınav çek"
+    },
+    "tpl-move-shoes": {
+      "title": "Spor ayakkabılarını eline al"
+    },
+    "tpl-move-squat-1": {
+      "title": "1 squat yap"
+    },
+    "tpl-move-stretch-arms": {
+      "title": "Kollarını yukarı uzat, 5 sn tut"
+    },
+    "tpl-move-stairs-3": {
+      "title": "3 basamak in veya çık"
+    },
+    "tpl-learn-first-line": {
+      "title": "Kaynağı aç, ilk satıra bak"
+    },
+    "tpl-learn-name": {
+      "title": "Kaynağın adını gör ve kapat"
+    },
+    "tpl-learn-page-turn": {
+      "title": "Bir sayfa çevir veya ileri kaydır"
+    },
+    "tpl-learn-one-fact": {
+      "title": "Tek bir cümlelik bilgi oku"
+    },
+    "tpl-learn-bookmark": {
+      "title": "Kaldığın yeri işaretle"
+    },
+    "tpl-self-water": {
+      "title": "Bir bardak suyu masaya koy, yudum al"
+    },
+    "tpl-self-glass": {
+      "title": "Bardağı sadece masaya koy"
+    },
+    "tpl-self-wash-face": {
+      "title": "Yüzünü soğuk suyla 5 sn yıka"
+    },
+    "tpl-self-lotion-hand": {
+      "title": "Ellerine krem sür (tek el)"
+    },
+    "tpl-self-posture": {
+      "title": "Omuzlarını düzelt, 5 sn dik dur"
+    },
+    "tpl-creator-open": {
+      "title": "Dosyayı aç, ilk satıra imleç götür"
+    },
+    "tpl-creator-word": {
+      "title": "Sadece bir kelime yaz ya da çiz"
+    },
+    "tpl-creator-idea": {
+      "title": "Kafandaki tek fikri cümleyle yaz"
+    },
+    "tpl-creator-title-only": {
+      "title": "Sadece başlık satırı yaz"
+    },
+    "tpl-creator-rough-line": {
+      "title": "Taslak bir satır yaz, düzeltme yok"
+    },
+    "tpl-focus-tab": {
+      "title": "Tüm sekmeleri kapat, sadece bir tane bırak"
+    },
+    "tpl-focus-task": {
+      "title": "Şu anki tek görevini yüksek sesle söyle"
+    },
+    "tpl-focus-timer": {
+      "title": "25 dakika sayacını başlat, telefonu çevir"
+    },
+    "tpl-focus-notify-off": {
+      "title": "Bildirimleri kapat veya odak modu aç"
+    },
+    "tpl-focus-desk-one": {
+      "title": "Masada sadece tek iş aracı bırak"
+    },
+    "tpl-focus-5min": {
+      "title": "5 dakikalık odak sayacı başlat"
+    },
+    "tpl-sleep-screen": {
+      "title": "Ekranı kapat, gözlerini 10 sn kapat"
+    },
+    "tpl-sleep-phone": {
+      "title": "Telefonu uzağa koy, yüzünü çevir"
+    },
+    "tpl-sleep-breath": {
+      "title": "4 sn nefes al, 4 sn tut, 4 sn ver"
+    },
+    "tpl-sleep-dim-light": {
+      "title": "Işığı kıs veya kapat"
+    },
+    "tpl-sleep-alarm-set": {
+      "title": "Yarın alarmını kontrol et"
+    },
+    "tpl-sleep-gratitude": {
+      "title": "Bugün için tek iyi şeyi fısılda"
+    },
+    "tpl-social-name": {
+      "title": "Aklına gelen birinin ismini yaz"
+    },
+    "tpl-social-msg": {
+      "title": "Tek cümlelik bir mesaj taslağı yaz"
+    },
+    "tpl-social-smile": {
+      "title": "Bir sonraki karşılaşmada gülümse niyetiyle dur"
+    },
+    "tpl-social-wave-plan": {
+      "title": "Kime el sallayacağını düşün"
+    },
+    "tpl-social-send-hi": {
+      "title": "“Merhaba” veya “nasılsın” yaz, gönderme şart değil"
+    },
+    "tpl-social-voice-draft": {
+      "title": "Sesli not için tek cümle kaydet"
+    },
+    "micro-clap": {
+      "title": "Bir kez alkışla"
+    },
+    "micro-stretch-neck": {
+      "title": "Boynunu yavaşça sağa-sola çevir (bir kez)"
+    },
+    "micro-feet": {
+      "title": "Ayak tabanlarını yere bastır, 3 sn tut"
+    },
+    "micro-posture": {
+      "title": "Omuzlarını geriye al, göğsünü 2 sn aç"
+    },
+    "micro-sip": {
+      "title": "Su varsa bir yudum al"
+    },
+    "micro-window": {
+      "title": "Bir pencereye veya uzağa 5 sn bak"
+    },
+    "micro-name-habit": {
+      "title": "Alışkanlığının adını yüksek sesle söyle"
+    },
+    "micro-timer-10": {
+      "title": "10 saniyelik sayaç başlat"
+    },
+    "micro-pen-paper": {
+      "title": "Kalem veya telefon notunu aç"
+    },
+    "micro-one-word": {
+      "title": "Bugünkü niyeti tek kelimeyle yaz"
+    },
+    "micro-shoes-on": {
+      "title": "Ayakkabını giy veya eline al"
+    },
+    "micro-door": {
+      "title": "Kapıya yürü, eşiğe bas"
+    },
+    "micro-smile-mirror": {
+      "title": "Kameraya veya aynaya 2 sn bak"
+    },
+    "micro-inhale": {
+      "title": "4 sn nefes al, 4 sn ver"
+    },
+    "micro-stand-stretch": {
+      "title": "Ayağa kalk, kollarını bir kez uzat"
+    },
+    "micro-phone-away": {
+      "title": "Telefonu bir kol uzaklığına koy"
+    },
+    "micro-anchor-say": {
+      "title": "Çapanı yüksek sesle söyle"
+    },
+    "micro-tiny-rep-2": {
+      "title": "En küçük tekrarı 2 kez yap"
+    },
+    "micro-commit": {
+      "title": "“Şimdi başlıyorum” de ve hareket et"
+    },
+    "micro-habit-start": {
+      "title": "Alışkanlığın en küçük parçasını yap"
+    },
+    "micro-reset-breath": {
+      "title": "Burnundan nefes al, ağızdan ver (3 kez)"
+    }
+  },
+  "behavior": {
+    "reason": {
+      "interrupt": "Düşüş yakalandı. Tek hareket yeter: {{title}}",
+      "mindDumpMulti": "Son notlarında \"{{hint}}\" yankılanıyor — şimdi: {{title}}.",
+      "mindDumpSingle": "\"{{keyword}}\" yansıdı — şimdi: {{title}}.",
+      "highEffort": "Dün {{effort}}/10 zorlandın. Bugün küçültüyoruz: {{title}}",
+      "coldStart": "İlk günler: küçük ve net bir adım. {{title}}",
+      "declining": "Son günlerde yol zorlandı. Yumuşak bir sıçrama: {{title}}",
+      "improving": "Son günler iyi gidiyor. Bu ritmi koru: {{title}}",
+      "momentumDown": "Son 2 gündür düştün. Şimdi tekrar başlıyoruz: {{title}}",
+      "momentumUp": "İyi gidiyorsun. Devam et: {{title}}"
+    },
+    "situation": {
+      "home": "Bağlam · ev: en küçük sürüm bile yeter.",
+      "work": "Bağlam · iş arası: 1–2 dk net hareket.",
+      "travel": "Bağlam · seyahat: ortama uyan tek mikro-adım."
+    }
+  },
+  "identityTemplates": {
+    "clear_mind": {
+      "title": "Zihni berrak biri",
+      "identityStatement": "Ben, zihni berrak ve önceliklerini bilen biriyim.",
+      "mirror": {
+        "lowEnergy": "Zihni berrak biri olarak bugün sadece Zihin sekmesini açman yeter. Sistem seni koruyor.",
+        "resistance": "Zihni berrak biri, direnci yazıya döker. 10 saniye, tek cümle.",
+        "identity": "Dağınıklıktan netliğe. Zihnin artık boşluğu tanıyor."
+      },
+      "phases": {
+        "phase_1": "Kuruluş — Kafandakini yaz.",
+        "phase_2": "Pekiştirme — Öncelikle ayır.",
+        "phase_3": "Otomatikleşme — Zihin sakin."
+      }
+    },
+    "moving_person": {
+      "title": "Hareket eden biri",
+      "identityStatement": "Ben, vücuduna saygı duyan ve her gün hareket eden biriyim.",
+      "mirror": {
+        "lowEnergy": "Hareket eden biri olarak bugün sadece ayakkabını giy veya 10 adım at.",
+        "resistance": "Direnç geldiğinde hareket eden biri küçülür — 1 tekrar yeter.",
+        "identity": "Hareket artık kimliğinin parçası. Vücut bekliyor."
+      },
+      "phases": {
+        "phase_1": "Kuruluş — Harekete geç.",
+        "phase_2": "Pekiştirme — Ritmi bul.",
+        "phase_3": "Otomatikleşme — Beden hatırlıyor."
+      }
+    }
+  },
+  "dailyPrinciples": {
+    "1": {
+      "principle": "Başlamak, mükemmelleşmekten yüzlerce kez daha önemlidir.",
+      "science": "Açık görevler (Zeigarnik): başlanan eylem zihni kapatmaya iter.",
+      "action": "Bugün alışkanlığı en küçük sürüme indirip sadece bir kez başlat."
+    },
+    "2": {
+      "principle": "Motivasyon duygudur; duygular geçer, sistem kalır.",
+      "science": "Öz-Belirleme Kuramı: sürdürülebilir davranış özerklik ve anlam ister (Deci & Ryan).",
+      "action": "Nedenini 10 saniye yaz, sonra sadece tetik anında başla."
+    },
+    "4": {
+      "principle": "Küçük davranış, büyük direnci aşar.",
+      "science": "Uygulama niyetleri, planlanmış tetik-eylem çifti başarısını artırır (Gollwitzer).",
+      "action": "If-then: \\"
+    },
+    "5": {
+      "principle": "İçgüdü: dağılmak. Çözüm: çevreyi tasarlamak.",
+      "science": "Davranışsal irade: zorluk, ortamda sürtünmeyi azaltınca düşer (Thaler & Sunstein eğilimleri).",
+      "action": "Aleti/hazırlığı akşam önceden 30 saniyede hazırla."
+    },
+    "6": {
+      "principle": "Kimlik, önce cümle, sonra harekettir.",
+      "science": "Öz-şema: davranışlar hakkında tutarlı hikâye kimliği pekiştirir (Bem / kimlik yansıması).",
+      "action": "Bugün cümle: \\"
+    },
+    "7": {
+      "principle": "Yaklaşık 7 gün, beyne yeni yol açmaya yeterli ilk sinyaldir.",
+      "science": "Sinaptik plastisite, tekrarla güçlenir; süre bireyler arası değişir (Lally varyasyonu).",
+      "action": "İlk günkü mini sürüme dön, bir tur daha tamamla."
+    },
+    "8": {
+      "principle": "Vazgeçme düşüncesi, beynin eski yolu savunmasıdır.",
+      "science": "Eski alışkanlık: basal ganglia-dopamin döngüsü; yeni yol henüz zayıf (habit research).",
+      "action": "Pozitif ayrıntı: dünkü 1 kazanımı sesli söyle."
+    },
+    "9": {
+      "principle": "Ödül, bazen sadece 'bitirdim' hissidir.",
+      "science": "Pekiştirme: tamamlayıcı küçük ödüller, dopaminle birliği güçlendirir; abartma.",
+      "action": "Kendine tamamlamadan hemen sonra minik, sağlıklı bir 'işaret ödülü' ver."
+    },
+    "10": {
+      "principle": "İstikrar, yoğunluktan daha güvenlidir.",
+      "science": "Başlama sınırı efekti: büyüme için küçük tekrar yeter; atlamar motivasyonu kırar.",
+      "action": "Süre veya hacim yerine sadece 'var mı' kutusuna odaklan."
+    },
+    "11": {
+      "principle": "Stres, iyi niyet değil, sistemi aşan taleptir.",
+      "science": "Bilişsel yük: çalışan belleği doldurunca prosedürel hafıza baskılanır (baddeley modelleri).",
+      "action": "Bugünkü sürümü 2 dakikayı geçmeyecek şekilde kesin."
+    },
+    "12": {
+      "principle": "İlk çeyrek, en pahalı; ücret artık ödeme.",
+      "science": "Geç başlama, düşen öz-yeterliliği geri yüklemek için daha pahalıdır.",
+      "action": "Bugünkü eylem için tam zaman sınırı koy: timer."
+    },
+    "13": {
+      "principle": "Sürtünme, kötü irade değil, kötü tasarımdır.",
+      "science": "Ortam mühendisliği, varsayılanları iyi tasarlayan davranış değiştirir (choice architecture).",
+      "action": "Kötü tetikleyicileri 1 adım uzağa al (ör. telefon başka oda)."
+    },
+    "14": {
+      "principle": "Tekrara maruz kalmak, ilginin açılmasına yol açar.",
+      "science": "Sırf maruz etki (mere exposure) tanıdık şeyi seçilebilir kılar.",
+      "action": "Aynı mikro-eylemi, bilerek sıkıcı hale getir: monotonluk, otomasyona geçer."
+    },
+    "15": {
+      "principle": "Topluluk, tek başınalıktan farklı bir beyin modudur.",
+      "science": "Sosyal fasilitasyon, orta zorluklarda güdüyü hafif artırabilir; izleyici/destek fark yaratır.",
+      "action": "Bir cümleyle birine niyetini söyle (mikro-hesap verebilirlik)."
+    },
+    "16": {
+      "principle": "Zaman, kaynak değil, çapa bağlıdır.",
+      "science": "İmlementasyon niyetleri, zamanı sabitleyerek yürütmeyi ikiye katlar (meta-analizler).",
+      "action": "Takvime 5 dakikalık yuva koy, çınlasın (bildirim veya eş)."
+    },
+    "17": {
+      "principle": "Erteleme, tembellik değil; gecikmiş iyileşmedir.",
+      "science": "Düzenleme zorlukları bilişsel engel yaratır; kendinize etiket şiddetlendirmez (self-compassion).",
+      "action": "Ertelemeyi yargılamadan, sadece 'şimdi 30 sn' eylem."
+    },
+    "18": {
+      "principle": "İki arada bir yok: ya tetik, ya ertele.",
+      "science": "If-then planları, istemsiz cevapları yönlendirir (Gollwitzer, implementation intentions).",
+      "action": "Bugünkü 'o zaman' anını 1 cümleyle tekrar yaz."
+    },
+    "19": {
+      "principle": "Sıkılmak, otomasyona giden tüneldir.",
+      "science": "Otomatiklik eğrisi, ortalama 66+ gün varyasyon; sıkıcılık bir süreçtir (Lally).",
+      "action": "Aynı tekrar; varyasyon sadece ortam (ör. farklı odada 1 tekrar)."
+    },
+    "20": {
+      "principle": "Sınırlar, özgürlüğe çit değil, çerçevedir.",
+      "science": "Kısıtlanabilir alan, karar yorgunluğunu düşürür; öz-yönetleme sınıfta ısrar (Baumeister).",
+      "action": "Bugünkü maksimum süreyi 2 dakikada tavanla (harcanan süre değil, bitişi bil)."
+    },
+    "21": {
+      "principle": "Üçüncü hafta, 'ben yapıyorum' cümlesini taşımaya başlar.",
+      "science": "Tekrar, prosedürel öğrenmeyi güçlendirir; 21 gün sihri yok, ama sinyal birikir (popüler mit vs bilim: süre bireyde değişir).",
+      "action": "Listeye 'bugüne kadar toplam X tekrar' ekle, gerçekten bir sayı yaz."
+    },
+    "22": {
+      "principle": "Kurulum fazı bittiğinde, mesele büyütmek değil, aynada kalmak.",
+      "science": "Faz geçişi, motivasyon fırtınası yaratır; tutarlılık korunmalı (habit research).",
+      "action": "Küçüklüğe yemin et: yarın 1. fazdan 1. günkü sürüme eşit veya altında kal."
+    },
+    "23": {
+      "principle": "Motivasyon düşecek; bu planın parçası, arıza değil.",
+      "science": "Otomatiklik eğrisi yavaş ve dalgalıdır (Lally ve takım, 2009).",
+      "action": "Motivasyonu ölçme; sadece bugünkü 1 yinelemeyi korumaya odaklan."
+    },
+    "24": {
+      "principle": "Kimlik, önce cümle; sonra, birçok gün tekrar.",
+      "science": "Identity-based habits (Clear) sinirbilimle uyumlu: öz-kavram, davranış yöneltir (öz-şemalar).",
+      "action": "'Ben ... olan biriyim' cümlesini 1 adım büyüt, ama hareket mini kalsın."
+    },
+    "25": {
+      "principle": "Tutarlılık, mizaçtan çok, görünürlükten gelir.",
+      "science": "İzlenebilirlik ve kayıt, self-monitoring, davranışı % düzeyinde iyileştirir (Harkin meta-analiz).",
+      "action": "Bugünkü eylem için tek satır onay (tarih + simge) bırak."
+    },
+    "26": {
+      "principle": "Dirence direnmek, inhibisyon kasını güçlendirir.",
+      "science": "İnhibisyon kontrolü, egzersizle güçlendirilir, ama tükenir (ego depletion tartışmaları; dinlenmeyi unutma).",
+      "action": "Tetik anında 1 derin nefes + 1 tekrar; düşünmeyi kısa devre dışı bırak."
+    },
+    "27": {
+      "principle": "Takdiri, geçen sen değil, yapan sensin.",
+      "science": "Yetkinlik hissi, iç motivasyonu besler; ölç, iyileşme gör (SDT).",
+      "action": "Dünkü hafif veya ağır eforu 1-10 yaz; yargı yok, sadece veri."
+    },
+    "29": {
+      "principle": "Dışsal ödül, içgüdüyü söndürebilir; ölçü kaçmaz.",
+      "science": "Aşırı-just etme riski, kontrolsüz dış pekiştirme (Lepper).",
+      "action": "Ödülü, tamamlandı sinyaline dön: küçük, somut, hemen."
+    },
+    "30": {
+      "principle": "Artık soru: 'Yaptın mı?' değil, 'Hangi sürümdeyim?'",
+      "science": "Kimlik tabanlı yürütme, özsöylem cümleleriyle hizaya gelir (self-perception, kognitif uyum).",
+      "action": "Gün 30'da alışkanlık adıyla 3. kez aynı mini varyasyon."
+    },
+    "31": {
+      "principle": "Stres, iyi fırsat, kötü mazeret: seçim sizin.",
+      "science": "Stres, otomatiği bozabilir; toparlayıcı planlar fark yaratır (coping, implementation).",
+      "action": "Stres 7+ ise sürümü yarım yap, yoklama kaydı kalsın."
+    },
+    "32": {
+      "principle": "Toparlanma, başarısızlık değil, öğrenme penceresidir.",
+      "science": "Eksik sürüm + kısa analiz, sonraki denemeyi öngörülebilir kılar (growth mindset, Dweck; ölçümle).",
+      "action": "Kaçırma olduysa 1 cümle: sebep değil, 'yarın 30 sn' planı."
+    },
+    "33": {
+      "principle": "Zihin, ertelemeyi 'şimdi acı vermez' diye satar.",
+      "science": "Anlık indirimleme, gelecek ödülleri küçük görür; commitment device yardım eder.",
+      "action": "Birine veya yere, sosyal/bağlayıcı bir mini taahhüt bırak."
+    },
+    "34": {
+      "principle": "Grup, bencilliği kırar; sorumluluk, hatırlatmanın ötesine geçer.",
+      "science": "Hesap verebilirlik, başarı oranlarını artırır (Aşçı & Jackson destek çalışmaları).",
+      "action": "Bugün, bir kişiden 'sordum' veya 'yaptın mı' beklentisini 1 cümleyle al."
+    },
+    "35": {
+      "principle": "Direniş, kas gibi: dinlenmeyi reddet, delik açarsın.",
+      "science": "İnhibisyon ve öz-düzenleme sınırlı; uyku ve biliş tükenişi engeller (Galliot glukoz, tartışmalar; özet: tükenme gerçeği).",
+      "action": "Bir tükeniş sinyalinde, hedefi 10 sn/1 tekrar, uyku/şeker önceliği yok (uyku önce)."
+    },
+    "36": {
+      "principle": "Aynalama, değil; hatırlatma: siz, kendinizle konuşursunuz.",
+      "science": "Öz-söylem, duygudurum ve yürütmeyi yönetir; iyileştirici dil SDT ile uyumlu.",
+      "action": "Bugün, iç sesi 3. şahıs cümleyle sakinleştir, sonra 1 eylem."
+    },
+    "37": {
+      "principle": "İlerleme çizgisi, algı, ölçüm ve tutarlılık üçlüsündür.",
+      "science": "Goal-gradient: bitişe yaklaşınca hız; küçük mil taşlar momentum (Hull, 1932 — modern yorumlama).",
+      "action": "Araya 1 küçük bayrak koy: 37/44 pekiştirme içindeyim, bugünkü 1 yineleme."
+    },
+    "38": {
+      "principle": "İç çelişki, aynalarda çözülür, kaçlarda büyür.",
+      "science": "Bilişsel çelişki, tutarsızlık azaltma ihtiyacı, davranış yöneltir (Festinger, ölçülü yorumlama).",
+      "action": "Bir cümle: 'Bunu yapan ben, şunu da 1 kere denerim' (çelişkiyi 1 hareketle hafiflet)."
+    },
+    "39": {
+      "principle": "Zaman çizgisi, duygudan uzun; tutarlılık kısadır, birikir.",
+      "science": "Tükenmiş gün, bir sonraki yolda 0,5 sn bile tekrar anlam ifade eder (kesinti psikolojisi).",
+      "action": "Hafif gün, yine de 1 eylem: süre 10 sn'den fazla olmasın."
+    },
+    "40": {
+      "principle": "Bağlam, ceza değil, ipucu değişimidir.",
+      "science": "Stimulus control, yeni ipuçlarıyla yeni cevap; davranış analizi.",
+      "action": "Kötü giden ortam değişkeni 1 tane listele, yarın 1 tane odağa alın."
+    },
+    "41": {
+      "principle": "İç ödüller, dışa bağımlı değil; öğrenilmiş tatmindir.",
+      "science": "İçsel pekiştirme, ileri düzeyde yürütme, uzun vadeli motivasyonu taşır (SDT).",
+      "action": "Tamamlandıktan sonra, net bir iç cümle: 'Bu, beni tanımlayan küçük bir an.'"
+    },
+    "42": {
+      "principle": "Sadece ertelemek değil, erken bırakmak; ikisi ayrı cepler.",
+      "science": "Aşama modeli, niyet-eylem ayrımı; farkı kaydetmek müdahale eder (Prochaska, özetle).",
+      "action": "Eğer ertelendiyse, 'bırakma' cümlesini yasakla; sadece saat sınırla."
+    },
+    "43": {
+      "principle": "Pekiştirme son hafta: darboğaz, sadece sizin çapanız.",
+      "science": "Lally, otomatiğe varış 18–254 gün aralığı; 66, ortalama, senin hızın farklı (Lally).",
+      "action": "En çok kaçırdığın tetik: 1 cümleyle yeniden adlandır (isim değiştir, tetik aynı)."
+    },
+    "44": {
+      "principle": "Faz 2, kimlik cümlelerinizi fiile bağladı; faz 3, otomatiği cilalar.",
+      "science": "Alışkanlık otomatikleşince bilinç yükü düşer (Wood).",
+      "action": "44. gün: 10 sn'de, 'bunu farketmeden nerede yapıyorum?' 1 cevap."
+    },
+    "45": {
+      "principle": "Artık 'karar vermiyor', hatırlıyor ve fark ediyor olursunuz.",
+      "science": "Basal ganglia, otomatiği; prefrontal, üst yönetimi devreder (Willingham, prosedürel hafıza).",
+      "action": "Bugün, tetik anında 1 anlık fark et (sessiz, 2 sn)."
+    },
+    "46": {
+      "principle": "Otopilot, suçluluk değil, tasarrufftur.",
+      "science": "Otomasyon, bilişsel yük serbest bırakır; odak, üst hedeflere kayar (dual-process).",
+      "action": "Otomatiği kutla: 1 cümle, 'Bunu bana bıraktım' değil, 'Bunu bana bırakıyorum'."
+    },
+    "47": {
+      "principle": "66 gün, ortalama; senin sürren farklı olabilir, bu normal.",
+      "science": "Lally varyasyon: medyan/ortalama 18–66+ hafta arası dağılır; kişi özeli.",
+      "action": "Faz 3'te her gün: 'şu an puan'ı değil, 'fark'ı kaydet: kafasızlık/akıcılık 1-5."
+    },
+    "48": {
+      "principle": "Sıkıcılık, disiplin değil, sistemin tıslaması.",
+      "science": "Rutin, dopaminin dalgasından çok, kesintisiz tekrarın çizgisidir (habitization).",
+      "action": "Sıkılan zihninde 1 cümle: 'Sıkıcılık, sinyal: otomasyona girdim.'"
+    },
+    "49": {
+      "principle": "Kimliğe dokunan şey, unutulmayan hareketle ölçülür.",
+      "science": "Öz-şema güncellemeleri, tutarlı deneyle birleşir (bilissel-kişiler arası kabul).",
+      "action": "Birine veya aynada, 5 sn'lik sesli: 'Bunu yapan benim.'"
+    },
+    "50": {
+      "principle": "Yeniden tasarlamak, durdurmak değil; ileri taşımaktır.",
+      "science": "Habit-discontinuity hipotez: bağlam değişirse, alışkanlık zayıf noktada esner (krizde müdahale fırsatı).",
+      "action": "1 bağlam değişkeni test et: farklı saat, aynı mikro-eylem."
+    },
+    "51": {
+      "principle": "Otomatiğe güven, denetimi bırakma değil.",
+      "science": "Hedef çizgileri, meta-düzlemde ince oynama, slip önleme (Gollwitzer, if-then).",
+      "action": "1 if-then yedek: 'Kayıt düşerse, 30 sn’de aynı gün aynı çapa.'"
+    },
+    "52": {
+      "principle": "Toparlayıcı gün, başarısız gün değil; sinyal günü.",
+      "science": "Relapse prevention, tetiği açıklayıp, planı küçülterek sürer (Marlatt).",
+      "action": "Bozulma olasılığı: tetik+duygu 1 cümle; çözüm: mini if-then."
+    },
+    "53": {
+      "principle": "Disiplin, ceza değil; ertelenmiş ödül yönetimidir.",
+      "science": "Zaman tercihleri, erteleme ve öz-kontrol (Mischel, bisküvi, özet: gecikmiş ödül).",
+      "action": "Büyük ödül yok, küçük: bugün, tamamlayınca 10 sn'lik sakin hareket (stretch vb.)."
+    },
+    "54": {
+      "principle": "Siz 66’yı doldurursunuz; 66, sizi sınırlamaz.",
+      "science": "Uyarlanma: hedef sonrası yeni eşik, habit stacking/goal hierarchy.",
+      "action": "67+ için 1 cümle hedef taslak: 'Aynı çapa, bir üst 2 dk.' (bugün taslak)."
+    },
+    "55": {
+      "principle": "55. gün: sinyal, sizin hız veriniz, ortalamadan ayrılabilirsiniz.",
+      "science": "Lally dağılımı: kişi özeli varyasyon, ortalamadan sapma olağanüstü değil.",
+      "action": "Eğer ağır: 'ben yavaş yolculuğum' 1 cümle; 1 eylem yine 2 dk ve altı."
+    },
+    "56": {
+      "principle": "Otomatik, uykuda değil: bilinç dışı yürütme.",
+      "science": "Implicit vs explicit prosedürel öğrenme; idrak dışı tekrar (Willingham).",
+      "action": "Eylem bitince 3 sn'lik sessiz 'ne oldu?' sorusu, yargısız."
+    },
+    "57": {
+      "principle": "Bağlamsal sızı, son hafta yeni çapa denemesi için sinyal olabilir.",
+      "science": "Kontekst-uyarıcılık (renewal) risk, yine de planlı yeniden-çaplayış kapanır (özet).",
+      "action": "1 yeni, küçük çapa denemesini 5 sn'de tasarla, bugün sadece deneme, tam performans yok."
+    },
+    "58": {
+      "principle": "Siz değil, sistem taşır: egonuzu dinlendirin, kalıbı hizaya getirin.",
+      "science": "Sistem-1 otomatiği, sistem-2 planlaması, çakışmada sistem-1 kazanır, sistem-2 çevreyi ayarlar (Stanovich).",
+      "action": "Ortamda 1 varsayılanı kalıcı düzelt (ör. ışık, kapı, çanta yeri)."
+    },
+    "59": {
+      "principle": "66’ya 7 kala, kayıt, övünme değil, ayna tutar.",
+      "science": "Self-monitoring, yürütmeyi kör etmez; ters, göz açar (Harkin).",
+      "action": "47’den bu yana fark-1-5 trendini 1 cümleyle özetle (yoksa, 'henüz veri' yaz)."
+    },
+    "60": {
+      "principle": "Alışkanlık, bitişi değil, bir sonraki kapıyı açan anahtar.",
+      "science": "Habit stacking, zincir, öncekini tetik; Clear + davranış zinciri (Lally, otomasyona geçince kolay).",
+      "action": "1 kısa, yeni, küçük 'sonrası' 5 sn'lik plan: mevcut hat üstüne +1 halka."
+    },
+    "61": {
+      "principle": "Topluluk, 66'da sizi taşıdıysa, onu 67'de açık bırakın veya sınırlayın—bilinçli.",
+      "science": "Sosyal kıyaslama, dışa özgü motivasyon, içseli zayıfça etkiler (tartışmalar, ölçü).",
+      "action": "Hesabı, paylaş veya 1 cümleyle gizlilik: hangisi sürdürücü, bugünkü tercih."
+    },
+    "62": {
+      "principle": "Son 5'te, ruh değil, ritim: bitiş, ritmi çalmaz, taşır.",
+      "science": "Kapanış etkileri, hedef yaklaşımında ivme (goal-gradient) ve tükenme riski; ritim, koruyucu.",
+      "action": "Bugün, her zamanki saat, her zamanki yer, minimum varyasyon, maksimum sadakat."
+    },
+    "63": {
+      "principle": "63'te, unutulmak değil, sadeleşmek kazanır.",
+      "science": "Bilişsel sadeleştirme, otomasyonda aşırı planı düşürür; minimalizm yürütmeyi hızlandırır (özet).",
+      "action": "Planda 1 madde gizlice çıkar, hiç bir şey olmamış gibi devam (en az sürücüyü bırak)."
+    },
+    "65": {
+      "principle": "65'te, bir sonraki 66'ya ertelemeyi değil, devamlılığı bırakın.",
+      "science": "Süreklilik, büyük yeni hedeflerle değil, aynı çekirdekle genişleme (expansion) ile sürer.",
+      "action": "Aynı çapa + 1 zorunluk: yarın, sadece 1 dakika, fark yok, devam vurgusu."
+    },
+    "66": {
+      "principle": "Bu, biten bir koşu değil, otomasyona söz veren bir sözleşmeyi tamamlamaktır.",
+      "science": "Lally, otomasyonda bireysel varyasyon; 66, sembol, bilim kişi özeli 66 olmayı reddeder—ama ritüel, köprü kurar.",
+      "action": "1 sayfa veya 1 cümle: 67'den itibaren 'aynı/mini/art' seçimini işaretle, bugün sadece imza."
+    }
+  },
+  "journeyEducation": {
+    "1": [
+      {
+        "id": "p1-1",
+        "title": "Beynin yeni rutini işlerken",
+        "body": "İlk fazda frontal kabuk daha çok nöbet tutar: hareket çoğu zaman bilinçli seçim ister. Beyin yeni bir desene “dikkat” ayırır; bu yorgunluk değil, öğrenmenin bedeli. Erken günlerde küçük ve bitirilebilir adımlar, büyük planlardan daha az direnç doğurur."
+      },
+      {
+        "id": "p1-2",
+        "title": "Direnç nereden geliyor?",
+        "body": "Alışkanlık henüz otomatik değilken basal ganglia deseni netleşmemiştir; bu yüzden beden bazen “hayır” der. Kaçınma normaldir. Hedef sıfır kaçınmak değil — kaç görüldüğünde suçluluk yerine en küçük geri dönüşü seçmek."
+      },
+      {
+        "id": "p1-3",
+        "title": "Küçük ödül, büyük mesafe",
+        "body": "Erken fazda büyük ödül seyrek gelir; beyin kısa vadeli rahatlığa kayabilir. Tamamlanmış küçük bir adım tamamlanma hissini artırır. Bugünkü kazanımı bedene veya tek cümleye indir — bu, uzun yolculuk için yeterli bir kanıt."
+      },
+      {
+        "id": "p1-4",
+        "title": "Kuruluş fazı için cümle",
+        "body": "Bu fazda bağlam ve tekrar kazanır: aynı sıra, aynı ipucu, aynı çapa. Kimlik cümlen kısa olsun; her tekrarda “kendine bir oy” vermiş olursun. Disiplin performans değil, hatırlatma pratiğidir."
+      }
+    ],
+    "2": [
+      {
+        "id": "p2-1",
+        "title": "Ara dönem: sıkıcı ama değerli",
+        "body": "Pekiştirme fazında bir kısım hareket tanıdıklaşır; sıkıcı hissi artabilir. Bu genelde zayıflık değil — otomatikleşmenin yan ürünü. Sıkıcı günler, haritayı “renksiz ama istikrarlı” boyar."
+      },
+      {
+        "id": "p2-2",
+        "title": "Bağlam esnekliği",
+        "body": "Koşullar değişince beyin yeni ipuçları arar. Küçük ortam değişikliklerine (yer, süre, sıra) hazırlıklı olmak, düşüş günlerinde kurtarıcı olur. Mükemmel koşul beklemeden “yeterince iyi” koşulda başla."
+      },
+      {
+        "id": "p2-3",
+        "title": "Kimlik ve tekrar",
+        "body": "Bu fazda “ben bunu yapan biriyim” cümlesi tekrarlandıkça güçlenir. Davranışı kişiye bağla ama sınav gibi yükleme — nazik tekrar. Bir gün aksadıysan kimlik tek günle çökmez; geri bağlanmak da kimlik parçasıdır."
+      },
+      {
+        "id": "p2-4",
+        "title": "Pekiştirme fazı için cümle",
+        "body": "İstikrar, ilhamdan uzun yaşar. Motivasyon dalgalıdır; rutin ise dalga kıran iskele. Bugün yapılan tek küçük hareket yarının devamını daha olası yapar."
+      }
+    ],
+    "3": [
+      {
+        "id": "p3-1",
+        "title": "Otomatikleşmenin kapısı",
+        "body": "Son fazda daha çok tekrar ve bağlam uyumu devrededir; beynin “sonra yaparım” maliyeti bazen düşer. Bu ‘artık kolay’ demek değil — ‘az düşünerek başlama’ya yaklaşmak demektir."
+      },
+      {
+        "id": "p3-2",
+        "title": "Tetikleyiciler ve tuzaklar",
+        "body": "Otomatikleşen rutin bile stres veya uyku eksiliğinde sarsılır. Bilinen tetikleyicileri yazılı tutmak koruyucu olur: yorgunluk, sıkışıklık, sosyal baskı. Plan yüksek heyecanlı değil, düşüşe hazır olsun."
+      },
+      {
+        "id": "p3-3",
+        "title": "Kimlik pekiştirmesi",
+        "body": "66. güne yaklaşırken amaç sadece kutu kapatmak değil — bu davranışı ‘benlik’ taslağıyla hizalamak. Ne ölçüde ‘ben seçtim’ hissi varsa sürdürme ihtimali o kadar bağlanmış olur (SDT dilinde öznel özerklik yakını)."
+      },
+      {
+        "id": "p3-4",
+        "title": "Otomatikleşme fazı için cümle",
+        "body": "Artık hedef ‘mükemmel gün’ değil, sapınca hızlı toparlamak. Uzun yol küçük onarımların toplamıdır. Bugün yapılan en küçük geri bağlanış bile yolcusunu taşır."
+      }
+    ]
+  },
+  "mindPrompts": {
+    "daily": [
+      "Bugün kafanı en çok meşgul eden tek şey ne?",
+      "Şu an içinden geçen ama sesli söylemediğin ne?",
+      "Bugün için minnettar olduğun küçük bir detay?",
+      "Yarın için tek bir net niyet cümlesi?",
+      "Bugün hangi düşünce seni hareketsiz bıraktı?",
+      "Bugün kendine söz verdiğin en küçük adım ne?",
+      "Şu an vücudunda ne hissediyorsun — tek kelime?",
+      "Bugün ‘erteledim’ dediğin şey neydi, neden?",
+      "Kim olduğunu hatırlatan tek cümle bugün ne?",
+      "Bugün enerjin 1–10; düşükse ne küçültebilirsin?",
+      "Bugün en gurur duyduğun an (küçük bile olsa)?",
+      "Şu an bırakmak istediğin tek yük ne?",
+      "Bugün çapanı (tetikleyici) ne zaman fark ettin?",
+      "Yarın sabah ilk 2 dakikada ne yapacaksın?"
+    ],
+    "modal": [
+      "Bugün kafamı en çok meşgul eden şey...",
+      "Şu an içimden geçen ama sesli söylemediğim...",
+      "Minnettar olduğum küçük bir detay...",
+      "Yarın için tek bir net niyet...",
+      "Bugün ertelediğim şey aslında...",
+      "Kendime söz verdiğim en küçük adım..."
+    ]
+  },
+  "coachNotes": {
+    "day7": "İlk hafta geride kaldı. Çapa yerine oturdu — şimdi kolaylaşıyor.",
+    "day14": "İki hafta. Beyinde yeni bağlantılar şekilleniyor. Fark etmesen bile.",
+    "day22": "Kritik nokta. Buraya kadar gelenler genellikle bitirenler oluyor.",
+    "day30": "30 gün. Artık 'yapıyor musun?' sorusu değil, 'kim oluyorsun?' sorusu geçerli.",
+    "day44": "Faz 2 bitti. Artık seçmiyorsun — yapıyorsun.",
+    "day66": "66 gün. Bu artık sende — kimse alamaz."
+  },
+  "checkInConfirmation": {
+    "subtitle": "Hızlıca kaydet, detayları sonra düşün",
+    "other": "Diğer",
+    "otherPlaceholder": "Kısaca yaz...",
+    "save": "Kaydet ve Tamamla",
+    "custom": {
+      "title": "Bugün bu kimlik yönünde neredeydin?",
+      "options": [
+        "İstediğim gibi ilerledim",
+        "Kısmen yaptım, yarıda kaldı",
+        "Zorlandım ama denedim",
+        "Enerjim düşüktü",
+        "Başka öncelikler aldı",
+        "Hızlıca not almak yeterli oldu"
+      ]
+    },
+    "mental-clarity": {
+      "title": "Zihin berraklığı için bugün ne yakaladın?",
+      "options": [
+        "Kaygıyı/düşünceyi not ettim",
+        "Zihnimi toparladım",
+        "Çok kısa da olsa nefes aldım",
+        "Kararsızlığı azalttım",
+        "Sadece fark ettim",
+        "Henüz olmadı"
+      ]
+    },
+    "moving-body": {
+      "title": "Hareket tarafında bugün ne oldu?",
+      "options": [
+        "Planladığım hareketi yaptım",
+        "Kısa bir hareket yeterliydi",
+        "Yürüyüş / esneme bile sayılır",
+        "Zaman yetmedi",
+        "Vücudumu dinledim",
+        "Yarım kaldı"
+      ]
+    },
+    "lifelong-learner": {
+      "title": "Öğrenme rutininde bugün neresin?",
+      "options": [
+        "Küçük bir şey okudum/izledim",
+        "Not aldım veya tekrar ettim",
+        "Tek adım attım",
+        "Bugün olmadı",
+        "Sadece merak ettim",
+        "Yarın telafi ederim"
+      ]
+    },
+    "self-care": {
+      "title": "Kendine bakım için bugün ne var?",
+      "options": [
+        "Küçük bir iyilik yaptım",
+        "Dinlenmeye izin verdim",
+        "Sınır koydum / hayır dedim",
+        "Kısa mola verdim",
+        "Farkındalık anı oldu",
+        "Bugün zordu"
+      ]
+    },
+    "creator": {
+      "title": "Üretkenlik / yaratıcılık tarafında bugün?",
+      "options": [
+        "Üzerinde çalıştım",
+        "Taslak veya fikir çıktı",
+        "Az da olsa ilerleme",
+        "Beklentimi düşürdüm",
+        "Sadece başlamak yetti",
+        "Olmadı"
+      ]
+    },
+    "deep-focus": {
+      "title": "Odak için bugün ne söylersin?",
+      "options": [
+        "Derin çalışma bloğu yaptım",
+        "Tek göreve kilitlendim",
+        "Dikkat dağıtıcıyı kestim",
+        "Kısa blok bile işe yaradı",
+        "Bugün dağınıktı",
+        "Denemedim"
+      ]
+    },
+    "night-owl": {
+      "title": "Akşam rutininde bugün neresin?",
+      "options": [
+        "Planladığım adımı yaptım",
+        "Enerji düşük ama denedim",
+        "Erken pes ettim",
+        "Gün yoğundu",
+        "Tek küçük şey",
+        "Yarına bıraktım"
+      ]
+    },
+    "social-builder": {
+      "title": "Bağlantı / iletişim tarafında bugün?",
+      "options": [
+        "Birine ulaştım / yazdım",
+        "Minik bir etkileşim",
+        "Dinledim veya destek oldum",
+        "Kendime zaman ayırdım",
+        "Bugün yalnız hissettim",
+        "Atladım"
+      ]
+    }
+  }
+}

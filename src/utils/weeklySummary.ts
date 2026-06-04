@@ -1,14 +1,22 @@
 import { format, parseISO, subDays, differenceInDays } from "date-fns";
-import { tr } from "date-fns/locale";
 import { CheckinRecord } from "../types";
-
-const DAY_NAMES_SHORT = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"] as const;
+import i18n from "../i18n/config";
+import { getDateFnsLocale } from "./dateFnsLocale";
 
 function daypartForHour(h: number): string {
-  if (h >= 6 && h < 12) return "sabah (≈06–12)";
-  if (h >= 12 && h < 17) return "öğleden sonra (≈12–17)";
-  if (h >= 17 && h < 22) return "akşam (≈17–22)";
-  return "gece (≈22–06)";
+  if (h >= 6 && h < 12) return i18n.t("profile.weeklySummary.daypart.morning");
+  if (h >= 12 && h < 17) return i18n.t("profile.weeklySummary.daypart.afternoon");
+  if (h >= 17 && h < 22) return i18n.t("profile.weeklySummary.daypart.evening");
+  return i18n.t("profile.weeklySummary.daypart.night");
+}
+
+function weekdayShort(dayIndex: number): string {
+  const days = i18n.t("profile.weeklySummary.weekdays", { returnObjects: true });
+  if (Array.isArray(days) && typeof days[dayIndex] === "string") {
+    return days[dayIndex] as string;
+  }
+  const fallback = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return fallback[dayIndex] ?? "";
 }
 
 export interface WeeklyDigest {
@@ -16,9 +24,7 @@ export interface WeeklyDigest {
   missedDaysInWindow: number;
   slipProneWeekdayShort: string | null;
   windowLabel: string;
-  /** completedAt olan kayıtlara göre en sık gün içi dilim */
   completionTimePeak: string | null;
-  /** Saat önermesi yaklaşık / eksik olduğunda kısa not */
   completionTimeCaveat: string | null;
 }
 
@@ -26,7 +32,7 @@ export function isoLocalDate(d: Date): string {
   return format(d, "yyyy-MM-dd");
 }
 
-/** Bugünden geriye 7 gün (bugün dahıl); yol başlangıcından önceki günlere yazılmaz. */
+/** Bugünden geriye 7 gün (bugün dahil); yol başlangıcından önceki günlere yazılmaz. */
 export function buildWeeklyDigest(
   startDateISO: string,
   checkins: Record<string, CheckinRecord>
@@ -34,6 +40,7 @@ export function buildWeeklyDigest(
   const start = parseISO(startDateISO);
   const windowEnd = new Date();
   const windowStart = subDays(windowEnd, 6);
+  const locale = getDateFnsLocale();
 
   let completedDays = 0;
   let missedDaysInWindow = 0;
@@ -75,12 +82,12 @@ export function buildWeeklyDigest(
   }
 
   const slipProneWeekdayShort =
-    slipDay != null && slipMax > 0 ? DAY_NAMES_SHORT[slipDay] ?? null : null;
+    slipDay != null && slipMax > 0 ? weekdayShort(slipDay) : null;
 
-  const windowLabel = `${format(windowStart, "d MMM", { locale: tr })} — ${format(
+  const windowLabel = `${format(windowStart, "d MMM", { locale })} — ${format(
     windowEnd,
     "d MMMM",
-    { locale: tr }
+    { locale }
   )}`;
 
   let peakKey: string | null = null;
@@ -98,13 +105,11 @@ export function buildWeeklyDigest(
   const withTimestampCount = Object.values(hourBuckets).reduce((a, n) => a + n, 0);
 
   if (completedDays > 0 && withTimestampCount === 0) {
-    completionTimeCaveat =
-      "Bu penceredeki tamamlanan günlerde saat kaydı yok (eski kayıtlar veya sıfırlanan giriş); dilim özeti çıkmıyor.";
+    completionTimeCaveat = i18n.t("profile.weeklySummary.noTimestamp");
   } else if (peakKey != null && peakVal > 0) {
-    completionTimePeak = `Tamamlamalarında en sık görülen zaman dilimi: ${peakKey}.`;
+    completionTimePeak = i18n.t("profile.weeklySummary.peak", { part: peakKey });
     if (withTimestampCount < completedDays) {
-      completionTimeCaveat =
-        "Bazı tamamlamalarda saat bilgisi yok; dilim özeti yaklaşık bir yerel fotoğraf.";
+      completionTimeCaveat = i18n.t("profile.weeklySummary.partialTimestamp");
     }
   }
 

@@ -34,10 +34,8 @@ import { getAverageAutomaticity } from "../utils/profileMetrics";
 import PremiumGateModal from "../components/PremiumGateModal";
 import ConfirmDialog from "../components/ConfirmDialog";
 import PrivacyDataModal from "../components/PrivacyDataModal";
-import EditCommitmentModal from "../components/EditCommitmentModal";
 import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
 import GoalProgressCard from "../components/GoalProgressCard";
-import ViralStoryCard from "../components/ViralStoryCard";
 import WeeklySummaryCard from "../components/WeeklySummaryCard";
 import type { UserProfile } from "../types";
 import {
@@ -45,6 +43,10 @@ import {
   TERMS_URL,
   getManageSubscriptionsUrl,
 } from "../constants/appLinks";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "../contexts/LanguageContext";
+import { getLocalizedHabitTitle } from "../i18n/localizeContent";
+import type { AppLocale } from "../i18n/config";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import { trackEvent } from "../utils/analytics";
 
@@ -122,6 +124,9 @@ function useLast14Bars(startDateIso: string, checkins: Record<string, { complete
 }
 
 export default function ProfileScreen() {
+  const { t, i18n } = useTranslation();
+  const { currentLocale, changeAppLanguage, supportedLocales } = useLanguage();
+  const [showLangModal, setShowLangModal] = useState(false);
   const {
     profile,
     setName,
@@ -140,10 +145,8 @@ export default function ProfileScreen() {
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(profile?.name ?? "");
   const [showGate, setShowGate] = useState(false);
-  const [showStoryCard, setShowStoryCard] = useState(false);
   const [profileDialog, setProfileDialog] = useState<ProfileDialog>(null);
   const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showCommitmentEdit, setShowCommitmentEdit] = useState(false);
   const [notifSheetOpen, setNotifSheetOpen] = useState(false);
   const [backupSheetOpen, setBackupSheetOpen] = useState(false);
   const [achievementsModalOpen, setAchievementsModalOpen] = useState(false);
@@ -163,18 +166,23 @@ export default function ProfileScreen() {
   const achievements = useMemo(() => {
     if (!profile) return [];
     const list: { emoji: string; title: string; desc: string; unlocked: boolean }[] = [
-      { emoji: "🌱", title: "İlk filiz", desc: "Yolculuk başladı", unlocked: dayNumber >= 1 },
-      { emoji: "🔥", title: "3 gün seri", desc: "İlk momentum", unlocked: currentStreak >= 3 },
-      { emoji: "💪", title: "7 gün seri", desc: "Disiplin kası", unlocked: currentStreak >= 7 },
-      { emoji: "🎯", title: "21 gün", desc: "Çekirdek alışkanlık", unlocked: dayNumber >= 21 },
-      { emoji: "⚡", title: "30 gün", desc: "Üçte bir geçildi", unlocked: dayNumber >= 30 },
-      { emoji: "🏁", title: "66 gün", desc: "Yolculuk tamamlandı", unlocked: (profile.completedHabits?.length ?? 0) > 0 },
-      { emoji: "⭐", title: "Premium", desc: "Tam deneyim", unlocked: isPremium },
+      { emoji: "🌱", title: t("profile.achievements.sprout.title"), desc: t("profile.achievements.sprout.desc"), unlocked: dayNumber >= 1 },
+      { emoji: "🔥", title: t("profile.achievements.streak3.title"), desc: t("profile.achievements.streak3.desc"), unlocked: currentStreak >= 3 },
+      { emoji: "💪", title: t("profile.achievements.streak7.title"), desc: t("profile.achievements.streak7.desc"), unlocked: currentStreak >= 7 },
+      { emoji: "🎯", title: t("profile.achievements.day21.title"), desc: t("profile.achievements.day21.desc"), unlocked: dayNumber >= 21 },
+      { emoji: "⚡", title: t("profile.achievements.day30.title"), desc: t("profile.achievements.day30.desc"), unlocked: dayNumber >= 30 },
+      { emoji: "🏁", title: t("profile.achievements.day66.title"), desc: t("profile.achievements.day66.desc"), unlocked: (profile.completedHabits?.length ?? 0) > 0 },
+      { emoji: "⭐", title: t("profile.achievements.premiumAch.title"), desc: t("profile.achievements.premiumAch.desc"), unlocked: isPremium },
     ];
     return list;
-  }, [profile, dayNumber, currentStreak, isPremium]);
+  }, [profile, dayNumber, currentStreak, isPremium, t]);
 
   const last14 = useLast14Bars(profile?.startDate ?? "", checkins);
+
+  const displayHabitName = useMemo(
+    () => (profile ? getLocalizedHabitTitle(profile) : ""),
+    [profile, i18n.language]
+  );
 
   const applyProfilePatch = useCallback(
     async (patch: Partial<UserProfile>) => {
@@ -208,26 +216,22 @@ export default function ProfileScreen() {
     }
   };
 
-  const notifTimeLabel = `Sabah ${String(notifHour).padStart(2, "0")}:${String(notifMin).padStart(2, "0")}`;
+  const notifTimeLabel = t("profile.settings.notifTimeLabel", { h: String(notifHour).padStart(2, "0"), m: String(notifMin).padStart(2, "0") });
   const checkInGate = profile?.checkInActionGate ?? "soft";
-  const gateModeLabel =
-    checkInGate === "strict"
-      ? "Sıkı — önce adım zorunlu"
-      : checkInGate === "off"
-      ? "Kapalı"
-      : "Yumuşak — önce adım önerilir";
+
+  const { opacity: entO, translateY: entY } = useEntranceAnims();
 
   if (!profile) {
     if (profileLoadFailed) {
       return (
         <SafeAreaView style={[styles.safe, { backgroundColor: PAGE_BG }]} edges={["top"]}>
           <View style={styles.empty}>
-            <Text style={styles.emptyTitle}>Profil okunamadı</Text>
+            <Text style={styles.emptyTitle}>{t("profile.error.title")}</Text>
             <Text style={styles.retryBody}>
-              Depolama veya izin kaynaklı geçici bir sorun olabilir. Tekrar deneyerek profili yeniden yükleyebilirsin.
+              {t("profile.error.body")}
             </Text>
             <TouchableOpacity style={styles.retryPill} onPress={() => loadProfileAgain()} activeOpacity={0.85}>
-              <Text style={styles.retryPillText}>Tekrar dene</Text>
+              <Text style={styles.retryPillText}>{t("profile.error.retry")}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -236,13 +240,11 @@ export default function ProfileScreen() {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: PAGE_BG }]} edges={["top"]}>
         <View style={styles.empty}>
-          <Text style={styles.emptyMuted}>Yükleniyor...</Text>
+          <Text style={styles.emptyMuted}>{t("profile.error.loading")}</Text>
         </View>
       </SafeAreaView>
     );
   }
-
-  const { opacity: entO, translateY: entY } = useEntranceAnims();
 
   const journeyPct = Math.min(Math.round((dayNumber / 66) * 100), 100);
 
@@ -255,10 +257,10 @@ export default function ProfileScreen() {
       >
         {/* ── Header ── */}
         <Animated.View style={[styles.headerRow, { opacity: entO[0], transform: [{ translateY: entY[0]! }] }]}>
-          <Text style={styles.headerTitle}>Profil</Text>
+          <Text style={styles.headerTitle}>{t("profile.header")}</Text>
           <View style={[styles.statusBadge, restActive ? styles.statusBadgeRest : styles.statusBadgeOk]}>
             <Text style={[styles.statusBadgeText, restActive && styles.statusBadgeTextRest]}>
-              {restActive ? "Mola" : "Aktif"}
+              {restActive ? t("profile.statusRest") : t("profile.statusActive")}
             </Text>
           </View>
         </Animated.View>
@@ -283,16 +285,16 @@ export default function ProfileScreen() {
                   onSubmitEditing={() => void handleSaveName()}
                 />
               ) : (
-                <Text style={styles.displayName}>{profile.name || "Kahraman"}</Text>
+                <Text style={styles.displayName}>{profile.name || t("profile.defaultName")}</Text>
               )}
-              <Text style={styles.habitLabel}>{profile.habitName}</Text>
+              <Text style={styles.habitLabel}>{displayHabitName}</Text>
               <View style={styles.profileMetaRow}>
                 {isPremium ? (
                   <View style={styles.premiumBadge}>
-                    <Text style={styles.premiumBadgeText}>Premium</Text>
+                    <Text style={styles.premiumBadgeText}>{t("profile.premiumBadge")}</Text>
                   </View>
                 ) : null}
-                <Text style={styles.journeyMeta}>Gün {dayNumber}/66</Text>
+                <Text style={styles.journeyMeta}>{t("profile.dayMeta", { day: dayNumber })}</Text>
               </View>
             </View>
             <TouchableOpacity
@@ -314,7 +316,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Journey progress bar */}
           <View style={styles.journeyBar}>
             <View style={styles.journeyTrack}>
               <View style={[styles.journeyFillClip, { width: `${journeyPct}%` }]}>
@@ -326,64 +327,76 @@ export default function ProfileScreen() {
                 />
               </View>
             </View>
-            <Text style={styles.journeyBarText}>%{journeyPct} yolculuk tamamlandı</Text>
+            <Text style={styles.journeyBarText}>{t("profile.progressPct", { pct: journeyPct })}</Text>
           </View>
 
           <GoalProgressCard dayNumber={dayNumber} startDate={profile.startDate} />
-
-          <TouchableOpacity
-            style={styles.storyShareBtn}
-            onPress={() => setShowStoryCard(true)}
-            activeOpacity={0.85}
-          >
-            <Text style={styles.storyShareBtnText}>İlerlemeyi hikaye olarak paylaş</Text>
-          </TouchableOpacity>
         </Animated.View>
 
-        {/* ── Stat Kartları ── */}
-        <Animated.View style={{ opacity: entO[1], transform: [{ translateY: entY[1]! }] }}>
-          <Text style={styles.sectionLabel}>İSTATİSTİKLER</Text>
+        {/* ── Stat Kartları + Haftalık özet ── */}
+        <Animated.View style={[styles.statsSection, { opacity: entO[1], transform: [{ translateY: entY[1]! }] }]}>
+          <Text style={[styles.sectionLabel, styles.statsSectionLabel]}>{t("profile.stats.title")}</Text>
           <View style={styles.statRow}>
             <View style={[styles.statCard, styles.statCardStreak]}>
-              <Flame size={18} color="#F59E0B" strokeWidth={2.5} />
-              <Text style={styles.statBigStreak}>{currentStreak}</Text>
-              <Text style={styles.statSmall}>seri</Text>
+              <View style={[styles.statIconWrap, styles.statIconWrapStreak]}>
+                <Flame size={14} color="#D97706" strokeWidth={2.5} />
+              </View>
+              <Text style={styles.statBigStreak} numberOfLines={1} adjustsFontSizeToFit>
+                {currentStreak}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={2}>
+                {t("profile.stats.streak")}
+              </Text>
             </View>
             <View style={styles.statCard}>
-              <Target size={16} color={Colors.primary} strokeWidth={2} />
-              <Text style={styles.statBig}>{dayNumber}</Text>
-              <Text style={styles.statSmall}>gün</Text>
+              <View style={styles.statIconWrap}>
+                <Target size={13} color={Colors.primary} strokeWidth={2} />
+              </View>
+              <Text style={styles.statBig} numberOfLines={1} adjustsFontSizeToFit>
+                {dayNumber}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={2}>
+                {t("profile.stats.daysUnit", { count: dayNumber })}
+              </Text>
             </View>
             <View style={styles.statCard}>
-              <TrendingUp size={16} color={Colors.primary} strokeWidth={2} />
-              <Text style={styles.statBig}>%{autoPct}</Text>
-              <Text style={styles.statSmall}>otomatiklik</Text>
+              <View style={styles.statIconWrap}>
+                <TrendingUp size={13} color={Colors.primary} strokeWidth={2} />
+              </View>
+              <Text style={styles.statBig} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+                {t("profile.stats.pctValue", { pct: autoPct })}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={2}>
+                {t("profile.stats.automaticity")}
+              </Text>
             </View>
             <View style={styles.statCard}>
-              <Trophy size={16} color={Colors.primary} strokeWidth={2} />
-              <Text style={styles.statBig}>%{Math.round(rate * 100)}</Text>
-              <Text style={styles.statSmall}>tamamlama</Text>
+              <View style={styles.statIconWrap}>
+                <Trophy size={13} color={Colors.primary} strokeWidth={2} />
+              </View>
+              <Text style={styles.statBig} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85}>
+                {t("profile.stats.pctValue", { pct: Math.round(rate * 100) })}
+              </Text>
+              <Text style={styles.statLabel} numberOfLines={2}>
+                {t("profile.stats.completion")}
+              </Text>
             </View>
           </View>
 
-          <WeeklySummaryCard
-            startDate={profile.startDate}
-            checkins={checkins}
-            habitName={profile.habitName}
-          />
+          <WeeklySummaryCard startDate={profile.startDate} checkins={checkins} habitName={displayHabitName} />
         </Animated.View>
 
         {(profile.completedHabits?.length ?? 0) > 0 ? (
           <View style={styles.completedHabitsWrap}>
-            <Text style={styles.sectionLabel}>TAMAMLANAN TURLAR</Text>
+            <Text style={styles.sectionLabel}>{t("profile.completedRounds.title")}</Text>
             <View style={styles.settingsList}>
               {(profile.completedHabits ?? []).map((h, i) => (
                 <View key={`${h.completedAt}-${i}`} style={styles.completedHabitRow}>
                   <Text style={styles.completedHabitName}>{h.habitName}</Text>
                   <Text style={styles.completedHabitMeta}>
-                    {h.completedDaysCount} gün tamamlandı
+                    {t("profile.completedRounds.days", { count: h.completedDaysCount })}
                     {h.avgAutomaticity != null
-                      ? ` · ort. otomatiklik ${h.avgAutomaticity.toFixed(1)}`
+                      ? t("profile.completedRounds.avgAuto", { value: h.avgAutomaticity.toFixed(1) })
                       : ""}
                   </Text>
                 </View>
@@ -394,7 +407,7 @@ export default function ProfileScreen() {
 
         {/* ── 14 Günlük Grafik ── */}
         <Animated.View style={{ opacity: entO[2], transform: [{ translateY: entY[2]! }] }}>
-          <Text style={styles.sectionLabel}>SON 14 GÜN</Text>
+          <Text style={styles.sectionLabel}>{t("profile.chart.title")}</Text>
           <View style={styles.chartCard}>
             <View style={styles.barsRow}>
               {last14.bars.map((b, i) => {
@@ -413,7 +426,7 @@ export default function ProfileScreen() {
             </View>
             <View style={styles.chartFooter}>
               <Text style={styles.chartCaption}>
-                {last14.completedInWindow}/14 gün
+                {t("profile.chart.caption", { count: last14.completedInWindow })}
               </Text>
               <Text style={styles.chartPct}>%{last14.pct}</Text>
             </View>
@@ -423,9 +436,11 @@ export default function ProfileScreen() {
         {/* ── Başarımlar ── */}
         <Animated.View style={{ opacity: entO[3], transform: [{ translateY: entY[3]! }] }}>
           <View style={styles.achHeadRow}>
-            <Text style={[styles.sectionLabel, styles.achSectionPad]}>BAŞARIMLAR</Text>
+            <Text style={[styles.sectionLabel, styles.compactSectionLabel, styles.achSectionPad]}>
+              {t("profile.achievements.title")}
+            </Text>
             <TouchableOpacity activeOpacity={0.7} onPress={() => setAchievementsModalOpen(true)}>
-              <Text style={styles.tumu}>Tümü</Text>
+              <Text style={styles.tumu}>{t("profile.achievements.all")}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView
@@ -445,16 +460,17 @@ export default function ProfileScreen() {
 
         {/* ── Koçluk akışı ── */}
         <Animated.View style={{ opacity: entO[4], transform: [{ translateY: entY[4]! }] }}>
-          <Text style={styles.sectionLabel}>KOÇLUK AKIŞI</Text>
+          <Text style={[styles.sectionLabel, styles.compactSectionLabel]}>
+            {t("profile.coaching.title")}
+          </Text>
           <View style={styles.coachCard}>
-            <Text style={styles.coachCardTitle}>Check-in öncesi adım</Text>
-            <Text style={styles.coachCardSub}>{gateModeLabel}</Text>
+            <Text style={styles.coachCardTitle}>{t("profile.coaching.checkInStep")}</Text>
             <View style={styles.gateChipRow}>
               {(
                 [
-                  { id: "soft" as const, label: "Yumuşak" },
-                  { id: "strict" as const, label: "Sıkı" },
-                  { id: "off" as const, label: "Kapalı" },
+                  { id: "soft" as const, label: t("profile.coaching.gateChips.soft") },
+                  { id: "strict" as const, label: t("profile.coaching.gateChips.strict") },
+                  { id: "off" as const, label: t("profile.coaching.gateChips.off") },
                 ] as const
               ).map((opt) => (
                 <TouchableOpacity
@@ -482,25 +498,27 @@ export default function ProfileScreen() {
 
         {/* ── Ayarlar ── */}
         <Animated.View style={{ opacity: entO[4], transform: [{ translateY: entY[4]! }] }}>
-          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>AYARLAR</Text>
+          <Text style={[styles.sectionLabel, styles.compactSectionLabel, styles.settingsSectionLabel]}>
+            {t("profile.settings.title")}
+          </Text>
           <View style={styles.settingsList}>
             <SettingsRow
-              emoji="🔔"
-              title="Bildirimler"
-              subtitle={notifTimeLabel}
-              onPress={() => setNotifSheetOpen(true)}
+              emoji="🌐"
+              title={t("profile.language")}
+              subtitle={t(`profile.languages.${currentLocale}`)}
+              onPress={() => setShowLangModal(true)}
             />
             <SettingsRow
-              emoji="✏️"
-              title="Taahhüdünü düzenle"
-              subtitle={profile.habitName}
-              onPress={() => setShowCommitmentEdit(true)}
+              emoji="🔔"
+              title={t("profile.settings.notifications")}
+              subtitle={notifTimeLabel}
+              onPress={() => setNotifSheetOpen(true)}
             />
             <View style={styles.setRow}>
               <Text style={styles.setEmoji}>📳</Text>
               <View style={styles.setTextCol}>
-                <Text style={styles.setTitle}>Titreşim</Text>
-                <Text style={styles.setSub}>Tamamlama geri bildirimi</Text>
+                <Text style={styles.setTitle}>{t("profile.settings.haptics")}</Text>
+                <Text style={styles.setSub}>{t("profile.settings.hapticsSub")}</Text>
               </View>
               <Switch
                 value={hapticsEnabled}
@@ -509,59 +527,53 @@ export default function ProfileScreen() {
                 thumbColor="#FFFFFF"
               />
             </View>
-            <SettingsRow
-              emoji="🎨"
-              title="Tema"
-              subtitle="Açık"
-              onPress={() => Alert.alert("Tema", "Şu an yalnızca açık tema destekleniyor.")}
-            />
             {!isPremium ? (
               <SettingsRow
                 emoji="✨"
-                title="Premium"
-                subtitle="66 gün haritası, Kimlik Aynası, SDT"
+                title={t("profile.settings.premiumRow")}
+                subtitle={t("profile.settings.premiumRowSub")}
                 onPress={() => setShowGate(true)}
               />
             ) : (
               <SettingsRow
                 emoji="💳"
-                title="Aboneliği yönet"
-                subtitle="Mağaza ayarları"
+                title={t("profile.settings.subscription")}
+                subtitle={t("profile.settings.subscriptionSub")}
                 onPress={() => void Linking.openURL(getManageSubscriptionsUrl())}
               />
             )}
             <SettingsRow
               emoji="📄"
-              title="Gizlilik politikası"
-              subtitle="Web"
+              title={t("profile.settings.privacyPolicy")}
+              subtitle={t("profile.settings.privacyPolicySub")}
               onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}
             />
             <SettingsRow
               emoji="📋"
-              title="Kullanım koşulları"
-              subtitle="Abonelik şartları"
+              title={t("profile.settings.terms")}
+              subtitle={t("profile.settings.termsSub")}
               onPress={() => void Linking.openURL(TERMS_URL)}
             />
           </View>
 
-          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>VERİ</Text>
+          <Text style={[styles.sectionLabel, { marginTop: 20 }]}>{t("profile.data.title")}</Text>
           <View style={styles.settingsList}>
             <SettingsRow
               emoji="🛡️"
-              title="Gizlilik"
-              subtitle="Bu cihazda ne tutuluyor"
+              title={t("profile.data.privacy")}
+              subtitle={t("profile.data.privacySub")}
               onPress={() => setShowPrivacy(true)}
             />
             <SettingsRow
               emoji="💾"
-              title="Verileri yedekle"
-              subtitle="JSON olarak dışa aktar"
+              title={t("profile.data.backup")}
+              subtitle={t("profile.data.backupSub")}
               onPress={() => setBackupSheetOpen(true)}
             />
             <SettingsRow
               emoji="🗑️"
-              title="Verileri sil"
-              subtitle="Tüm geçmiş ve notlar"
+              title={t("profile.data.delete")}
+              subtitle={t("profile.data.deleteSub")}
               danger
               onPress={() => setProfileDialog("delete_all")}
             />
@@ -571,26 +583,26 @@ export default function ProfileScreen() {
         {/* ── Footer ── */}
         <Animated.View style={{ opacity: entO[5], transform: [{ translateY: entY[5]! }] }}>
           <TouchableOpacity style={styles.notifPermRow} onPress={() => void handleNotifSetup()} activeOpacity={0.85}>
-            <Text style={styles.notifPermText}>Bildirim iznini kontrol et</Text>
+            <Text style={styles.notifPermText}>{t("profile.footer.notifCheck")}</Text>
             <Ionicons name="open-outline" size={16} color="#10B981" />
           </TouchableOpacity>
 
           <View style={styles.footerQuote}>
-            <Text style={styles.quoteMain}>Motivasyon bir duygu değil, bir eylem.</Text>
+            <Text style={styles.quoteMain}>{t("profile.footer.quote")}</Text>
             <Text style={styles.quoteSub}>
-              {APP_VERSION} · Kimlik · Gün {dayNumber}
+              {t("profile.footer.versionDay", { version: APP_VERSION, day: dayNumber })}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.aboutRow}
             onPress={() =>
-              Alert.alert("Kimlik", `${APP_VERSION}\n\nYerel ilkelerle çalışan bir alışkanlık koçu.`)
+              Alert.alert(t("profile.footer.aboutAlertTitle"), `${APP_VERSION}\n\n${t("profile.footer.aboutAlertMsg")}`)
             }
             activeOpacity={0.7}
           >
             <Ionicons name="information-circle-outline" size={16} color="#94A3B8" />
-            <Text style={styles.aboutText}>Hakkında · v{APP_VERSION}</Text>
+            <Text style={styles.aboutText}>{t("profile.footer.about", { version: APP_VERSION })}</Text>
           </TouchableOpacity>
         </Animated.View>
 
@@ -605,9 +617,9 @@ export default function ProfileScreen() {
       >
         <SafeAreaView style={styles.sheetRoot} edges={["top", "bottom"]}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Bildirimler</Text>
+            <Text style={styles.sheetTitle}>{t("profile.modal.notifTitle")}</Text>
             <TouchableOpacity onPress={() => setNotifSheetOpen(false)} hitSlop={12}>
-              <Text style={styles.sheetClose}>Kapat</Text>
+              <Text style={styles.sheetClose}>{t("common.close")}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
@@ -617,7 +629,7 @@ export default function ProfileScreen() {
               visibleSections={["notifications"]}
             />
             <Text style={styles.sheetHint}>
-              Ana hatırlatma saati: {notifTimeLabel}. İzin için ayrıca «Bildirim iznini sistemden kontrol et» kullan.
+              {t("profile.modal.notifHint", { time: notifTimeLabel })}
             </Text>
           </ScrollView>
         </SafeAreaView>
@@ -631,9 +643,9 @@ export default function ProfileScreen() {
       >
         <SafeAreaView style={styles.sheetRoot} edges={["top", "bottom"]}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Yedek</Text>
+            <Text style={styles.sheetTitle}>{t("profile.modal.backupTitle")}</Text>
             <TouchableOpacity onPress={() => setBackupSheetOpen(false)} hitSlop={12}>
-              <Text style={styles.sheetClose}>Kapat</Text>
+              <Text style={styles.sheetClose}>{t("common.close")}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={styles.sheetScroll} keyboardShouldPersistTaps="handled">
@@ -654,9 +666,9 @@ export default function ProfileScreen() {
       >
         <SafeAreaView style={styles.sheetRoot} edges={["top", "bottom"]}>
           <View style={styles.sheetHeader}>
-            <Text style={styles.sheetTitle}>Başarımlar</Text>
+            <Text style={styles.sheetTitle}>{t("profile.modal.achievementsTitle")}</Text>
             <TouchableOpacity onPress={() => setAchievementsModalOpen(false)} hitSlop={12}>
-              <Text style={styles.sheetClose}>Kapat</Text>
+              <Text style={styles.sheetClose}>{t("common.close")}</Text>
             </TouchableOpacity>
           </View>
           <ScrollView contentContainerStyle={styles.achModalScroll} keyboardShouldPersistTaps="handled">
@@ -670,7 +682,7 @@ export default function ProfileScreen() {
                   <Text style={styles.achTitle}>{a.title}</Text>
                   <Text style={styles.achDesc}>{a.desc}</Text>
                   <Text style={[styles.achStatus, !a.unlocked && styles.achStatusLocked]}>
-                    {a.unlocked ? "Açıldı" : "Kilitli"}
+                    {a.unlocked ? t("profile.achievements.unlocked") : t("profile.achievements.locked")}
                   </Text>
                 </View>
               </View>
@@ -679,52 +691,66 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </Modal>
 
+      {/* ── Dil Seçici Modal ── */}
+      <Modal
+        visible={showLangModal}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setShowLangModal(false)}
+      >
+        <View style={styles.langOverlay}>
+          <View style={styles.langSheet}>
+            <View style={styles.langSheetHandle} />
+            <Text style={styles.langSheetTitle}>{t("profile.languageTitle")}</Text>
+            <Text style={styles.langSheetSub}>{t("profile.languageSubtitle")}</Text>
+            <View style={styles.langList}>
+              {(supportedLocales as AppLocale[]).map((locale) => {
+                const active = locale === currentLocale;
+                return (
+                  <TouchableOpacity
+                    key={locale}
+                    style={[styles.langRow, active && styles.langRowActive]}
+                    onPress={async () => {
+                      await changeAppLanguage(locale);
+                      setShowLangModal(false);
+                      void trackEvent("language_changed", { locale });
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={[styles.langRowText, active && styles.langRowTextActive]}>
+                      {t(`profile.languages.${locale}`)}
+                    </Text>
+                    {active && (
+                      <Ionicons name="checkmark-circle" size={20} color={Colors.primary} />
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            <TouchableOpacity
+              style={styles.langCloseBtn}
+              onPress={() => setShowLangModal(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.langCloseBtnText}>{t("common.close")}</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <PremiumGateModal visible={showGate} onClose={() => setShowGate(false)} trigger="profile" />
-
       <PrivacyDataModal visible={showPrivacy} onClose={() => setShowPrivacy(false)} />
-
-      <ViralStoryCard
-        visible={showStoryCard}
-        onClose={() => setShowStoryCard(false)}
-        dayNumber={dayNumber}
-        consistencyPercent={Math.round(rate * 100)}
-        habitName={profile.habitName}
-        startDate={profile.startDate}
-        checkins={checkins}
-      />
-
-      <EditCommitmentModal
-        visible={showCommitmentEdit}
-        onClose={() => setShowCommitmentEdit(false)}
-        habitName={profile.habitName}
-        habitAnchor={profile.habitAnchor}
-        habitWhy={profile.habitWhy}
-        onSave={async ({ habitName, habitAnchor, habitWhy }) => {
-          await updateProfile({ habitName, habitAnchor, habitWhy });
-          void trackEvent("template_changed", { habitName });
-          const nextProfile = useUserStore.getState().profile;
-          const todayDone = getTodayCheckin()?.completed ?? false;
-          if (nextProfile) {
-            await setupNotifications(
-              nextProfile,
-              todayDone,
-              useTomorrowPlanStore.getState().listsByDate,
-              useCheckinsStore.getState().checkins
-            ).catch(console.warn);
-          }
-        }}
-      />
 
       <ConfirmDialog
         visible={profileDialog === "notif_success"}
-        title="Bildirimler açık"
-        message="Sabah hatırlatmaların seçtiğin saate göre planlanacak."
+        title={t("profile.dialog.notifSuccess.title")}
+        message={t("profile.dialog.notifSuccess.msg")}
         tone="success"
         closeOnBackdropPress={false}
         onRequestClose={() => setProfileDialog(null)}
         actions={[
           {
-            label: "Tamam",
+            label: t("profile.dialog.notifSuccess.ok"),
             variant: "primary",
             onPress: async () => {
               setProfileDialog(null);
@@ -743,18 +769,18 @@ export default function ProfileScreen() {
 
       <ConfirmDialog
         visible={profileDialog === "notif_settings"}
-        title="İzin gerekli"
-        message="Bildirimleri zamanlayabilmemiz için sistem ayarlarından bildirim iznini açman gerekiyor."
+        title={t("profile.dialog.notifSettings.title")}
+        message={t("profile.dialog.notifSettings.msg")}
         tone="default"
         onRequestClose={() => setProfileDialog(null)}
         actions={[
           {
-            label: "Vazgeç",
+            label: t("profile.dialog.notifSettings.dismiss"),
             variant: "secondary",
             onPress: () => setProfileDialog(null),
           },
           {
-            label: "Ayarlara git",
+            label: t("profile.dialog.notifSettings.goSettings"),
             variant: "primary",
             onPress: () => {
               setProfileDialog(null);
@@ -766,18 +792,18 @@ export default function ProfileScreen() {
 
       <ConfirmDialog
         visible={profileDialog === "delete_all"}
-        title="Tüm verileri sil"
-        message="Alışkanlık geçmişin, check-in kayıtların ve zihin notların bu cihazdan silinecek. Bu işlem geri alınamaz."
+        title={t("profile.dialog.deleteAll.title")}
+        message={t("profile.dialog.deleteAll.msg")}
         tone="danger"
         onRequestClose={() => setProfileDialog(null)}
         actions={[
           {
-            label: "Vazgeç",
+            label: t("profile.dialog.deleteAll.cancel"),
             variant: "secondary",
             onPress: () => setProfileDialog(null),
           },
           {
-            label: "Sil",
+            label: t("profile.dialog.deleteAll.confirm"),
             variant: "destructive",
             onPress: async () => {
               setProfileDialog(null);
@@ -934,19 +960,20 @@ const styles = StyleSheet.create({
   },
 
   journeyBar: {
-    marginHorizontal: 16,
-    marginTop: 10,
-    gap: 6,
+    marginHorizontal: Spacing.md,
+    marginTop: 6,
+    marginBottom: 4,
+    gap: 4,
   },
   journeyTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#E2E8F0",
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
     overflow: "hidden",
   },
   journeyFillClip: {
     height: "100%",
-    borderRadius: 3,
+    borderRadius: 2,
     overflow: "hidden",
   },
   journeyGradient: {
@@ -954,72 +981,86 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   journeyBarText: {
-    fontSize: FontSizes.xs,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
   },
-  storyShareBtn: {
-    marginTop: Spacing.sm,
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.md,
-    borderRadius: Radii.button,
-    backgroundColor: Colors.primaryLight,
-    alignItems: "center",
-  },
-  storyShareBtnText: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
-    color: Colors.primaryDark,
-  },
 
+  statsSection: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  statsSectionLabel: {
+    marginTop: Spacing.sm,
+    marginBottom: 6,
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
   sectionLabel: {
-    marginHorizontal: 16,
-    marginTop: 16,
-    fontSize: 11,
-    fontWeight: "700",
-    letterSpacing: 1.2,
-    color: "#94A3B8",
+    marginTop: Spacing.md,
+    marginBottom: Spacing.sm,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_600SemiBold",
+    letterSpacing: 1,
+    color: Colors.textTertiary,
     textTransform: "uppercase",
   },
 
   statRow: {
     flexDirection: "row",
-    marginHorizontal: 16,
-    marginTop: 8,
-    gap: 8,
+    gap: 5,
+    marginBottom: Spacing.sm,
   },
   statCard: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
+    minWidth: 0,
+    backgroundColor: Colors.surface,
     borderRadius: Radii.button,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     alignItems: "center",
-    gap: 4,
-    ...cardShadow,
+    gap: 3,
+    ...Shadows.soft,
   },
   statCardStreak: {
     backgroundColor: "#FFFBEB",
-    borderWidth: 1,
-    borderColor: "rgba(245,158,11,0.15)",
+    borderColor: "rgba(245, 158, 11, 0.2)",
+  },
+  statIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  statIconWrapStreak: {
+    backgroundColor: "rgba(245, 158, 11, 0.12)",
   },
   statBig: {
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#0F172A",
+    fontSize: 15,
+    fontFamily: "Inter_700Bold",
+    color: Colors.textPrimary,
+    textAlign: "center",
+    width: "100%",
   },
   statBigStreak: {
-    fontSize: 22,
-    fontWeight: "800",
+    fontSize: 16,
+    fontFamily: "Inter_700Bold",
     color: "#D97706",
-  },
-  statSmall: {
-    fontSize: 10,
-    color: "#64748B",
     textAlign: "center",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
+    width: "100%",
+  },
+  statLabel: {
+    fontSize: 8,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textTertiary,
+    textAlign: "center",
+    lineHeight: 10,
+    width: "100%",
+    paddingHorizontal: 1,
   },
 
   chartCard: {
@@ -1060,46 +1101,63 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
 
+  compactSectionLabel: {
+    marginHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: 6,
+    fontSize: 10,
+    letterSpacing: 0.8,
+  },
+  settingsSectionLabel: {
+    marginTop: Spacing.md,
+  },
   achHeadRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 16,
+    paddingHorizontal: Spacing.md,
   },
   achSectionPad: {
     marginHorizontal: 0,
-    marginTop: 16,
+    marginTop: 0,
+    marginBottom: 0,
   },
   tumu: {
     color: Colors.primary,
-    fontWeight: "600",
-    fontSize: FontSizes.sm,
+    fontFamily: "Inter_600SemiBold",
+    fontSize: 11,
   },
   achScroll: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
-    paddingBottom: 4,
+    paddingHorizontal: Spacing.md,
+    paddingTop: 4,
+    paddingBottom: 2,
+    gap: 8,
   },
   achCard: {
-    width: 110,
-    backgroundColor: "#FFFFFF",
-    borderRadius: Radii.button,
-    padding: 12,
-    marginRight: 10,
-    ...cardShadow,
+    width: 88,
+    backgroundColor: Colors.surface,
+    borderRadius: Radii.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    marginRight: 8,
+    ...Shadows.soft,
   },
-  achCardLocked: { opacity: 0.4 },
-  achEmoji: { fontSize: 24, marginBottom: 6 },
+  achCardLocked: { opacity: 0.45 },
+  achEmoji: { fontSize: 18, marginBottom: 4 },
   achTitle: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: "#0F172A",
+    fontSize: 11,
+    fontFamily: "Inter_600SemiBold",
+    color: Colors.textPrimary,
+    lineHeight: 14,
   },
   achDesc: {
-    fontSize: FontSizes.xs,
+    fontSize: 9,
     fontFamily: "Inter_400Regular",
-    color: "#64748B",
-    marginTop: 3,
+    color: Colors.textTertiary,
+    marginTop: 2,
+    lineHeight: 12,
   },
   achModalScroll: {
     padding: 16,
@@ -1224,35 +1282,32 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
   },
   coachCard: {
-    marginHorizontal: 16,
-    marginTop: 8,
+    marginHorizontal: Spacing.md,
+    marginTop: 0,
+    marginBottom: Spacing.sm,
     backgroundColor: Colors.surface,
-    borderRadius: Radii.card,
-    padding: Spacing.md,
+    borderRadius: Radii.button,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     borderWidth: 1,
     borderColor: Colors.border,
+    gap: 8,
+    ...Shadows.soft,
   },
   coachCardTitle: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
     color: Colors.textPrimary,
-  },
-  coachCardSub: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    marginTop: 4,
-    marginBottom: Spacing.sm,
   },
   gateChipRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: 5,
   },
   gateChip: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: Radii.button,
+    paddingVertical: 6,
+    paddingHorizontal: 4,
+    borderRadius: Radii.sm,
     borderWidth: 1,
     borderColor: Colors.border,
     backgroundColor: Colors.surfaceMuted,
@@ -1260,17 +1315,16 @@ const styles = StyleSheet.create({
   },
   gateChipOn: {
     backgroundColor: Colors.primaryLight,
-    borderColor: "rgba(47,156,134,0.35)",
+    borderColor: "rgba(47, 156, 134, 0.35)",
   },
   gateChipText: {
-    fontSize: FontSizes.xs,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
     color: Colors.textSecondary,
   },
   gateChipTextOn: {
     color: Colors.primaryDark,
     fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
   },
 
   sheetRoot: { flex: 1, backgroundColor: PAGE_BG },
@@ -1311,4 +1365,77 @@ const styles = StyleSheet.create({
   },
   retryPillText: { color: "#FFFFFF", fontWeight: "600" },
   emptyMuted: { color: "#64748B" },
+
+  /* Language picker modal */
+  langOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.35)",
+    justifyContent: "flex-end",
+  },
+  langSheet: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.sm,
+    paddingBottom: 40,
+  },
+  langSheetHandle: {
+    alignSelf: "center",
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    marginBottom: Spacing.md,
+  },
+  langSheetTitle: {
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
+    marginBottom: 4,
+  },
+  langSheetSub: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 19,
+    marginBottom: Spacing.lg,
+  },
+  langList: { gap: Spacing.xs },
+  langRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 14,
+    borderRadius: Radii.button,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    backgroundColor: Colors.bg,
+  },
+  langRowActive: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  langRowText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textPrimary,
+  },
+  langRowTextActive: {
+    fontFamily: "Inter_500Medium",
+    color: Colors.primaryDark,
+  },
+  langCloseBtn: {
+    marginTop: Spacing.lg,
+    backgroundColor: Colors.primary,
+    borderRadius: Radii.button,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  langCloseBtnText: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_500Medium",
+    color: "#fff",
+  },
 });

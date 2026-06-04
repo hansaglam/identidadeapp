@@ -39,7 +39,8 @@ export type AnalyticsEventName =
   | "purchase_start"
   | "purchase_success"
   | "purchase_error"
-  | "purchase_restore";
+  | "purchase_restore"
+  | "language_changed";
 
 export interface AnalyticsEvent {
   name: AnalyticsEventName;

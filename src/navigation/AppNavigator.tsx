@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Platform, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import {
   CheckSquare, PenLine, Map, User,
 } from "lucide-react-native";
@@ -77,6 +78,7 @@ function createMainTabStyles(colors: AppColors) {
 }
 
 function MainTabNavigator() {
+  const { t } = useTranslation();
   const styles = useMemo(() => createMainTabStyles(Colors), []);
   const insets = useSafeAreaInsets();
   const bottomInset = Math.max(insets.bottom, Platform.OS === "android" ? 12 : 8);
@@ -112,7 +114,7 @@ function MainTabNavigator() {
           name="Home"
           component={HomeScreen}
           options={{
-            title: "Bugün",
+            title: t("tabs.today"),
             tabBarIcon: ({ color, focused }) => (
               <CheckSquare size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
             ),
@@ -122,7 +124,7 @@ function MainTabNavigator() {
           name="MindDump"
           component={MindDumpScreen}
           options={{
-            title: "Zihin",
+            title: t("tabs.mind"),
             tabBarIcon: ({ color, focused }) => (
               <PenLine size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
             ),
@@ -132,7 +134,7 @@ function MainTabNavigator() {
           name="Journey"
           component={JourneyScreen}
           options={{
-            title: "Yolculuk",
+            title: t("tabs.journey"),
             tabBarIcon: ({ color, focused }) => (
               <Map size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
             ),
@@ -142,7 +144,7 @@ function MainTabNavigator() {
           name="Profile"
           component={ProfileScreen}
           options={{
-            title: "Profil",
+            title: t("tabs.profile"),
             tabBarIcon: ({ color, focused }) => (
               <User size={22} color={color} strokeWidth={focused ? 2 : 1.5} />
             ),

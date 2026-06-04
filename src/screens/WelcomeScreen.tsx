@@ -13,24 +13,29 @@ import { ArrowRight, ShieldCheck } from "lucide-react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useTranslation } from "react-i18next";
 import { AuthStackParamList } from "../types";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Welcome">;
 
-const FEATURES = [
-  { icon: "⚡", title: "Tek net hareket", sub: "Her gün sıfır karar yorgunluğu — kart sana söyler." },
-  { icon: "🎯", title: "Çapa sistemi", sub: "Mevcut rutinine bağla; yeni zaman dilimi açmana gerek yok." },
-  { icon: "🛡️", title: "Toparlanma için tasarlı", sub: "Düştüğünde cezalandırmaz, yeniden bağlanmana yardım eder." },
-] as const;
-
-const TRUST_STATS = [
-  { value: "66", label: "gün" },
-  { value: "Sıfır", label: "kayıt" },
-  { value: "Yerel", label: "veri" },
-] as const;
+const FEATURE_ICONS = ["⚡", "🎯", "🛡️"] as const;
 
 export default function WelcomeScreen({ navigation }: Props) {
+  const { t } = useTranslation();
+
+  const features = ([0, 1, 2] as const).map((i) => ({
+    icon: FEATURE_ICONS[i],
+    title: t(`welcome.features.${i}.title`),
+    sub: t(`welcome.features.${i}.sub`),
+  }));
+
+  const trustStats = [
+    { value: "66", label: t("common.days") },
+    { value: t("welcome.stats.noRegValue"), label: t("welcome.stats.noReg") },
+    { value: t("welcome.stats.local"), label: t("welcome.stats.localLabel") },
+  ];
+
   const logoOp = useSharedValue(0);
   const logoScale = useSharedValue(0.85);
   const titleOp = useSharedValue(0);
@@ -92,15 +97,13 @@ export default function WelcomeScreen({ navigation }: Props) {
 
         {/* Headline */}
         <Animated.View style={titleStyle}>
-          <Text style={styles.headline}>Motivasyon bir{"\n"}duygu değil.</Text>
-          <Text style={styles.headlineSub}>
-            Her gün tek hareket, dürüst check-in,{"\n"}düştüğünde yeniden bağlan.
-          </Text>
+          <Text style={styles.headline}>{t("welcome.headline")}</Text>
+          <Text style={styles.headlineSub}>{t("welcome.headlineSub")}</Text>
         </Animated.View>
 
         {/* Features */}
         <Animated.View style={[styles.featureList, featuresStyle]}>
-          {FEATURES.map((f, i) => (
+          {features.map((f, i) => (
             <View key={i} style={styles.featureRow}>
               <View style={styles.featureIconWrap}>
                 <Text style={styles.featureIcon}>{f.icon}</Text>
@@ -115,10 +118,10 @@ export default function WelcomeScreen({ navigation }: Props) {
 
         {/* Trust stats */}
         <Animated.View style={[styles.statsRow, statsStyle]}>
-          {TRUST_STATS.map((s, i) => (
+          {trustStats.map((s, i) => (
             <View
               key={i}
-              style={[styles.statItem, i < TRUST_STATS.length - 1 && styles.statDivider]}
+              style={[styles.statItem, i < trustStats.length - 1 && styles.statDivider]}
             >
               <Text style={styles.statValue}>{s.value}</Text>
               <Text style={styles.statLabel}>{s.label}</Text>
@@ -142,14 +145,14 @@ export default function WelcomeScreen({ navigation }: Props) {
             end={{ x: 1, y: 0 }}
             style={styles.cta}
           >
-            <Text style={styles.ctaText}>Başla</Text>
+            <Text style={styles.ctaText}>{t("welcome.cta")}</Text>
             <ArrowRight size={20} color="#fff" strokeWidth={2.5} />
           </LinearGradient>
         </TouchableOpacity>
 
         <View style={styles.privacyNote}>
           <ShieldCheck size={13} color={Colors.textTertiary} strokeWidth={2} />
-          <Text style={styles.privacyText}>Kayıt gerekmez · Veriler yalnızca cihazında</Text>
+          <Text style={styles.privacyText}>{t("common.noRegistration")}</Text>
         </View>
       </Animated.View>
     </SafeAreaView>

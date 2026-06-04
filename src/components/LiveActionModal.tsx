@@ -4,7 +4,7 @@
  * Diğer kas tipleri: kısa 3-2-1 + süre çubuğu.
  */
 
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import {
   Modal,
   StyleSheet,
@@ -16,35 +16,23 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
-import { Check, X, Sparkles, Timer } from "lucide-react-native";
+import { Check, X, Sparkles, Timer, Anchor } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "react-i18next";
 import { Action, MUSCLE_LABELS, MuscleType } from "../engine";
 import { Colors, FontSizes, Radii, Spacing } from "../constants/theme";
+import { buildAnchorStepUi } from "../utils/anchorStepCopy";
 
 interface Props {
   visible: boolean;
   action: Action | null;
+  habitAnchor?: string;
+  habitName?: string;
   onComplete: () => void;
   onCancel: () => void;
 }
 
 type Phase = "countdown" | "action" | "done";
-
-const MUSCLE_HEADLINE: Record<MuscleType, string> = {
-  activation: "Harekete geç",
-  consistency: "Küçük tekrar",
-  resistance: "Direnci yumuşat",
-  focus: "Odağı topla",
-  recovery: "Toparlanma",
-};
-
-const DONE_SUBLINE: Record<MuscleType, string> = {
-  activation: "Başlatma refleksin bir tur daha güçlendi.",
-  consistency: "Tutarlılık kasın kayda geçti.",
-  resistance: "Direnç anında ilerledin.",
-  focus: "Dikkatini tek noktaya topladın.",
-  recovery: "Küçük adım bile yolu yeniden açar. İyi hisset.",
-};
 
 function isRecoveryAction(action: Action): boolean {
   return action.type === "recovery";
@@ -53,14 +41,28 @@ function isRecoveryAction(action: Action): boolean {
 export default function LiveActionModal({
   visible,
   action,
+  habitAnchor,
+  habitName = "",
   onComplete,
   onCancel,
 }: Props) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("countdown");
   const [count, setCount] = useState(3);
   const [actionLeft, setActionLeft] = useState(0);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const actionRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const anchorUi = useMemo(() => {
+    if (!action) return null;
+    return buildAnchorStepUi({
+      habitAnchor,
+      habitName,
+      actionId: action.id,
+      actionTitle: action.title,
+      duration: action.duration,
+    });
+  }, [action, habitAnchor, habitName]);
 
   const clearTimers = useCallback(() => {
     if (tickRef.current) {
@@ -156,12 +158,34 @@ export default function LiveActionModal({
     setPhase("done");
   };
 
-  if (!action) return null;
+  if (!action || !anchorUi) return null;
 
   const recovery = isRecoveryAction(action);
-  const headline = MUSCLE_HEADLINE[action.type];
+  const headline = t(`home.anchorStep.muscleHeadline.${action.type as MuscleType}`);
+  const doneSub = t(`home.anchorStep.doneSubline.${action.type as MuscleType}`);
   const timedProgress =
     !recovery && action.duration > 0 ? actionLeft / action.duration : 0;
+
+  const renderAnchorChip = () =>
+    anchorUi.anchorChip ? (
+      <View style={styles.anchorChip}>
+        <Anchor size={11} color={Colors.primary} strokeWidth={2.2} />
+        <Text style={styles.anchorChipText} numberOfLines={1}>
+          {anchorUi.anchorChip}
+        </Text>
+      </View>
+    ) : null;
+
+  const renderSteps = () => (
+    <View style={styles.steps}>
+      {anchorUi.modalSteps.map((line, i) => (
+        <View key={i} style={styles.stepRow}>
+          <Text style={styles.stepNum}>{i + 1}</Text>
+          <Text style={styles.stepText}>{line}</Text>
+        </View>
+      ))}
+    </View>
+  );
 
   return (
     <Modal visible={visible} animationType="fade" onRequestClose={onCancel}>
@@ -185,9 +209,9 @@ export default function LiveActionModal({
             style={styles.closeBtn}
             onPress={onCancel}
             hitSlop={16}
-            accessibilityLabel="Kapat"
+            accessibilityLabel={t("home.anchorStep.modal.close")}
           >
-            <X size={20} color="rgba(255,255,255,0.75)" strokeWidth={2} />
+            <X size={18} color="rgba(255,255,255,0.75)" strokeWidth={2} />
           </TouchableOpacity>
 
           <View style={styles.center}>
@@ -195,12 +219,16 @@ export default function LiveActionModal({
               {phase === "countdown" && !recovery && (
                 <>
                   <View style={styles.iconCircle}>
-                    <Sparkles size={26} color={Colors.primary} strokeWidth={1.8} />
+                    <Sparkles size={22} color={Colors.primary} strokeWidth={1.8} />
                   </View>
-                  <Text style={styles.cardKicker}>Hazırlan</Text>
+                  <Text style={styles.cardKicker}>{t("home.anchorStep.modal.prepare")}</Text>
                   <Text style={styles.countdown}>{count}</Text>
-                  <Text style={styles.countHint}>Ardından tek net hareket</Text>
-                  <Text style={styles.previewTitle} numberOfLines={3}>
+                  <Text style={styles.countHint}>{t("home.anchorStep.modal.afterMove")}</Text>
+                  {renderAnchorChip()}
+                  <Text style={styles.lead} numberOfLines={3}>
+                    {anchorUi.modalLead}
+                  </Text>
+                  <Text style={styles.previewTitle} numberOfLines={2}>
                     {action.title}
                   </Text>
                 </>
@@ -215,29 +243,40 @@ export default function LiveActionModal({
                     ]}
                   >
                     {recovery ? (
-                      <Sparkles size={26} color={Colors.gold} strokeWidth={1.8} />
+                      <Sparkles size={22} color={Colors.gold} strokeWidth={1.8} />
                     ) : (
-                      <Timer size={26} color={Colors.primary} strokeWidth={1.8} />
+                      <Timer size={22} color={Colors.primary} strokeWidth={1.8} />
                     )}
                   </View>
-                  <Text style={styles.cardKicker}>{headline}</Text>
-                  {!recovery && (
-                    <Text style={styles.microLabel}>
-                      {MUSCLE_LABELS[action.type]} · şimdi
-                    </Text>
-                  )}
-                  <Text style={styles.actionTitle}>{action.title}</Text>
+                  <View style={styles.kickerRow}>
+                    <Text style={styles.cardKicker}>{headline}</Text>
+                    {!recovery ? (
+                      <Text style={styles.microPill}>
+                        {MUSCLE_LABELS[action.type]} · {anchorUi.contextLabel}
+                      </Text>
+                    ) : null}
+                  </View>
+                  {renderAnchorChip()}
+                  <Text style={styles.actionTitle} numberOfLines={2}>
+                    {action.title}
+                  </Text>
+                  <Text style={styles.lead} numberOfLines={3}>
+                    {anchorUi.modalLead}
+                  </Text>
+                  {!recovery ? renderSteps() : null}
                   {recovery ? (
                     <>
                       <Text style={styles.recoveryHint}>
-                        Kendi ritminde yap. Zorlamıyoruz — sadece tek küçük hareket.
+                        {t("home.anchorStep.modal.recoveryHint")}
                       </Text>
                       <TouchableOpacity
                         style={styles.primaryBtn}
                         onPress={handleRecoveryDone}
                         activeOpacity={0.9}
                       >
-                        <Text style={styles.primaryBtnText}>Bunu yaptım</Text>
+                        <Text style={styles.primaryBtnText}>
+                          {t("home.anchorStep.modal.recoveryDone")}
+                        </Text>
                       </TouchableOpacity>
                     </>
                   ) : (
@@ -250,9 +289,7 @@ export default function LiveActionModal({
                           ]}
                         />
                       </View>
-                      <Text style={styles.durationLabel}>
-                        {actionLeft} sn · nefesini koru
-                      </Text>
+                      <Text style={styles.durationLabel}>{anchorUi.breathHint}</Text>
                     </>
                   )}
                 </>
@@ -266,16 +303,18 @@ export default function LiveActionModal({
                     end={{ x: 1, y: 1 }}
                     style={styles.checkCircle}
                   >
-                    <Check size={34} color="#fff" strokeWidth={2.5} />
+                    <Check size={28} color="#fff" strokeWidth={2.5} />
                   </LinearGradient>
-                  <Text style={styles.doneText}>Tamam</Text>
-                  <Text style={styles.doneSub}>{DONE_SUBLINE[action.type]}</Text>
+                  <Text style={styles.doneText}>{t("home.anchorStep.modal.done")}</Text>
+                  <Text style={styles.doneSub}>{doneSub}</Text>
                   <TouchableOpacity
                     style={styles.secondaryBtn}
                     onPress={onComplete}
                     activeOpacity={0.88}
                   >
-                    <Text style={styles.secondaryBtnText}>Devam et</Text>
+                    <Text style={styles.secondaryBtnText}>
+                      {t("home.anchorStep.modal.continue")}
+                    </Text>
                   </TouchableOpacity>
                 </>
               )}
@@ -294,9 +333,9 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     marginRight: Spacing.md,
     marginTop: Spacing.sm,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: "rgba(255,255,255,0.08)",
     alignItems: "center",
     justifyContent: "center",
@@ -306,91 +345,151 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.md,
+    paddingBottom: Spacing.lg,
   },
   card: {
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 380,
     backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: Radii.card + 8,
+    borderRadius: Radii.card,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.1)",
-    paddingVertical: Spacing.xl,
-    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.md,
     alignItems: "center",
-    gap: Spacing.md,
+    gap: 8,
   },
   iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: "rgba(29,158,117,0.2)",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.xs,
   },
   iconCircleWarm: {
     backgroundColor: "rgba(212,160,23,0.18)",
   },
+  kickerRow: {
+    alignItems: "center",
+    gap: 4,
+  },
   cardKicker: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_500Medium",
-    color: "rgba(255,255,255,0.5)",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.55)",
     textTransform: "uppercase",
-    letterSpacing: 1.2,
+    letterSpacing: 1,
     textAlign: "center",
   },
-  microLabel: {
-    fontSize: FontSizes.xs,
+  microPill: {
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.45)",
+    color: "rgba(255,255,255,0.4)",
     textAlign: "center",
-    marginTop: -Spacing.xs,
+  },
+  anchorChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    maxWidth: "100%",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: Radii.pill,
+    backgroundColor: "rgba(29,158,117,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(29,158,117,0.25)",
+  },
+  anchorChipText: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: "Inter_500Medium",
+    color: "rgba(255,255,255,0.85)",
   },
   countdown: {
-    fontSize: 88,
+    fontSize: 64,
     fontFamily: "Inter_500Medium",
     color: "#fff",
-    lineHeight: 96,
+    lineHeight: 72,
   },
   countHint: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: "rgba(255,255,255,0.45)",
     textAlign: "center",
+  },
+  lead: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.7)",
+    textAlign: "center",
+    lineHeight: 20,
+    paddingHorizontal: 4,
   },
   previewTitle: {
     fontSize: FontSizes.md,
-    fontFamily: "Inter_400Regular",
-    color: "rgba(255,255,255,0.65)",
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: "rgba(255,255,255,0.9)",
     textAlign: "center",
     lineHeight: 22,
-    paddingHorizontal: Spacing.sm,
   },
   actionTitle: {
-    fontSize: FontSizes.xxl,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: "#fff",
     textAlign: "center",
-    lineHeight: 30,
-    paddingHorizontal: Spacing.xs,
+    lineHeight: 24,
+  },
+  steps: {
+    width: "100%",
+    gap: 6,
+    marginTop: 2,
+  },
+  stepRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+    paddingHorizontal: 4,
+  },
+  stepNum: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    backgroundColor: "rgba(29,158,117,0.35)",
+    color: "#fff",
+    fontSize: 10,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 18,
+    overflow: "hidden",
+  },
+  stepText: {
+    flex: 1,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.75)",
+    lineHeight: 17,
   },
   recoveryHint: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: "rgba(255,255,255,0.55)",
     textAlign: "center",
-    lineHeight: 21,
-    paddingHorizontal: Spacing.sm,
+    lineHeight: 18,
+    paddingHorizontal: Spacing.xs,
   },
   barTrack: {
     width: "100%",
-    height: 6,
+    height: 5,
     backgroundColor: "rgba(255,255,255,0.12)",
     borderRadius: Radii.full,
     overflow: "hidden",
-    marginTop: Spacing.sm,
+    marginTop: 4,
   },
   barFill: {
     height: "100%",
@@ -398,63 +497,62 @@ const styles = StyleSheet.create({
     borderRadius: Radii.full,
   },
   durationLabel: {
-    fontSize: FontSizes.sm,
+    fontSize: 11,
     fontFamily: "Inter_400Regular",
     color: "rgba(255,255,255,0.5)",
     textAlign: "center",
   },
   primaryBtn: {
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: Spacing.xl,
-    borderRadius: Radii.button + 2,
+    paddingVertical: 14,
+    paddingHorizontal: Spacing.lg,
+    borderRadius: Radii.button,
     width: "100%",
     alignItems: "center",
-    shadowColor: Colors.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
   },
   primaryBtnText: {
     color: "#fff",
-    fontFamily: "Inter_500Medium",
-    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    fontSize: FontSizes.sm,
   },
   checkCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.sm,
+    marginBottom: 4,
   },
   doneText: {
-    fontSize: FontSizes.xxl,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.xl,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: "#fff",
     textAlign: "center",
   },
   doneSub: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: "rgba(255,255,255,0.55)",
     textAlign: "center",
-    lineHeight: 21,
+    lineHeight: 18,
     paddingHorizontal: Spacing.sm,
   },
   secondaryBtn: {
-    marginTop: Spacing.lg,
+    marginTop: Spacing.md,
     backgroundColor: "rgba(255,255,255,0.14)",
-    borderRadius: Radii.button + 2,
-    paddingVertical: 15,
-    paddingHorizontal: Spacing.xxl,
+    borderRadius: Radii.button,
+    paddingVertical: 13,
+    paddingHorizontal: Spacing.xl,
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.12)",
   },
   secondaryBtnText: {
     color: "#fff",
-    fontFamily: "Inter_500Medium",
-    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    fontSize: FontSizes.sm,
   },
 });

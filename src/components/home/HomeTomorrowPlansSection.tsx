@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { ClipboardList, ChevronRight, Calendar } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import type { TomorrowTodoItem } from "../../store/tomorrowPlanStore";
 import TodayPlanCard from "./TodayPlanCard";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
@@ -8,6 +9,7 @@ import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/them
 interface Props {
   todayItems: TomorrowTodoItem[];
   todayDone: boolean;
+  planLocked: boolean;
   onToggleToday: (id: string) => void;
   tomorrowItems: TomorrowTodoItem[];
   onOpenJourney: () => void;
@@ -16,10 +18,12 @@ interface Props {
 export default function HomeTomorrowPlansSection({
   todayItems,
   todayDone,
+  planLocked,
   onToggleToday,
   tomorrowItems,
   onOpenJourney,
 }: Props) {
+  const { t } = useTranslation();
   const tomorrowPrimary =
     tomorrowItems.find((i) => i.isPrimary) ?? tomorrowItems[0] ?? null;
 
@@ -28,15 +32,14 @@ export default function HomeTomorrowPlansSection({
       {todayItems.length > 0 ? (
         <TodayPlanCard
           items={todayItems}
+          planLocked={planLocked}
           todayDone={todayDone}
           onToggle={onToggleToday}
         />
       ) : (
         <View style={styles.emptyToday}>
-          <Text style={styles.emptyTodayTitle}>Bugün için plan yok</Text>
-          <Text style={styles.emptyTodayBody}>
-            Dün Yolculuk’ta yazdığın liste burada görünür. İlk planı yarın için kurabilirsin.
-          </Text>
+          <Text style={styles.emptyTodayTitle}>{t("home.plans.emptyTodayTitle")}</Text>
+          <Text style={styles.emptyTodayBody}>{t("home.plans.emptyTodayBody")}</Text>
         </View>
       )}
 
@@ -46,18 +49,18 @@ export default function HomeTomorrowPlansSection({
             <Calendar size={16} color={Colors.primary} strokeWidth={2} />
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={styles.tomorrowKicker}>Yarının küçük listesi</Text>
+            <Text style={styles.tomorrowKicker}>{t("home.plans.tomorrowKicker")}</Text>
             <Text style={styles.tomorrowTitle}>
               {tomorrowItems.length > 0
-                ? `${tomorrowItems.length} madde hazır`
-                : "Henüz plan yok"}
+                ? t("home.plans.tomorrowReady", { count: tomorrowItems.length })
+                : t("home.plans.tomorrowEmpty")}
             </Text>
           </View>
         </View>
 
         {tomorrowPrimary ? (
           <View style={styles.tomorrowPreview}>
-            <Text style={styles.tomorrowPrimaryLabel}>Ana adım</Text>
+            <Text style={styles.tomorrowPrimaryLabel}>{t("home.plans.primaryStep")}</Text>
             <Text style={styles.tomorrowPrimaryText} numberOfLines={2}>
               {tomorrowPrimary.text}
             </Text>
@@ -68,21 +71,25 @@ export default function HomeTomorrowPlansSection({
             ) : null}
           </View>
         ) : (
-          <Text style={styles.tomorrowEmpty}>
-            Yarın sabah net bir çapa için 1 ana + en fazla 2 destek maddesi ekle.
-          </Text>
+          <Text style={styles.tomorrowEmpty}>{t("home.plans.tomorrowHint")}</Text>
         )}
 
         <TouchableOpacity
           style={styles.tomorrowCta}
           onPress={onOpenJourney}
           activeOpacity={0.85}
-          accessibilityLabel={tomorrowItems.length > 0 ? "Yarın planını Yolculuk'ta düzenle" : "Yarın için Yolculuk'ta plan oluştur"}
+          accessibilityLabel={
+            tomorrowItems.length > 0
+              ? t("home.plans.editOnJourney")
+              : t("home.plans.planOnJourney")
+          }
           accessibilityRole="button"
         >
           <ClipboardList size={16} color="#fff" strokeWidth={2} />
           <Text style={styles.tomorrowCtaText}>
-            {tomorrowItems.length > 0 ? "Yolculuk’ta düzenle" : "Yolculuk’ta planla"}
+            {tomorrowItems.length > 0
+              ? t("home.plans.editOnJourney")
+              : t("home.plans.planOnJourney")}
           </Text>
           <ChevronRight size={16} color="#fff" strokeWidth={2} />
         </TouchableOpacity>

@@ -1,6 +1,9 @@
 /**
  * Check-in hızlı teyit soruları — habit.identitySlug ile eşleşir.
+ * Metinler locale JSON (`checkInConfirmation.*`); TS sadece yedek.
  */
+
+import i18n from "../i18n/config";
 
 export interface CheckInConfirmationConfig {
   title: string;
@@ -112,6 +115,26 @@ const BY_SLUG: Record<string, CheckInConfirmationConfig> = {
   custom: DEFAULT_CUSTOM,
 };
 
+const KNOWN_SLUGS = new Set(Object.keys(BY_SLUG));
+
 export function getCheckInConfirmationCopy(slug: string): CheckInConfirmationConfig {
-  return BY_SLUG[slug] ?? DEFAULT_CUSTOM;
+  const resolved = KNOWN_SLUGS.has(slug) ? slug : "custom";
+  const fallback = BY_SLUG[resolved] ?? DEFAULT_CUSTOM;
+  const titleKey = `checkInConfirmation.${resolved}.title`;
+  const optionsKey = `checkInConfirmation.${resolved}.options`;
+  const title = i18n.t(titleKey);
+  const optionsRaw = i18n.t(optionsKey, { returnObjects: true });
+  return {
+    title: title === titleKey ? fallback.title : title,
+    options:
+      Array.isArray(optionsRaw) && optionsRaw.length > 0
+        ? (optionsRaw as string[])
+        : fallback.options,
+  };
+}
+
+export function getCheckInConfirmationOtherLabel(): string {
+  const key = "checkInConfirmation.other";
+  const v = i18n.t(key);
+  return v === key ? "Diğer" : v;
 }

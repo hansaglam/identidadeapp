@@ -10,6 +10,7 @@ import {
   useWindowDimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { LinearGradient } from "expo-linear-gradient";
 import Svg, { Polyline } from "react-native-svg";
 import { X } from "lucide-react-native";
@@ -29,9 +30,6 @@ export interface ViralStoryCardProps {
   checkins: Record<string, CheckinRecord>;
 }
 
-/**
- * 9:16 story önizleme + metin paylaşımı (tamamen cihaz içi).
- */
 export default function ViralStoryCard({
   visible,
   onClose,
@@ -41,6 +39,7 @@ export default function ViralStoryCard({
   startDate,
   checkins,
 }: ViralStoryCardProps) {
+  const { t } = useTranslation();
   const { width: winW } = useWindowDimensions();
   const cardW = Math.min(winW - Spacing.lg * 2, 320);
   const cardH = cardW / ASPECT;
@@ -69,13 +68,16 @@ export default function ViralStoryCard({
       .join(" ");
   }, [series, cardW]);
 
-  const shareMessage = `Gün ${dayNumber}. %${consistencyPercent} tutarlılık. Henüz başındayım ama sistem kuruldu. #66GunDisiplin`;
+  const shareMessage = t("profile.story.shareMessage", {
+    day: dayNumber,
+    pct: consistencyPercent,
+  });
 
   const onShare = useCallback(() => {
     Share.share({
-      message: `${shareMessage}${habitName ? `\nHedef: ${habitName}` : ""}`.trim(),
+      message: `${shareMessage}${habitName ? `\n${t("profile.story.shareGoal", { habit: habitName })}` : ""}`.trim(),
     }).catch(() => {});
-  }, [shareMessage, habitName]);
+  }, [shareMessage, habitName, t]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -83,7 +85,7 @@ export default function ViralStoryCard({
         <Pressable style={styles.centerSheet} onPress={(e) => e.stopPropagation()}>
           <SafeAreaView edges={["top", "bottom"]} style={styles.safe}>
             <View style={styles.headRow}>
-              <Text style={styles.sheetTitle}>Paylaşım kartı</Text>
+              <Text style={styles.sheetTitle}>{t("profile.story.sheetTitle")}</Text>
               <TouchableOpacity onPress={onClose} hitSlop={12}>
                 <X size={22} color={Colors.textTertiary} />
               </TouchableOpacity>
@@ -95,11 +97,11 @@ export default function ViralStoryCard({
                 end={{ x: 1, y: 1 }}
                 style={styles.gradient}
               >
-                <Text style={styles.watermark}>66 Gün Disiplin</Text>
+                <Text style={styles.watermark}>{t("profile.story.watermark")}</Text>
                 <Text style={styles.bigLine}>
-                  Gün {dayNumber} · %{consistencyPercent} tutarlılık
+                  {t("profile.story.bigLine", { day: dayNumber, pct: consistencyPercent })}
                 </Text>
-                <Text style={styles.tagline}>Motivasyon değil, disiplin.</Text>
+                <Text style={styles.tagline}>{t("profile.story.tagline")}</Text>
                 {miniPath ? (
                   <Svg width={cardW - 32} height={44} style={styles.miniChart}>
                     <Polyline
@@ -112,16 +114,14 @@ export default function ViralStoryCard({
                     />
                   </Svg>
                 ) : (
-                  <Text style={styles.miniHint}>Otomatiklik çizgisi için günlük puan ekle</Text>
+                  <Text style={styles.miniHint}>{t("profile.story.miniHint")}</Text>
                 )}
               </LinearGradient>
             </View>
             <TouchableOpacity style={styles.shareBtn} onPress={onShare} activeOpacity={0.88}>
-              <Text style={styles.shareBtnText}>Story&apos;de paylaş (metin)</Text>
+              <Text style={styles.shareBtnText}>{t("profile.story.shareBtn")}</Text>
             </TouchableOpacity>
-            <Text style={styles.shareNote}>
-              Paylaşımda yalnızca seçtiğin metin kullanılır; sunucuya veri gitmez.
-            </Text>
+            <Text style={styles.shareNote}>{t("profile.story.shareNote")}</Text>
           </SafeAreaView>
         </Pressable>
       </Pressable>
@@ -138,22 +138,21 @@ const styles = StyleSheet.create({
   },
   centerSheet: {
     backgroundColor: Colors.bg,
-    borderRadius: Radii.card + 4,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    borderRadius: Radii.card,
     overflow: "hidden",
-    maxWidth: 400,
     alignSelf: "center",
+    maxWidth: 400,
     width: "100%",
   },
-  safe: { padding: Spacing.md, gap: Spacing.md },
+  safe: { padding: Spacing.md },
   headRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: Spacing.sm,
   },
   sheetTitle: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.lg,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
   },
@@ -161,8 +160,7 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     borderRadius: Radii.card,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: Colors.border,
+    marginBottom: Spacing.md,
   },
   gradient: {
     flex: 1,
@@ -170,24 +168,23 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   watermark: {
-    fontSize: 10,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_500Medium",
     color: "rgba(255,255,255,0.5)",
-    letterSpacing: 1,
+    textAlign: "center",
   },
   bigLine: {
-    fontSize: FontSizes.xl,
+    fontSize: FontSizes.lg,
     fontFamily: "Inter_500Medium",
     color: "#fff",
     textAlign: "center",
-    marginTop: Spacing.md,
+    marginVertical: Spacing.sm,
   },
   tagline: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: "rgba(255,255,255,0.85)",
     textAlign: "center",
-    marginTop: Spacing.sm,
   },
   miniChart: { alignSelf: "center", marginTop: Spacing.md },
   miniHint: {
@@ -199,19 +196,19 @@ const styles = StyleSheet.create({
   shareBtn: {
     backgroundColor: Colors.primary,
     borderRadius: Radii.button,
-    paddingVertical: Spacing.md,
+    paddingVertical: 12,
     alignItems: "center",
+    marginBottom: Spacing.sm,
   },
   shareBtnText: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
     color: "#fff",
+    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.md,
   },
   shareNote: {
     fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
-    lineHeight: 17,
     textAlign: "center",
   },
 });

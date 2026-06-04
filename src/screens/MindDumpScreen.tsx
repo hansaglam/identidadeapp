@@ -23,9 +23,10 @@ import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Trash2, Lock, Sparkles, Footprints, NotebookPen } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import EmptyState from "../components/EmptyState";
 import { format, parseISO, startOfWeek, addDays } from "date-fns";
-import { tr } from "date-fns/locale";
+import { getDateFnsLocale } from "../utils/dateFnsLocale";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
@@ -52,15 +53,6 @@ import { buildMindDumpReflection, type MindDumpReflectionState } from "../utils/
 import FiveSecondTrainer, { type FiveSecondScenario } from "../components/FiveSecondTrainer";
 import { getDailyMindPrompt, getMindModalStartPhrases } from "../constants/mindDumpPrompts";
 
-const FIVE_FROM_MIND: FiveSecondScenario = {
-  id: "mind-dump-nudge",
-  type: "micro",
-  trigger: "Şimdi tek bir net hareket seç — beş saniye içinde başlat.",
-  countdownDuration: 5,
-  difficulty: 2,
-  disciplineMuscle: "direnc",
-};
-
 type Props = BottomTabScreenProps<MainTabParamList, "MindDump">;
 
 const MODAL_MAX_CHARS = 500;
@@ -78,7 +70,6 @@ const cardShadow = {
   elevation: 3,
 } as const;
 
-const weekDayLabels = ["pzt", "sal", "çar", "per", "cum", "cmt", "paz"] as const;
 
 function useEntranceAnims() {
   const opacity = useRef(
@@ -134,6 +125,7 @@ function ReflectionHistoryRow({
   highlightDate: string | null;
   onAnimatedEnd: () => void;
 }) {
+  const { t } = useTranslation();
   const slide = useRef(new Animated.Value(0)).current;
   const fade = useRef(new Animated.Value(1)).current;
 
@@ -159,7 +151,7 @@ function ReflectionHistoryRow({
 
   let dateLabel = item.date;
   try {
-    dateLabel = format(parseISO(item.date), "d MMM yyyy", { locale: tr });
+    dateLabel = format(parseISO(item.date), "d MMM yyyy", { locale: getDateFnsLocale() });
   } catch {
     /* keep raw */
   }
@@ -171,7 +163,7 @@ function ReflectionHistoryRow({
         { transform: [{ translateY: slide }], opacity: fade },
       ]}
     >
-      <Text style={styles.reflectionDayLabel}>Gün {item.day}</Text>
+      <Text style={styles.reflectionDayLabel}>{t("mind.history.dayLabel", { day: item.day })}</Text>
       <Text style={styles.reflectionBody}>{item.comment}</Text>
       <View style={styles.reflectionMeta}>
         <Text style={styles.reflectionDate}>{dateLabel}</Text>
@@ -182,6 +174,8 @@ function ReflectionHistoryRow({
 }
 
 export default function MindDumpScreen(_: Props) {
+  const { t } = useTranslation();
+  const weekDayLabels = [t("mind.weekdays.mon"), t("mind.weekdays.tue"), t("mind.weekdays.wed"), t("mind.weekdays.thu"), t("mind.weekdays.fri"), t("mind.weekdays.sat"), t("mind.weekdays.sun")];
   const currentDay = useUserStore((s) => s.dayNumber());
   const todayPromptPlaceholder = useMemo(
     () => getDailyMindPrompt(currentDay),
@@ -266,9 +260,9 @@ export default function MindDumpScreen(_: Props) {
         >
           <View style={styles.journalHeaderRow}>
             <View style={styles.journalTitleCol}>
-              <Text style={styles.journalTitle}>Zihin</Text>
-              <Text style={styles.journalSubtitle}>Yolculuk günlüğün</Text>
-              <Text style={styles.journalDayLine}>Şu an · Gün {currentDay}/66</Text>
+              <Text style={styles.journalTitle}>{t("mind.title")}</Text>
+              <Text style={styles.journalSubtitle}>{t("mind.subtitle")}</Text>
+              <Text style={styles.journalDayLine}>{t("mind.dayLine", { day: currentDay })}</Text>
             </View>
             <TouchableOpacity
               style={[styles.yeniBtn, mindModalOpen && styles.yeniBtnDisabled]}
@@ -277,7 +271,7 @@ export default function MindDumpScreen(_: Props) {
               disabled={mindModalOpen}
             >
               <Text style={[styles.yeniBtnText, mindModalOpen && styles.yeniBtnTextDisabled]}>
-                + Yeni not
+                {t("mind.newNote")}
               </Text>
             </TouchableOpacity>
           </View>
@@ -286,7 +280,7 @@ export default function MindDumpScreen(_: Props) {
             <View style={styles.moodPill}>
               <Sparkles size={13} color={Colors.primary} strokeWidth={2} />
               <Text style={styles.moodPillText}>
-                Son notlarından: {MUSCLE_LABELS[moodAnalysis.detectedMuscle]} modunda
+                {t("mind.moodPill", { muscle: MUSCLE_LABELS[moodAnalysis.detectedMuscle] })}
               </Text>
             </View>
           ) : null}
@@ -299,9 +293,9 @@ export default function MindDumpScreen(_: Props) {
           }}
         >
           <View style={styles.weekCard}>
-            <Text style={styles.sectionLabelMuted}>BU HAFTA</Text>
-            <Text style={styles.weekBig}>{weekDone}/7 gün</Text>
-            <Text style={styles.weekPct}>%{weekPct} tamamlandı</Text>
+            <Text style={styles.sectionLabelMuted}>{t("mind.week.section")}</Text>
+            <Text style={styles.weekBig}>{t("mind.week.days", { done: weekDone })}</Text>
+            <Text style={styles.weekPct}>{t("mind.week.pct", { pct: weekPct })}</Text>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFillClip, { width: `${weekPct}%` }]}>
                 <LinearGradient
@@ -335,12 +329,12 @@ export default function MindDumpScreen(_: Props) {
           }}
         >
           <View style={styles.todayCard}>
-            <Text style={styles.sectionLabelMuted}>BUGÜNÜN YANSIMASI</Text>
+            <Text style={styles.sectionLabelMuted}>{t("mind.today.section")}</Text>
             <TextInput
               style={styles.todayInput}
               value={todayReflectionDraft}
               onChangeText={(v) => setTodayReflectionDraft(v.slice(0, 280))}
-              placeholder={`${todayPromptPlaceholder} (kısa cevap)`}
+              placeholder={`${todayPromptPlaceholder} ${t("mind.today.placeholderSuffix")}`}
               placeholderTextColor="#94A3B8"
               multiline
               textAlignVertical="top"
@@ -380,7 +374,7 @@ export default function MindDumpScreen(_: Props) {
           }}
         >
           <View style={styles.historyHeaderRow}>
-            <Text style={styles.sectionLabelMuted}>GEÇMİŞ YANSIMA</Text>
+            <Text style={styles.sectionLabelMuted}>{t("mind.history.section")}</Text>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
@@ -388,15 +382,15 @@ export default function MindDumpScreen(_: Props) {
                 journalScrollRef.current?.scrollTo({ y, animated: true });
               }}
             >
-              <Text style={styles.tumuLink}>Tümü →</Text>
+              <Text style={styles.tumuLink}>{t("mind.history.all")}</Text>
             </TouchableOpacity>
           </View>
           {sortedReflections.length === 0 ? (
             <View style={styles.emptyReflectionsCard}>
               <Ionicons name="pencil-outline" size={28} color={Colors.primary} />
-              <Text style={styles.emptyReflectionsTitle}>İlk yansıma senin</Text>
+              <Text style={styles.emptyReflectionsTitle}>{t("mind.history.emptyTitle")}</Text>
               <Text style={styles.emptyReflectionsBody}>
-                Her gün bir cümle yaz. Düşüncelerini dışarı bırakmak beynin için alan açar — zorlamadan, yargılanmadan.
+                {t("mind.history.emptyBody")}
               </Text>
             </View>
           ) : (
@@ -429,12 +423,10 @@ export default function MindDumpScreen(_: Props) {
               <Ionicons name="leaf" size={22} color="#10B981" />
             </View>
             <View style={styles.mindDumpTextWrap}>
-              <Text style={styles.mindDumpTitle}>Zihin Boşalt</Text>
-              <Text style={styles.mindDumpDesc}>
-                Kafan doluyken yaz, rahatla. Yazdıkların sadece bu cihazda kalır — ton analizi davranış motoruna hafifçe yansır.
-              </Text>
+              <Text style={styles.mindDumpTitle}>{t("mind.dump.title")}</Text>
+              <Text style={styles.mindDumpDesc}>{t("mind.dump.desc")}</Text>
               {mindEntries.length > 0 ? (
-                <Text style={styles.mindDumpMeta}>{mindEntries.length} not kayıtlı</Text>
+                <Text style={styles.mindDumpMeta}>{t("mind.dump.notesCount", { count: mindEntries.length })}</Text>
               ) : null}
             </View>
           </TouchableOpacity>
@@ -460,14 +452,25 @@ function MindDumpLegacyModal({
   const profile = useUserStore((s) => s.profile);
   const isPremium = profile?.isPremium ?? false;
   const currentDay = useUserStore((s) => s.dayNumber());
+  const { t, i18n } = useTranslation();
   const modalStartPhrases = useMemo(
     () => getMindModalStartPhrases(currentDay),
-    [currentDay]
+    [currentDay, i18n.language]
   );
-
+  const fiveScenario = useMemo<FiveSecondScenario>(
+    () => ({
+      id: "mind-dump-nudge",
+      type: "micro",
+      trigger: t("home.fiveDefaultTrigger"),
+      countdownDuration: 5,
+      difficulty: 2,
+      disciplineMuscle: "direnc",
+    }),
+    [t]
+  );
   const [currentId, setCurrentId] = useState<string | null>(null);
   const [text, setText] = useState("");
-  const [savingLabel, setSavingLabel] = useState<"" | "kaydediliyor…" | "kaydedildi">("");
+  const [savingLabel, setSavingLabel] = useState<"" | "saving" | "saved">("");
   const [showGate, setShowGate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<MindDumpEntry | null>(null);
   const [journeyOnly, setJourneyOnly] = useState(false);
@@ -488,7 +491,7 @@ function MindDumpLegacyModal({
         return;
       }
       const v = raw.trim();
-      setSavingLabel("kaydediliyor…");
+      setSavingLabel("saving");
       try {
         if (id) {
           await updateEntry(id, v);
@@ -506,7 +509,7 @@ function MindDumpLegacyModal({
             void useBehaviorStore.getState().recordAction(mindAction);
           }
         }
-        setSavingLabel("kaydedildi");
+        setSavingLabel("saved");
         const latest = useMindDumpStore.getState().entries;
         const chk = useCheckinsStore.getState().checkins;
         const prof = useUserStore.getState().profile;
@@ -526,7 +529,7 @@ function MindDumpLegacyModal({
   const triggerAutoSave = useCallback(
     (value: string, id: string | null) => {
       if (saveTimer.current) clearTimeout(saveTimer.current);
-      setSavingLabel("kaydediliyor…");
+      setSavingLabel("saving");
       saveTimer.current = setTimeout(() => {
         void runPersist(value, id);
       }, 2000);
@@ -583,7 +586,7 @@ function MindDumpLegacyModal({
     return entries;
   }, [entries, journeyOnly, journeyMindCount]);
 
-  const headerDate = format(new Date(), "d MMMM yyyy, EEEE", { locale: tr });
+  const headerDate = format(new Date(), "d MMMM yyyy, EEEE", { locale: getDateFnsLocale() });
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -614,8 +617,8 @@ function MindDumpLegacyModal({
                   <View style={mindModalStyles.handle} />
                 </View>
 
-                <Text style={mindModalStyles.modalTitle}>📝 Zihin Boşalt</Text>
-                <Text style={mindModalStyles.modalSubtitle}>Yaz, kaydet, rahatla</Text>
+                <Text style={mindModalStyles.modalTitle}>{t("mind.modal.title")}</Text>
+                <Text style={mindModalStyles.modalSubtitle}>{t("mind.modal.subtitle")}</Text>
                 <Text style={mindModalStyles.modalDate}>{headerDate}</Text>
 
                 {!isPremium && entries.length >= 8 && entries.length < 10 ? (
@@ -631,7 +634,7 @@ function MindDumpLegacyModal({
                   ]}
                   value={text}
                   onChangeText={handleTextChange}
-                  placeholder="Aklına ne gelirse yaz. Kimse okumayacak. Yargılanmayacaksın."
+                  placeholder={t("mind.modal.placeholder")}
                   placeholderTextColor="#94A3B8"
                   multiline
                   textAlignVertical="top"
@@ -654,25 +657,25 @@ function MindDumpLegacyModal({
                     disabled={!text.trim()}
                     activeOpacity={0.85}
                   >
-                    <Text style={mindModalStyles.saveBtnText}>Kaydet</Text>
+                    <Text style={mindModalStyles.saveBtnText}>{t("mind.modal.save")}</Text>
                   </TouchableOpacity>
                 </View>
 
                 {savingLabel ? (
-                  <Text style={mindModalStyles.savingHint}>{savingLabel}</Text>
+                  <Text style={mindModalStyles.savingHint}>{savingLabel === "saving" ? t("mind.modal.saving") : savingLabel === "saved" ? t("mind.modal.saved") : savingLabel}</Text>
                 ) : null}
 
                 {liveMood?.matchedKeyword ? (
                   <View style={mindModalStyles.liveMoodRow}>
                     <Sparkles size={14} color={Colors.primary} strokeWidth={2} />
                     <Text style={mindModalStyles.liveMoodText}>
-                      {MUSCLE_LABELS[liveMood.detectedMuscle]} modunadasın — &quot;{liveMood.suggestedAction.title}&quot; seni harekete geçirebilir.
+                      {t("mind.modal.moodAction", { muscle: MUSCLE_LABELS[liveMood.detectedMuscle], action: liveMood.suggestedAction.title })}
                     </Text>
                   </View>
                 ) : null}
 
                 <View style={mindModalStyles.promptsBlock}>
-                  <Text style={mindModalStyles.promptsLabel}>💡 BAŞLANGIÇ CÜMLELERİ</Text>
+                  <Text style={mindModalStyles.promptsLabel}>{t("mind.modal.promptsLabel")}</Text>
                   {modalStartPhrases.map((phrase, idx) => (
                     <TouchableOpacity
                       key={phrase}
@@ -688,9 +691,7 @@ function MindDumpLegacyModal({
                   ))}
                 </View>
 
-                <Text style={mindModalStyles.footerNote}>
-                  🕐 Yazmayı bıraktığında birkaç saniye içinde otomatik kaydedilir.
-                </Text>
+                <Text style={mindModalStyles.footerNote}>{t("mind.modal.footerNote")}</Text>
 
                 {reflection?.showBanner ? (
                   <View style={[legacyStyles.reflectionBanner, mindModalStyles.reflectionMargin]}>
@@ -707,7 +708,7 @@ function MindDumpLegacyModal({
                       onPress={() => setShowFiveSecond(true)}
                       activeOpacity={0.88}
                     >
-                      <Text style={legacyStyles.reflectionCtaText}>5 saniye kuralı ile devam et?</Text>
+                      <Text style={legacyStyles.reflectionCtaText}>{t("mind.modal.fiveSecondCta")}</Text>
                     </TouchableOpacity>
                   </View>
                 ) : null}
@@ -715,19 +716,19 @@ function MindDumpLegacyModal({
                 {entries.length === 0 ? (
                   <EmptyState
                     icon={<NotebookPen size={32} color={Colors.primary} strokeWidth={1.8} />}
-                    title="Henüz not yok"
-                    subtitle="İlk düşünceni yazmaya başla. Kimse okumayacak."
+                    title={t("mind.modal.emptyTitle")}
+                    subtitle={t("mind.modal.emptySubtitle")}
                   />
                 ) : null}
 
                 {filtered.length > 0 ? (
                   <View style={[legacyStyles.historySection, mindModalStyles.historyMargin]}>
                     <Text style={legacyStyles.historyLabel}>
-                      Önceki notlar
+                      {t("mind.modal.historyLabel")}
                       {!isPremium ? ` (${entries.length}/10)` : ""}
                     </Text>
                     <Text style={legacyStyles.historyHint}>
-                      Açmak için dokun. Silmek için satıra uzun bas, sonra çöp kutusuna dokun.
+                      {t("mind.modal.historyHint")}
                     </Text>
                     {journeyMindCount > 0 ? (
                       <TouchableOpacity
@@ -743,7 +744,7 @@ function MindDumpLegacyModal({
                         <Text
                           style={[legacyStyles.filterChipText, journeyOnly && legacyStyles.filterChipTextOn]}
                         >
-                          Sadece Yolculuk ({journeyMindCount})
+                          {t("mind.modal.filterJourneyOnly", { count: journeyMindCount })}
                         </Text>
                       </TouchableOpacity>
                     ) : null}
@@ -776,7 +777,7 @@ function MindDumpLegacyModal({
 
                 {journeyOnly && filtered.length === 0 && entries.length > 0 ? (
                   <Text style={legacyStyles.searchEmpty}>
-                    Aradığın Yolculuk satırı yok; filtreyi kapatıp tüm notlara dönebilirsin.
+                    {t("mind.modal.filterEmpty")}
                   </Text>
                 ) : null}
               </ScrollView>
@@ -788,7 +789,7 @@ function MindDumpLegacyModal({
       <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
         <SafeAreaView style={legacyStyles.trainerRoot} edges={["top", "bottom"]}>
           <FiveSecondTrainer
-            scenario={FIVE_FROM_MIND}
+            scenario={fiveScenario}
             onComplete={async (_s, _ms, reward) => {
               const micro = getActionById("deep-breath");
               if (micro) {
@@ -808,18 +809,18 @@ function MindDumpLegacyModal({
 
       <ConfirmDialog
         visible={deleteTarget !== null}
-        title="Notu sil"
-        message="Bu not kalıcı olarak silinecek. Bu işlem geri alınamaz."
+        title={t("mind.modal.deleteTitle")}
+        message={t("mind.modal.deleteMessage")}
         tone="danger"
         onRequestClose={() => setDeleteTarget(null)}
         actions={[
           {
-            label: "Vazgeç",
+            label: t("mind.modal.deleteCancel"),
             variant: "secondary",
             onPress: () => setDeleteTarget(null),
           },
           {
-            label: "Sil",
+            label: t("mind.modal.deleteConfirm"),
             variant: "destructive",
             onPress: async () => {
               if (!deleteTarget) return;
@@ -863,7 +864,7 @@ function LegacyEntryRow({ entry, active, onSelect, onDelete }: LegacyEntryRowPro
 
   const previewBody = stripJourneyMindPrefix(entry.content);
   const preview = previewBody.slice(0, 60) + (previewBody.length > 60 ? "…" : "");
-  const dateStr = format(new Date(entry.createdAt), "d MMM", { locale: tr });
+  const dateStr = format(new Date(entry.createdAt), "d MMM", { locale: getDateFnsLocale() });
 
   return (
     <View style={entryS.wrap}>

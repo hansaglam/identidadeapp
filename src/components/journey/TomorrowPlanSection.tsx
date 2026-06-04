@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { useTranslation } from "react-i18next";
 import { ClipboardList, Clock, MapPin, Plus } from "lucide-react-native";
 import type { TomorrowTodoItem } from "../../store/tomorrowPlanStore";
 import { Colors, FontSizes, Radii, Spacing, Shadows } from "../../constants/theme";
@@ -22,19 +23,17 @@ export default function TomorrowPlanSection({
   onDeletePrimary,
   showJourneyBridge = false,
 }: TomorrowPlanSectionProps) {
+  const { t } = useTranslation();
   return (
     <View style={styles.planStack}>
       {showJourneyBridge ? (
         <View style={styles.bridgeCard}>
-          <Text style={styles.bridgeTitle}>Yarını bugünden planla</Text>
-          <Text style={styles.bridgeBody}>
-            Ana ekrandaki check-in ve mikro adımlar bu listeyle uyumlu. Yarın sabah net bir çapa
-            bırak.
-          </Text>
+          <Text style={styles.bridgeTitle}>{t("journey.tomorrowPlan.bridgeTitle")}</Text>
+          <Text style={styles.bridgeBody}>{t("journey.tomorrowPlan.bridgeBody")}</Text>
         </View>
       ) : null}
       <View style={styles.sectionLabelRow}>
-        <Text style={styles.sectionLabel}>YARININ KÜÇÜK LİSTESİ</Text>
+        <Text style={styles.sectionLabel}>{t("journey.tomorrowPlan.sectionLabel")}</Text>
       </View>
       <View style={styles.tomorrowPlanCard}>
         {primaryTodo ? (
@@ -45,12 +44,12 @@ export default function TomorrowPlanSection({
                   <ClipboardList size={16} color={Colors.primary} strokeWidth={2} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.planKicker}>Yarın otomatikleşsin diye</Text>
-                  <Text style={styles.planAction}>1 ana adımı netleştir</Text>
+                  <Text style={styles.planKicker}>{t("journey.tomorrowPlan.kicker")}</Text>
+                  <Text style={styles.planAction}>{t("journey.tomorrowPlan.action")}</Text>
                 </View>
               </View>
               <View style={styles.planStatusPill}>
-                <Text style={styles.planStatusText}>Yarın</Text>
+                <Text style={styles.planStatusText}>{t("journey.tomorrowPlan.statusTomorrow")}</Text>
               </View>
             </View>
 
@@ -77,7 +76,7 @@ export default function TomorrowPlanSection({
                       </View>
                     ) : null}
                     {!primaryTodo.time && !primaryTodo.context ? (
-                      <Text style={styles.todoMeta}>Saat veya tetikleyici ekleyebilirsin</Text>
+                      <Text style={styles.todoMeta}>{t("journey.tomorrowPlan.addMeta")}</Text>
                     ) : null}
                   </View>
                 </View>
@@ -111,17 +110,17 @@ export default function TomorrowPlanSection({
                   activeOpacity={0.85}
                 >
                   <Plus size={14} color={Colors.primaryDark} strokeWidth={2.5} />
-                  <Text style={styles.planAddSmallText}>Küçük madde ekle</Text>
+                  <Text style={styles.planAddSmallText}>{t("journey.tomorrowPlan.addSupport")}</Text>
                 </TouchableOpacity>
               ) : (
-                <Text style={styles.todoLimitText}>3 madde yeterli — basit tut.</Text>
+                <Text style={styles.todoLimitText}>{t("journey.tomorrowPlan.limitHint")}</Text>
               )}
               <TouchableOpacity
                 style={styles.planDeleteBtn}
                 onPress={() => onDeletePrimary(primaryTodo.id)}
                 activeOpacity={0.8}
               >
-                <Text style={styles.planDeleteText}>Listeyi sıfırla</Text>
+                <Text style={styles.planDeleteText}>{t("journey.tomorrowPlan.resetList")}</Text>
               </TouchableOpacity>
             </View>
           </>
@@ -130,12 +129,10 @@ export default function TomorrowPlanSection({
             <View style={styles.emptyIconWrap}>
               <ClipboardList size={24} color={Colors.primary} strokeWidth={1.8} />
             </View>
-            <Text style={styles.planEmptyTitle}>Yarın için küçük liste kur</Text>
-            <Text style={styles.planEmptySub}>
-              Tek ana mikro adımı seç. Sabah hatırlatma gelir, check-in Bugün ekranından yapılır.
-            </Text>
+            <Text style={styles.planEmptyTitle}>{t("journey.tomorrowPlan.emptyTitle")}</Text>
+            <Text style={styles.planEmptySub}>{t("journey.tomorrowPlan.emptySub")}</Text>
             <TouchableOpacity style={styles.planAddBtn} onPress={() => onOpenEditor()} activeOpacity={0.85}>
-              <Text style={styles.planAddText}>İlk maddeyi ekle</Text>
+              <Text style={styles.planAddText}>{t("journey.tomorrowPlan.addFirst")}</Text>
             </TouchableOpacity>
           </View>
         )}

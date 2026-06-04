@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Check } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
 import type { CalendarWeekDayCell } from "../../utils/journeyHome";
 
 interface Props {
@@ -18,10 +19,11 @@ function barColor(cell: CalendarWeekDayCell, todayKey: string): string {
 }
 
 export default function WeeklySummaryStrip({ weekCells, calendarToday, weekDoneCount }: Props) {
+  const { t } = useTranslation();
   const pct = Math.round((weekDoneCount / 7) * 100);
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Haftalık özet</Text>
+      <Text style={styles.title}>{t("home.weekly.title")}</Text>
       <View style={styles.card}>
         <View style={styles.barsRow}>
           {weekCells.map((cell) => {
@@ -43,7 +45,7 @@ export default function WeeklySummaryStrip({ weekCells, calendarToday, weekDoneC
             );
           })}
         </View>
-        <Text style={styles.metaLine}>Bu hafta {weekDoneCount}/7 tamamlandı</Text>
+        <Text style={styles.metaLine}>{t("home.weekly.completed", { done: weekDoneCount })}</Text>
         <View style={styles.track}>
           <View style={[styles.fill, { width: `${pct}%` }]} />
         </View>

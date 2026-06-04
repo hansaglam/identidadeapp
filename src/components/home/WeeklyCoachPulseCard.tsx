@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { Activity } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
+import { useTranslation } from "react-i18next";
 import { buildWeeklyCoachPulse } from "../../utils/weeklyCoachPulse";
 import type { CheckinRecord } from "../../types";
 import type { SDTScore } from "../../types";
@@ -26,6 +27,7 @@ export default function WeeklyCoachPulseCard({
   recentActions,
   latestSdt,
 }: Props) {
+  const { t } = useTranslation();
   const pulse = useMemo(
     () =>
       buildWeeklyCoachPulse({
@@ -44,7 +46,7 @@ export default function WeeklyCoachPulseCard({
     <View style={styles.card}>
       <View style={styles.header}>
         <Activity size={16} color={Colors.primary} strokeWidth={2} />
-        <Text style={styles.title}>Haftalık nabız</Text>
+        <Text style={styles.title}>{t("home.coachPulse.title")}</Text>
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{pulse.headline}</Text>
         </View>

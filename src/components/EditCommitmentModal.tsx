@@ -12,6 +12,7 @@ import {
   Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { X } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 
@@ -40,6 +41,7 @@ export default function EditCommitmentModal({
   habitWhy: w0,
   onSave,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const [habitName, setHabitName] = useState(h0);
   const [habitAnchor, setHabitAnchor] = useState(a0);
@@ -96,7 +98,7 @@ export default function EditCommitmentModal({
           ]}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Alışkanlık ve bağ</Text>
+            <Text style={styles.title}>{t("profile.commitment.title")}</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={8}>
               <X size={18} color={Colors.textTertiary} strokeWidth={1.5} />
             </TouchableOpacity>
@@ -105,36 +107,33 @@ export default function EditCommitmentModal({
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.label}>Kimlik hedefin (kısa ifade)</Text>
+            <Text style={styles.label}>{t("profile.commitment.labelHabit")}</Text>
             <TextInput
               style={styles.input}
               value={habitName}
               onChangeText={setHabitName}
               maxLength={MAX_HABIT}
-              placeholder="Örn: Her gün hareket eden biriyim"
+              placeholder={t("profile.commitment.placeholderHabit")}
             />
-            <Text style={styles.label}>Çapa (rütin)</Text>
+            <Text style={styles.label}>{t("profile.commitment.labelAnchor")}</Text>
             <TextInput
               style={styles.input}
               value={habitAnchor}
               onChangeText={setHabitAnchor}
               maxLength={MAX_ANCHOR}
-              placeholder="Örn: Kahvemi içtikten sonra"
+              placeholder={t("profile.commitment.placeholderAnchor")}
               multiline
             />
-            <Text style={styles.label}>Bu yönü neden istiyorsun?</Text>
+            <Text style={styles.label}>{t("profile.commitment.labelWhy")}</Text>
             <TextInput
               style={[styles.input, styles.inputTall]}
               value={habitWhy}
               onChangeText={setHabitWhy}
               multiline
               textAlignVertical="top"
-              placeholder="En az 10 karakter"
+              placeholder={t("profile.commitment.placeholderWhy")}
             />
-            <Text style={styles.hint}>
-              Kimlik şablonunu değiştirmek onboarding’den yeniden seçim gerektirir; burada günlük
-              ifadeni güncellersin.
-            </Text>
+            <Text style={styles.hint}>{t("profile.commitment.hint")}</Text>
           </ScrollView>
           <TouchableOpacity
             style={[styles.saveBtn, (!canSave || saving) && styles.saveBtnDisabled]}
@@ -143,7 +142,7 @@ export default function EditCommitmentModal({
             activeOpacity={0.85}
           >
             <Text style={styles.saveBtnText}>
-              {saving ? "Kaydediliyor..." : "Kaydet"}
+              {saving ? t("profile.commitment.saving") : t("profile.commitment.save")}
             </Text>
           </TouchableOpacity>
         </View>

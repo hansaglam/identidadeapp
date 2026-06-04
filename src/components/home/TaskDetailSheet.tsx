@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Pressable } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ChevronRight, MapPin, Clock, Zap } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../../constants/theme";
@@ -36,6 +37,7 @@ export default function TaskDetailSheet({
   onNavigateJourney,
   onToast,
 }: Props) {
+  const { t } = useTranslation();
   const [liveAction, setLiveAction] = useState<Action | null>(null);
   const [showLive, setShowLive] = useState(false);
   const [showInterrupt, setShowInterrupt] = useState(false);
@@ -65,7 +67,7 @@ export default function TaskDetailSheet({
     });
     setShowLive(false);
     setShowInterrupt(false);
-    onToast("Adım kaydedildi.");
+    onToast(t("taskSheet.actionSaved"));
   }, [userBehaviorState, onToast]);
 
   const suggested = userBehaviorState?.suggestedAction;
@@ -80,22 +82,22 @@ export default function TaskDetailSheet({
               <View style={styles.handle} />
 
               <Text style={styles.title}>{habitName}</Text>
-              <Text style={styles.dayBadge}>Gün {dayNumber}</Text>
+              <Text style={styles.dayBadge}>{t("taskSheet.dayBadge", { day: dayNumber })}</Text>
 
               <View style={styles.section}>
-                <Text style={styles.sectionLabel}>Kimlik cümlen</Text>
+                <Text style={styles.sectionLabel}>{t("taskSheet.identityLabel")}</Text>
                 <Text style={styles.sectionBody}>{identityLine}</Text>
               </View>
 
               <View style={styles.section}>
                 <View style={styles.infoRow}>
                   <MapPin size={13} color={Colors.textTertiary} strokeWidth={2} />
-                  <Text style={styles.infoText}>Çapa: {anchorBehavior}</Text>
+                  <Text style={styles.infoText}>{t("taskSheet.anchor", { anchor: anchorBehavior })}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Clock size={13} color={Colors.textTertiary} strokeWidth={2} />
                   <Text style={styles.infoText}>
-                    {todayDone ? "Bugün tamamlandı" : "Henüz tamamlanmadı"}
+                    {todayDone ? t("taskSheet.doneTodayTrue") : t("taskSheet.doneTodayFalse")}
                   </Text>
                 </View>
               </View>
@@ -112,7 +114,7 @@ export default function TaskDetailSheet({
                   <View style={styles.actionTextWrap}>
                     <Text style={styles.actionTitle}>{suggested.title}</Text>
                     <Text style={styles.actionSub}>
-                      {suggested.duration} sn · Şimdi başla
+                      {t("taskSheet.actionDuration", { sec: suggested.duration })}
                     </Text>
                   </View>
                   <ChevronRight size={16} color={Colors.textTertiary} strokeWidth={2} />
@@ -127,11 +129,11 @@ export default function TaskDetailSheet({
                   onNavigateJourney();
                 }}
               >
-                <Text style={styles.journeyCtaText}>Yolculuk’a git</Text>
+                <Text style={styles.journeyCtaText}>{t("taskSheet.goJourney")}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity style={styles.closeBtn} activeOpacity={0.85} onPress={onClose}>
-                <Text style={styles.closeBtnText}>Kapat</Text>
+                <Text style={styles.closeBtnText}>{t("taskSheet.close")}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -141,6 +143,8 @@ export default function TaskDetailSheet({
       <LiveActionModal
         visible={showLive}
         action={liveAction}
+        habitAnchor={anchorBehavior}
+        habitName={habitName}
         onComplete={handleLiveComplete}
         onCancel={() => setShowLive(false)}
       />

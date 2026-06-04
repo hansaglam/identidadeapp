@@ -28,6 +28,8 @@ import { StatusBar } from "expo-status-bar";
 import * as QuickActions from "expo-quick-actions";
 import { useQuickActionCallback } from "expo-quick-actions/hooks";
 
+import { initI18n } from "./src/i18n/config";
+import { LanguageProvider } from "./src/contexts/LanguageContext";
 import { useUserStore } from "./src/store/userStore";
 import { useCheckinsStore } from "./src/store/checkinsStore";
 import { useMindDumpStore } from "./src/store/mindDumpStore";
@@ -62,6 +64,7 @@ export default function App() {
 
 function AppBootstrap() {
   const [dataReady, setDataReady] = useState(false);
+  const [i18nReady, setI18nReady] = useState(false);
   const sessionTrackedDayRef = useRef<string | null>(null);
 
   const [fontsLoaded, fontError] = useFonts({
@@ -121,6 +124,16 @@ function AppBootstrap() {
       cancelled = true;
     };
   }, [loadedProfile?.startDate]);
+
+  useEffect(() => {
+    let cancelled = false;
+    void initI18n().then(() => {
+      if (!cancelled) setI18nReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -239,7 +252,7 @@ function AppBootstrap() {
     []
   );
 
-  if ((!fontsLoaded && !fontError) || !dataReady || isUserLoading) {
+  if ((!fontsLoaded && !fontError) || !dataReady || !i18nReady || isUserLoading) {
     return (
       <>
         <StatusBar style="dark" />
@@ -265,6 +278,7 @@ function AppBootstrap() {
       <AppErrorBoundary>
         <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.bg }}>
           <SafeAreaProvider>
+            <LanguageProvider>
             <ExactAlarmPermissionModal />
             <NavigationContainer
               theme={navTheme}
@@ -284,6 +298,7 @@ function AppBootstrap() {
             >
               <AppNavigator initialRoute={onboardingDone ? "Main" : "Auth"} />
             </NavigationContainer>
+            </LanguageProvider>
           </SafeAreaProvider>
         </GestureHandlerRootView>
       </AppErrorBoundary>

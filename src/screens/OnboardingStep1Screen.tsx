@@ -14,18 +14,23 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import { IDENTITY_TEMPLATES, type IdentityTagId } from "../constants/identityTemplates";
+import { useTranslation } from "react-i18next";
 import { trackEvent } from "../utils/analytics";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep1">;
 
 const CUSTOM_ID = "__custom__";
 
-const STEP_LABELS = ["Kimliğin", "Çapan", "Neden"] as const;
-
 function StepBar({ current }: { current: number }) {
+  const { t } = useTranslation();
+  const stepLabels = [
+    t("onboarding.steps.identity"),
+    t("onboarding.steps.anchor"),
+    t("onboarding.steps.why"),
+  ];
   return (
     <View style={styles.stepWrap}>
-      {STEP_LABELS.map((label, i) => {
+      {stepLabels.map((label, i) => {
         const done = i < current - 1;
         const active = i === current - 1;
         return (
@@ -53,6 +58,7 @@ function StepBar({ current }: { current: number }) {
 }
 
 export default function OnboardingStep1Screen({ navigation }: Props) {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<string | null>(null);
   const [customText, setCustomText] = useState("");
 
@@ -87,17 +93,13 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
       >
         <StepBar current={1} />
 
-        <Text style={styles.title}>66 gün sonunda{"\n"}kim olmak istiyorsun?</Text>
-        <Text style={styles.sub}>
-          Bir kimlik seç ya da kendin yaz. Çapa ve zamanı bir sonraki adımda rutinine bağlayacaksın.
-        </Text>
+        <Text style={styles.title}>{t("onboarding.step1.title")}</Text>
+        <Text style={styles.sub}>{t("onboarding.step1.sub")}</Text>
 
         {/* Info panel */}
         <View style={styles.infoPanel}>
-          <Text style={styles.infoPanelTitle}>Aynı motor, senin yönün</Text>
-          <Text style={styles.infoPanelBody}>
-            Listede bire bir örtüşen satır olmayabilir — en yakınını seç. Özü çapa ve alışkanlık adınla kendin netleştirirsin.
-          </Text>
+          <Text style={styles.infoPanelTitle}>{t("onboarding.step1.infoTitle")}</Text>
+          <Text style={styles.infoPanelBody}>{t("onboarding.step1.infoBody")}</Text>
         </View>
 
         {/* Identity cards */}
@@ -129,11 +131,11 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
                 {active && (
                   <View style={styles.previewBox}>
                     <View style={styles.previewRow}>
-                      <Text style={styles.previewLabel}>Kimlik ifadesi</Text>
+                      <Text style={styles.previewLabel}>{t("onboarding.step1.previewIdentity")}</Text>
                       <Text style={styles.previewLine}>"{tpl.identityStatement}"</Text>
                     </View>
                     <View style={[styles.previewRow, styles.previewRowBorder]}>
-                      <Text style={styles.previewLabel}>İlk mikro-adım</Text>
+                      <Text style={styles.previewLabel}>{t("onboarding.step1.previewMicro")}</Text>
                       <Text style={styles.previewLine}>{tpl.microActionInitial}</Text>
                     </View>
                   </View>
@@ -154,11 +156,9 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
               </View>
               <View style={styles.cardTextWrap}>
                 <Text style={[styles.cardTitle, isCustom && styles.cardTitleActive]}>
-                  Kendi cümlemi yazacağım
+                  {t("onboarding.step1.customLabel")}
                 </Text>
-                <Text style={styles.cardBlurb}>
-                  Özel bir ifade yaz; çapa ve zamanı bir sonraki adımda belirlersin.
-                </Text>
+                <Text style={styles.cardBlurb}>{t("onboarding.step1.customBlurb")}</Text>
               </View>
               <View style={[styles.radioOuter, isCustom && styles.radioOuterActive]}>
                 {isCustom && <View style={styles.radioDot} />}
@@ -171,7 +171,7 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
                   style={styles.customInput}
                   value={customText}
                   onChangeText={setCustomText}
-                  placeholder="Örn: Her gün su içen, kendine bakan biri…"
+                  placeholder={t("onboarding.step1.customPlaceholder")}
                   placeholderTextColor={Colors.textTertiary}
                   autoFocus
                   maxLength={60}
@@ -192,10 +192,10 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
           disabled={!canContinue}
           activeOpacity={0.85}
         >
-          <Text style={styles.ctaText}>Devam Et</Text>
+          <Text style={styles.ctaText}>{t("common.continue")}</Text>
         </TouchableOpacity>
         {!canContinue && (
-          <Text style={styles.footerHint}>Devam etmek için bir kimlik seç</Text>
+          <Text style={styles.footerHint}>{t("onboarding.step1.footerHint")}</Text>
         )}
       </View>
     </SafeAreaView>

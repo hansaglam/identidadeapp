@@ -6,6 +6,8 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
+  Easing,
+  InteractionManager,
   ScrollView,
   Modal,
   Pressable,
@@ -21,8 +23,9 @@ import * as Haptics from "expo-haptics";
 import { Ionicons } from "@expo/vector-icons";
 import { ChevronRight } from "lucide-react-native";
 import { format, parseISO, startOfDay, addDays } from "date-fns";
-import { tr } from "date-fns/locale";
+import { useTranslation } from "react-i18next";
 import { useFocusEffect, useRoute, RouteProp } from "@react-navigation/native";
+import { getDateFnsLocale } from "../utils/dateFnsLocale";
 
 import { useUserStore } from "../store/userStore";
 import { useCheckinsStore } from "../store/checkinsStore";
@@ -39,7 +42,6 @@ import { IDENTITY_MESSAGES, pickMessage } from "../constants/identity-copy";
 import { IDENTITY_TEMPLATES, getIdentitySlugForTag } from "../constants/identityTemplates";
 import { RootStackParamList, MainTabParamList, UserProfile } from "../types";
 import { buildCalendarWeekAroundToday, countConsecutiveMissesFromYesterday } from "../utils/journeyHome";
-import { getMissedDayMessage } from "../utils/missProtocol";
 import { trackEvent } from "../utils/analytics";
 import { shouldTriggerProactiveIntervention } from "../utils/interventionEngine";
 import ProactiveInterventionModal from "../components/ProactiveInterventionModal";
@@ -74,42 +76,29 @@ import {
   TaskDetailSheet,
 } from "../components/home";
 import { hasCompletedActionToday } from "../utils/behaviorToday";
+import {
+  getLocalizedIdentityLine,
+  getLocalizedHabitTitle,
+} from "../i18n/localizeContent";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
   NativeStackScreenProps<RootStackParamList>
 >;
 
-const FIVE_DEFAULT: FiveSecondScenario = {
-  id: "home-train",
-  type: "classic",
-  trigger: "Şimdi derin nefes al, omuzlarını bırak — ardından alışkanlık için tek net hareketi yap.",
-  countdownDuration: 5,
-  difficulty: 3,
-  disciplineMuscle: "karar",
-};
-
-const RESTART_CARD_BODY = getMissedDayMessage(3).body;
-
-function getTimeGreeting(hour: number): string {
-  if (hour >= 5 && hour < 12) return "Günaydın ☀️";
-  if (hour >= 12 && hour < 17) return "İyi günler";
-  if (hour >= 17 && hour < 21) return "İyi akşamlar 🌙";
-  return "İyi geceler 🌙";
+function getTimeGreetingKey(hour: number): "morning" | "afternoon" | "evening" | "night" {
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 21) return "evening";
+  return "night";
 }
 
 function getIdentityLine(profile: UserProfile): string {
-  const tmpl = profile.identityTagId
-    ? IDENTITY_TEMPLATES.find((t) => t.id === profile.identityTagId)
-    : null;
-  const fromTemplate = tmpl?.identityStatement?.trim();
-  const why = profile.habitWhy?.trim();
-  if (fromTemplate) return fromTemplate;
-  if (why) return why;
-  return `${profile.habitName} yolunda ilerliyorsun.`;
+  return getLocalizedIdentityLine(profile);
 }
 
 export default function HomeScreen({ navigation }: Props) {
+  const { t, i18n: i18nInstance } = useTranslation();
   const route = useRoute<RouteProp<MainTabParamList, "Home">>();
   const tabBarHeight = useBottomTabBarHeight();
   const profile = useUserStore((s) => s.profile);
@@ -141,7 +130,6 @@ export default function HomeScreen({ navigation }: Props) {
   const [showPremiumGate, setShowPremiumGate] = useState(false);
   const isPremium = profile?.isPremium ?? false;
   const [checkInAnimating, setCheckInAnimating] = useState(false);
-  const [showConfetti, setShowConfetti] = useState(false);
   const [streakRoll, setStreakRoll] = useState<{ from: number; to: number } | null>(null);
   const [calendarToday, setCalendarToday] = useState(() => format(new Date(), "yyyy-MM-dd"));
   const habit = useHabitStore((s) => s.habit);
@@ -215,7 +203,7 @@ export default function HomeScreen({ navigation }: Props) {
 
   const weekCells = useMemo(
     () => (profile ? buildCalendarWeekAroundToday(profile.startDate, checkins) : []),
-    [profile, checkins]
+    [profile, checkins, i18nInstance.language]
   );
   const weekDoneCount = useMemo(
     () => weekCells.filter((c) => !c.beforeJourney && !c.isFuture && c.completed).length,
@@ -231,13 +219,16 @@ export default function HomeScreen({ navigation }: Props) {
   const showMissRecovery = consecutiveMiss >= 1 && !todayDone && !showRestartCard;
 
   const checkInActionGate = profile?.checkInActionGate ?? "soft";
-  const dateTitle = format(new Date(), "EEEE, d MMMM", { locale: tr });
+  const dateTitle = useMemo(
+    () => format(new Date(), "EEEE, d MMMM", { locale: getDateFnsLocale() }),
+    [i18nInstance.language]
+  );
 
   const displayFirstName = useMemo(() => {
     const n = profile?.name?.trim();
-    if (!n) return "dostum";
+    if (!n) return t("home.defaultName");
     return n.split(/\s+/)[0] ?? n;
-  }, [profile?.name]);
+  }, [profile?.name, t]);
 
   const behaviorData = useMemo(() => {
     if (!profile) return null;
@@ -304,7 +295,27 @@ export default function HomeScreen({ navigation }: Props) {
     return () => clearInterval(id);
   }, []);
 
-  const timeGreeting = useMemo(() => getTimeGreeting(clockHour), [clockHour]);
+  const timeGreeting = useMemo(
+    () => t(`home.greeting.${getTimeGreetingKey(clockHour)}`),
+    [clockHour, t, i18nInstance.language]
+  );
+
+  const displayHabitName = useMemo(
+    () => (profile ? getLocalizedHabitTitle(profile) : ""),
+    [profile, i18nInstance.language]
+  );
+
+  const fiveDefaultScenario = useMemo<FiveSecondScenario>(
+    () => ({
+      id: "home-train",
+      type: "classic",
+      trigger: t("home.fiveDefaultTrigger"),
+      countdownDuration: 5,
+      difficulty: 3,
+      disciplineMuscle: "karar",
+    }),
+    [t, i18nInstance.language]
+  );
 
   // --- Animations ---
 
@@ -456,62 +467,76 @@ export default function HomeScreen({ navigation }: Props) {
       const prevStreak = getStreakState().currentStreak;
       const followUpAuto = automaticity ?? 5;
       const followUpEffort = effort ?? 5;
-      try {
-        setCheckInAnimating(true);
-        tickScale.setValue(0);
-        setShowConfetti(true);
-
-        const conf = useHabitStore.getState().todayCheckIn;
-        const todayKey = format(new Date(), "yyyy-MM-dd");
-        if (conf?.date === todayKey) {
-          await completeTodayWithRatings(dayNumber, automaticity, effort, conf.note, conf.detail);
-        } else {
-          await completeTodayWithRatings(dayNumber, automaticity, effort);
-        }
-        await cancelEveningReminderToday();
-        await useHabitStore.getState().markCheckedInToday();
-        if (todayPlanList?.items.length) {
-          await markTodayPlanCompleted(todayPlanDate);
-        }
-
-        const nextStreak = useCheckinsStore.getState().getStreakState().currentStreak;
-        Animated.spring(tickScale, {
-          toValue: 1,
-          friction: 5,
-          tension: 160,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished) setTimeout(() => setCheckInAnimating(false), 40);
-        });
-
-        setStreakRoll({ from: prevStreak, to: nextStreak });
-        streakSlide.setValue(0);
-        Animated.timing(streakSlide, {
-          toValue: 1,
-          duration: 450,
-          useNativeDriver: true,
-        }).start(({ finished }) => {
-          if (finished) setStreakRoll(null);
-        });
-
-        const hadAction = hasCompletedActionToday(
-          useBehaviorStore.getState().recentActions,
-          userBehaviorState?.suggestedAction.id
-        );
-        void trackEvent("checkin_completed", {
-          dayNumber,
-          hadActionToday: hadAction,
-          gateMode: checkInActionGate,
-        });
-
-        if (automaticity != null && effort != null) {
-          void afterCheckInFollowUp(automaticity, effort);
-        } else {
-          showToast("Bugün tamamlandı.");
-        }
-      } finally {
-        checkingRef.current = false;
+      setCheckInAnimating(true);
+      if (todayPlanList?.items.length) {
+        void markTodayPlanCompleted(todayPlanDate);
       }
+      tickScale.setValue(0.55);
+      Animated.timing(tickScale, {
+        toValue: 1,
+        duration: 280,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (!finished) return;
+        InteractionManager.runAfterInteractions(() => {
+          setCheckInAnimating(false);
+        });
+      });
+
+      void (async () => {
+        try {
+          const conf = useHabitStore.getState().todayCheckIn;
+          const todayKey = format(new Date(), "yyyy-MM-dd");
+          if (conf?.date === todayKey) {
+            await completeTodayWithRatings(
+              dayNumber,
+              automaticity,
+              effort,
+              conf.note,
+              conf.detail
+            );
+          } else {
+            await completeTodayWithRatings(dayNumber, automaticity, effort);
+          }
+          await cancelEveningReminderToday();
+          await useHabitStore.getState().markCheckedInToday();
+
+          const nextStreak = useCheckinsStore.getState().getStreakState().currentStreak;
+          if (prevStreak !== nextStreak) {
+            setTimeout(() => {
+              setStreakRoll({ from: prevStreak, to: nextStreak });
+              streakSlide.setValue(0);
+              Animated.timing(streakSlide, {
+                toValue: 1,
+                duration: 280,
+                easing: Easing.out(Easing.cubic),
+                useNativeDriver: true,
+              }).start(({ finished }) => {
+                if (finished) setStreakRoll(null);
+              });
+            }, 220);
+          }
+
+          const hadAction = hasCompletedActionToday(
+            useBehaviorStore.getState().recentActions,
+            userBehaviorState?.suggestedAction.id
+          );
+          void trackEvent("checkin_completed", {
+            dayNumber,
+            hadActionToday: hadAction,
+            gateMode: checkInActionGate,
+          });
+
+          if (automaticity != null && effort != null) {
+            void afterCheckInFollowUp(automaticity, effort);
+          } else {
+            showToast(t("home.toast.dayComplete"));
+          }
+        } finally {
+          checkingRef.current = false;
+        }
+      })();
     },
     [
       profile,
@@ -572,8 +597,18 @@ export default function HomeScreen({ navigation }: Props) {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     Animated.sequence([
-      Animated.spring(ctaPressScale, { toValue: 0.92, friction: 5, tension: 400, useNativeDriver: true }),
-      Animated.spring(ctaPressScale, { toValue: 1, friction: 6, tension: 220, useNativeDriver: true }),
+      Animated.timing(ctaPressScale, {
+        toValue: 0.94,
+        duration: 70,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.timing(ctaPressScale, {
+        toValue: 1,
+        duration: 160,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
     ]).start();
 
     const gateOff = checkInActionGate === "off";
@@ -686,12 +721,10 @@ export default function HomeScreen({ navigation }: Props) {
       return (
         <SafeAreaView style={styles.safe} edges={["top"]}>
           <View style={styles.profileErrorWrap}>
-            <Text style={styles.profileErrorTitle}>Profil dosyası açılamadı</Text>
-            <Text style={styles.profileErrorBody}>
-              Depolama geçici veya eksik izin yüzünden okunamadı olabilir. Tekrar deneyebilirsin.
-            </Text>
+            <Text style={styles.profileErrorTitle}>{t("home.profileErrorTitle")}</Text>
+            <Text style={styles.profileErrorBody}>{t("home.profileErrorBody")}</Text>
             <TouchableOpacity style={styles.profileErrorBtn} onPress={() => loadProfileAgain()} activeOpacity={0.85}>
-              <Text style={styles.profileErrorBtnText}>Tekrar dene</Text>
+              <Text style={styles.profileErrorBtnText}>{t("common.retry")}</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -700,7 +733,7 @@ export default function HomeScreen({ navigation }: Props) {
     return (
       <SafeAreaView style={styles.safe} edges={["top"]}>
         <View style={styles.center}>
-          <Text style={styles.emptyText}>Yükleniyor...</Text>
+          <Text style={styles.emptyText}>{t("home.loading")}</Text>
         </View>
       </SafeAreaView>
     );
@@ -743,8 +776,8 @@ export default function HomeScreen({ navigation }: Props) {
                 {streakRoll ? (
                   <View style={styles.streakRollClip}>
                     <Animated.View style={{ transform: [{ translateY: streakSlideY }] }}>
-                      <Text style={styles.streakBadgeText}>{streakRoll.from} gün</Text>
-                      <Text style={styles.streakBadgeText}>{streakRoll.to} gün</Text>
+                      <Text style={styles.streakBadgeText}>{t("home.streakDays", { count: streakRoll.from })}</Text>
+                      <Text style={styles.streakBadgeText}>{t("home.streakDays", { count: streakRoll.to })}</Text>
                     </Animated.View>
                   </View>
                 ) : (
@@ -774,6 +807,8 @@ export default function HomeScreen({ navigation }: Props) {
               <HeroActionSection
                 ref={heroActionRef}
                 userBehaviorState={userBehaviorState}
+                habitAnchor={profile.habitAnchor}
+                habitName={displayHabitName}
                 hapticsEnabled={profile.hapticsEnabled !== false}
                 onToast={showToast}
                 onActionRecorded={handleActionRecorded}
@@ -796,8 +831,6 @@ export default function HomeScreen({ navigation }: Props) {
           streakSlide={streakSlide}
           tickScale={tickScale}
           ctaPressScale={ctaPressScale}
-          showConfetti={showConfetti}
-          onConfettiDone={() => setShowConfetti(false)}
           todayPrimaryText={todayPrimaryTodo?.text ?? null}
           entranceButton={entranceButton}
         />
@@ -807,7 +840,11 @@ export default function HomeScreen({ navigation }: Props) {
           <HomeTomorrowPlansSection
             todayItems={todayPlanTodos}
             todayDone={todayDone}
-            onToggleToday={(id) => void togglePlanItem(todayPlanDate, id)}
+            planLocked={todayDone || checkInAnimating}
+            onToggleToday={(id) => {
+              if (todayDone || checkInAnimating) return;
+              void togglePlanItem(todayPlanDate, id);
+            }}
             tomorrowItems={tomorrowPlanTodos}
             onOpenJourney={() => navigation.navigate("Journey")}
           />
@@ -819,19 +856,16 @@ export default function HomeScreen({ navigation }: Props) {
             onPress={() => setShowTaskSheet(true)}
           >
             <View style={styles.cardHeaderRow}>
-              <Text style={styles.cardLabel}>Kimliğin · gün {dayNumber}</Text>
+              <Text style={styles.cardLabel}>{t("home.identityCard", { day: dayNumber })}</Text>
               <ChevronRight size={18} color={Colors.textTertiary} strokeWidth={2} />
             </View>
-            <Text style={styles.habitTitle}>{profile.habitName}</Text>
+            <Text style={styles.habitTitle}>{displayHabitName}</Text>
             <Text style={styles.identityLine} numberOfLines={3}>
               {getIdentityLine(profile)}
             </Text>
           </TouchableOpacity>
 
-          {/* Mini automaticity trend */}
-          {autoSeries.length > 0 && (
-            <MiniAutoTrend series={autoSeries} />
-          )}
+          <MiniAutoTrend series={autoSeries} />
         </Animated.View>
 
         {/* First week guide */}
@@ -853,9 +887,9 @@ export default function HomeScreen({ navigation }: Props) {
         {/* Restart or daily tip */}
         {showRestartCard ? (
           <Animated.View style={[styles.tipSection, cardEnterStyle(2)]}>
-            <Text style={styles.sectionTitle}>Yeniden başla</Text>
+            <Text style={styles.sectionTitle}>{t("home.restartTitle")}</Text>
             <View style={[styles.surfaceCard, styles.restartCard]}>
-              <Text style={styles.restartBody}>{RESTART_CARD_BODY}</Text>
+              <Text style={styles.restartBody}>{t("home.miss.day3.body")}</Text>
               <TouchableOpacity
                 style={styles.restartBtn}
                 activeOpacity={0.9}
@@ -866,7 +900,7 @@ export default function HomeScreen({ navigation }: Props) {
                   scrollRef.current?.scrollTo({ y: 0, animated: true });
                 }}
               >
-                <Text style={styles.restartBtnText}>Devam Et</Text>
+                <Text style={styles.restartBtnText}>{t("common.continue")}</Text>
               </TouchableOpacity>
             </View>
           </Animated.View>
@@ -888,7 +922,7 @@ export default function HomeScreen({ navigation }: Props) {
             <WeeklyCoachPulseCard
               startDate={profile.startDate}
               checkins={checkins}
-              habitName={profile.habitName}
+              habitName={displayHabitName}
               dayNumber={dayNumber}
               currentStreak={streakDisplay}
               recentActions={behaviorRecent}
@@ -929,7 +963,7 @@ export default function HomeScreen({ navigation }: Props) {
             <View style={styles.autoSheetPanel}>
               <AutomaticitySlider dayNumber={dayNumber} onSubmit={handleAutomaticitySubmit} />
               <TouchableOpacity style={styles.autoSkipBtn} onPress={handleAutomaticitySkip} activeOpacity={0.85}>
-                <Text style={styles.autoSkipText}>Atla (grafik oluşmaz)</Text>
+                <Text style={styles.autoSkipText}>{t("home.autoTrend.skip")}</Text>
               </TouchableOpacity>
             </View>
           </SafeAreaView>
@@ -939,7 +973,7 @@ export default function HomeScreen({ navigation }: Props) {
       <TaskDetailSheet
         visible={showTaskSheet}
         onClose={() => setShowTaskSheet(false)}
-        habitName={profile.habitName}
+        habitName={displayHabitName}
         identityLine={getIdentityLine(profile)}
         anchorBehavior={profile.habitAnchor}
         dayNumber={dayNumber}
@@ -967,7 +1001,7 @@ export default function HomeScreen({ navigation }: Props) {
 
       <Journey66CompleteModal
         visible={show66CompleteModal}
-        habitName={profile.habitName}
+        habitName={displayHabitName}
         completionPct={journey66Stats.completionPct}
         avgAutomaticity={journey66Stats.avgAutomaticity}
         totalCheckins={journey66Stats.totalCheckins}
@@ -1002,9 +1036,9 @@ export default function HomeScreen({ navigation }: Props) {
       <Modal visible={showFiveSecond} animationType="fade" onRequestClose={() => setShowFiveSecond(false)}>
         <SafeAreaView style={styles.trainerRoot} edges={["top", "bottom"]}>
           <FiveSecondTrainer
-            scenario={FIVE_DEFAULT}
+            scenario={fiveDefaultScenario}
             onComplete={async (_success, _ms, reward) => {
-              showToast("Antrenman kaydedildi. Disiplin kası güçleniyor.");
+              showToast(t("home.toast.trainingRecorded"));
               const micro = getActionById("deep-breath");
               if (micro) await useBehaviorStore.getState().recordAction(micro);
               if (reward) await addDisciplineMuscleXp(reward.disciplineMuscle, reward.xp);

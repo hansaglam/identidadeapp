@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -21,11 +22,13 @@ function DotScale({
   onChange,
   labelLow,
   labelHigh,
+  selectA11y,
 }: {
   value: number;
   onChange: (v: number) => void;
   labelLow: string;
   labelHigh: string;
+  selectA11y: (n: number) => string;
 }) {
   return (
     <View style={styles.scaleBlock}>
@@ -39,7 +42,7 @@ function DotScale({
               onPress={() => onChange(n)}
               activeOpacity={0.75}
               accessibilityRole="button"
-              accessibilityLabel={`Seç: ${n}`}
+              accessibilityLabel={selectA11y(n)}
               accessibilityState={{ selected: active }}
             >
               <View style={[styles.dot, active && styles.dotActive]} />
@@ -67,7 +70,10 @@ function DotScale({
 const SHEET_HEADER_RESERVE = 76;
 
 export default function AutomaticitySlider({ dayNumber, onSubmit }: AutomaticitySliderProps) {
+  const { t } = useTranslation();
   const { height: winH } = useWindowDimensions();
+  const r = (key: string, opts?: Record<string, unknown>) =>
+    t(`home.automaticityRating.${key}`, opts);
   const scrollMaxH = Math.max(240, winH * 0.92 - SHEET_HEADER_RESERVE);
 
   const [automaticity, setAutomaticity] = useState(5);
@@ -86,54 +92,40 @@ export default function AutomaticitySlider({ dayNumber, onSubmit }: Automaticity
       keyboardShouldPersistTaps="handled"
     >
       <View style={styles.card}>
-        <Text style={styles.kicker}>Gün {dayNumber}</Text>
-        <Text style={styles.title}>Bugünkü değerlendirme</Text>
-        <Text style={styles.subtitle}>
-          Dürüst cevaplar, ilerlemeni en iyi yansıtır.
-        </Text>
+        <Text style={styles.kicker}>{r("kicker", { day: dayNumber })}</Text>
+        <Text style={styles.title}>{r("title")}</Text>
+        <Text style={styles.subtitle}>{r("subtitle")}</Text>
         <View style={styles.reminderBox}>
-          <Text style={styles.reminderText}>
-            Atlamak serbest. Ama otomatikliğini kaydetmezsen ilerleme grafiğin oluşmaz; 66 gün
-            sonunda otomatikleşmeyi görmek için çoğu gün birkaç saniye bu adımı tamamlaman yeter.
-          </Text>
+          <Text style={styles.reminderText}>{r("reminder")}</Text>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.question}>
-            Bu davranış ne kadar &quot;kendiliğinden&quot; oldu?
-          </Text>
-          <Text style={styles.hint}>
-            1: Düşündüm, karar verdim · 10: Tamamen otomatik
-          </Text>
+          <Text style={styles.question}>{r("autoQuestion")}</Text>
+          <Text style={styles.hint}>{r("autoHint")}</Text>
           <DotScale
             value={automaticity}
             onChange={setAutomaticity}
-            labelLow="Düşünerek"
-            labelHigh="Otomatik"
+            labelLow={r("autoLow")}
+            labelHigh={r("autoHigh")}
+            selectA11y={(n) => r("selectA11y", { n })}
           />
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.question}>
-            Ne kadar güç / çaba harcadın?
-          </Text>
-          <Text style={styles.hint}>
-            1: Hiç zorlanmadım · 10: Çok zorlandım
-          </Text>
+          <Text style={styles.question}>{r("effortQuestion")}</Text>
+          <Text style={styles.hint}>{r("effortHint")}</Text>
           <DotScale
             value={effort}
             onChange={setEffort}
-            labelLow="Hafif"
-            labelHigh="Ağır çaba"
+            labelLow={r("effortLow")}
+            labelHigh={r("effortHigh")}
+            selectA11y={(n) => r("selectA11y", { n })}
           />
         </View>
 
         {showWarning && (
           <View style={styles.warningBox}>
-            <Text style={styles.warningText}>
-              Davranış otomatik ama çok güç harcadın. Alışkanlık büyük mü geldi? Tiny
-              haline dönmeyi düşün.
-            </Text>
+            <Text style={styles.warningText}>{r("warning")}</Text>
           </View>
         )}
 
@@ -142,7 +134,7 @@ export default function AutomaticitySlider({ dayNumber, onSubmit }: Automaticity
           onPress={() => onSubmit(automaticity, effort)}
           activeOpacity={0.85}
         >
-          <Text style={styles.submitBtnText}>Tamamla</Text>
+          <Text style={styles.submitBtnText}>{r("submit")}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

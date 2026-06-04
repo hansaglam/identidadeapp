@@ -22,6 +22,7 @@ import {
   schedulePhaseTransitions,
 } from "../utils/notifications";
 import { Colors, Spacing, Radii, FontSizes, Shadows, TIME_RANGES } from "../constants/theme";
+import { useTranslation } from "react-i18next";
 import { getIdentitySlugForTag, getIdentityTemplate } from "../constants/identityTemplates";
 import { trackEvent } from "../utils/analytics";
 
@@ -29,24 +30,10 @@ type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep3">;
 
 const MIN_CHARS = 10;
 
-const STEP_LABELS = ["Kimliğin", "Çapan", "Neden"] as const;
-
-const SYSTEM_PROMISES = [
-  {
-    Icon: Zap,
-    color: Colors.gold,
-    text: "Her gün 1 aksiyon önerir — sıfır düşünme, sıfır karar yorgunluğu.",
-  },
-  {
-    Icon: BarChart2,
-    color: Colors.purple,
-    text: "Momentum ve efor sinyallerini okuyarak sana özel hareket seçer.",
-  },
-  {
-    Icon: Shield,
-    color: Colors.primary,
-    text: "Düşüş yakaladığında müdahale eder. Streak kırmaz, cezalandırmaz.",
-  },
+const SYSTEM_PROMISE_ICONS = [
+  { Icon: Zap, color: Colors.gold },
+  { Icon: BarChart2, color: Colors.purple },
+  { Icon: Shield, color: Colors.primary },
 ] as const;
 
 const ANCHOR_EMOJIS: Record<string, string> = {
@@ -67,9 +54,15 @@ const TIME_EMOJIS: Record<string, string> = {
 };
 
 function StepBar({ current }: { current: number }) {
+  const { t } = useTranslation();
+  const stepLabels = [
+    t("onboarding.steps.identity"),
+    t("onboarding.steps.anchor"),
+    t("onboarding.steps.why"),
+  ];
   return (
     <View style={styles.stepWrap}>
-      {STEP_LABELS.map((label, i) => {
+      {stepLabels.map((label, i) => {
         const done = i < current - 1;
         const active = i === current - 1;
         return (
@@ -103,6 +96,7 @@ function StepBar({ current }: { current: number }) {
 }
 
 export default function OnboardingStep3Screen({ route, navigation }: Props) {
+  const { t } = useTranslation();
   const { habitName, anchorBehavior, anchorTime, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
   const timeSlotLabel = TIME_RANGES.find((r) => r.id === anchorTime)?.label ?? anchorTime;
@@ -178,15 +172,12 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         >
           <StepBar current={3} />
 
-          <Text style={styles.title}>Bu kimliği neden{"\n"}istiyorsun?</Text>
-          <Text style={styles.sub}>
-            Bu cümle yalnızca söz değil: düştüğünde geri dönmeni sağlayan bağ.
-            Dürüstçe yaz — kimse görmeyecek.
-          </Text>
+          <Text style={styles.title}>{t("onboarding.step3.title")}</Text>
+          <Text style={styles.sub}>{t("onboarding.step3.sub")}</Text>
 
           {/* Choices summary */}
           <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Seçtiklerin</Text>
+            <Text style={styles.summaryTitle}>{t("onboarding.step3.title")}</Text>
             <View style={styles.summaryChips}>
               <View style={styles.chip}>
                 <Text style={styles.chipEmoji}>{template?.emoji ?? "✏️"}</Text>
@@ -209,10 +200,7 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
               style={styles.whyInput}
               value={whyText}
               onChangeText={setWhyText}
-              placeholder={
-                template?.whyPlaceholder ??
-                "Bu değişikliği neden istiyorsun? İlk aklına geleni yaz…"
-              }
+              placeholder={template?.whyPlaceholder ?? t("onboarding.step3.placeholder")}
               placeholderTextColor={Colors.textTertiary}
               multiline
               textAlignVertical="top"
@@ -250,13 +238,13 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
 
           {/* System promises */}
           <View style={styles.systemCard}>
-            <Text style={styles.systemTitle}>66 günde sistem şunları yapacak</Text>
-            {SYSTEM_PROMISES.map(({ Icon, color, text }, i) => (
+            <Text style={styles.systemTitle}>{t("onboarding.step3.systemTitle")}</Text>
+            {SYSTEM_PROMISE_ICONS.map(({ Icon, color }, i) => (
               <View key={i} style={styles.systemRow}>
                 <View style={[styles.systemIconWrap, { backgroundColor: `${color}18` }]}>
                   <Icon size={15} color={color} strokeWidth={2} />
                 </View>
-                <Text style={styles.systemRowText}>{text}</Text>
+                <Text style={styles.systemRowText}>{t(`onboarding.step3.promises.${i}`)}</Text>
               </View>
             ))}
           </View>
@@ -273,7 +261,7 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
             activeOpacity={0.75}
           >
             <ChevronLeft size={18} color={Colors.textSecondary} strokeWidth={2} />
-            <Text style={styles.backText}>Geri</Text>
+            <Text style={styles.backText}>{t("common.back")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -283,7 +271,7 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
             activeOpacity={0.85}
           >
             <Text style={styles.ctaText}>
-              {saving ? "Başlatılıyor…" : "66 Günüm Başlasın →"}
+              {saving ? t("common.loading") : t("onboarding.step3.startCta")}
             </Text>
           </TouchableOpacity>
         </View>

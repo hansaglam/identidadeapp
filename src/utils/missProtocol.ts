@@ -2,6 +2,8 @@
  * Kaçırma anında suçluluk yaratmayan, bilimsel perspektifli mesajlar.
  * Lally çerçevesi: 66 gün bireyler arası değişir; kesinti = süreç, başarısızlık değil.
  */
+import type { TFunction } from "i18next";
+
 export type MissMessageType = "neutral" | "warning" | "reframe";
 
 export interface MissMessage {
@@ -16,29 +18,29 @@ export interface MissMessage {
 /**
  * @param consecutiveMisses Dünden geriye, üst üste kaç gün atlandı (geçerli yol günlerinde)
  */
-export function getMissedDayMessage(consecutiveMisses: number): MissMessage {
+export function getMissedDayMessage(consecutiveMisses: number, t: TFunction): MissMessage {
   if (consecutiveMisses >= 3) {
     return {
-      title: "Yeniden bağlama",
-      body: "Birkaç gün koptun — bu, beynin yolu unuttuğu anlamına gelmez. Lally’nin eğrisi bireyler arası çok açılır: küçül, tetik/çapayı tazele; Bugün kartından en küçük net adımı seçip gerçek check-in ile yeniden başla.",
-      action: "Yeni çapayı düşün",
+      title: t("home.miss.day3.title"),
+      body: t("home.miss.day3.body"),
+      action: t("home.miss.day3.action"),
       type: "reframe",
       suggestNewCue: true,
     };
   }
   if (consecutiveMisses === 2) {
     return {
-      title: "Küçültme zamanı",
-      body: "Arka arkaya iki gün atlanması, büyütülmüş hedefe işaret ediyor. Davranışı 2 dakikaya indirip aynı çapayı koru; Bugün kartında küçük sürümü seçip dürüst check-in yap.",
-      action: "Hedefi küçült",
+      title: t("home.miss.day2.title"),
+      body: t("home.miss.day2.body"),
+      action: t("home.miss.day2.action"),
       type: "warning",
       suggestResize: true,
     };
   }
   return {
-    title: "Süreç devam ediyor",
-    body: "1 gün kaçırmak, 66 günlük yolun yaklaşık %1,5’u. Nöral yol açık — Bugün kartıyla aynı yönde küçük bir tekrar yeter.",
-    action: "Bugünkü tekrar",
+    title: t("home.miss.day1.title"),
+    body: t("home.miss.day1.body"),
+    action: t("home.miss.day1.action"),
     type: "neutral",
   };
 }

@@ -1,9 +1,9 @@
 import React, { useRef, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Easing } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Colors, Spacing, FontSizes } from "../../constants/theme";
-import ConfettiAnimation from "../ConfettiAnimation";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   todayDone: boolean;
@@ -14,11 +14,11 @@ interface Props {
   streakSlide: Animated.Value;
   tickScale: Animated.Value;
   ctaPressScale: Animated.Value;
-  showConfetti: boolean;
-  onConfettiDone: () => void;
   todayPrimaryText: string | null;
   entranceButton: Animated.Value;
 }
+
+const CTA_ICON_SIZE = 52;
 
 export default function CheckInSection({
   todayDone,
@@ -29,32 +29,35 @@ export default function CheckInSection({
   streakSlide,
   tickScale,
   ctaPressScale,
-  showConfetti,
-  onConfettiDone,
   todayPrimaryText,
   entranceButton,
 }: Props) {
+  const { t } = useTranslation();
   const iconDonePulse = useRef(new Animated.Value(1)).current;
   const showDoneShell = todayDone && !checkInAnimating;
 
   useEffect(() => {
-    if (!todayDone) {
+    if (!showDoneShell) {
       iconDonePulse.setValue(1);
       return;
     }
-    iconDonePulse.setValue(0.82);
-    Animated.spring(iconDonePulse, {
+    iconDonePulse.setValue(0.9);
+    Animated.timing(iconDonePulse, {
       toValue: 1,
-      friction: 5,
-      tension: 200,
+      duration: 240,
+      easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [todayDone, iconDonePulse]);
+  }, [showDoneShell, iconDonePulse]);
 
   const streakSlideY = streakSlide.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -26],
   });
+
+  const checkIconScale = checkInAnimating
+    ? tickScale
+    : iconDonePulse;
 
   const buttonEnterStyle = {
     opacity: entranceButton,
@@ -77,7 +80,7 @@ export default function CheckInSection({
   return (
     <View style={styles.actionBlock}>
       <Text style={styles.sectionLabel}>
-        {showDoneShell ? "Bugün tamam" : "Günün onayı"}
+        {showDoneShell ? t("home.checkIn.sectionDone") : t("home.checkIn.sectionPending")}
       </Text>
       <Animated.View style={buttonEnterStyle}>
         <Animated.View style={{ transform: [{ scale: ctaPressScale }] }}>
@@ -88,8 +91,6 @@ export default function CheckInSection({
             ]}
           >
             <View style={styles.ctaWrap}>
-              <ConfettiAnimation trigger={showConfetti} onComplete={onConfettiDone} />
-
               {showDoneShell ? (
                 <LinearGradient
                   colors={["#FCD34D", "#F59E0B"]}
@@ -97,29 +98,17 @@ export default function CheckInSection({
                   end={{ x: 0.5, y: 1 }}
                   style={styles.ctaCircle}
                 >
-                  <Animated.View style={{ transform: [{ scale: iconDonePulse }] }}>
-                    <Ionicons name="checkmark-circle" size={48} color="#FFFFFF" />
+                  <Animated.View style={{ transform: [{ scale: checkIconScale }] }}>
+                    <Ionicons name="checkmark-circle" size={CTA_ICON_SIZE} color="#FFFFFF" />
                   </Animated.View>
                 </LinearGradient>
-              ) : checkInAnimating ? (
-                <TouchableOpacity activeOpacity={1} disabled style={styles.ctaTouchable}>
-                  <LinearGradient
-                    colors={["#34D399", "#059669"]}
-                    start={{ x: 0.5, y: 0 }}
-                    end={{ x: 0.5, y: 1 }}
-                    style={styles.ctaCircle}
-                  >
-                    <Animated.View style={{ transform: [{ scale: tickScale }] }}>
-                      <Ionicons name="checkmark" size={48} color="#FFFFFF" />
-                    </Animated.View>
-                  </LinearGradient>
-                </TouchableOpacity>
               ) : (
                 <TouchableOpacity
                   activeOpacity={0.92}
                   onPress={onCheckInPress}
+                  disabled={checkInAnimating}
                   style={styles.ctaTouchable}
-                  accessibilityLabel="Günü onayla"
+                  accessibilityLabel={t("home.checkIn.accessibility")}
                   accessibilityRole="button"
                 >
                   <LinearGradient
@@ -128,7 +117,9 @@ export default function CheckInSection({
                     end={{ x: 0.5, y: 1 }}
                     style={styles.ctaCircle}
                   >
-                    <Ionicons name="checkmark" size={56} color="#FFFFFF" />
+                    <Animated.View style={{ transform: [{ scale: checkIconScale }] }}>
+                      <Ionicons name="checkmark" size={CTA_ICON_SIZE} color="#FFFFFF" />
+                    </Animated.View>
                   </LinearGradient>
                 </TouchableOpacity>
               )}
@@ -154,28 +145,28 @@ export default function CheckInSection({
         ]}
       >
         {showDoneShell ? (
-          <Text style={styles.doneCaption}>Bugün tamamlandı</Text>
+          <Text style={styles.doneCaption}>{t("home.checkIn.doneCaption")}</Text>
         ) : streakRoll ? (
           <View style={styles.streakCaptionClip}>
             <Animated.View style={{ transform: [{ translateY: streakSlideY }] }}>
               <Text style={styles.captionStrong}>
-                {streakRoll.from} gün üst üste
+                {t("home.checkIn.streakConsecutive", { count: streakRoll.from })}
               </Text>
               <Text style={styles.captionStrong}>
-                {streakRoll.to} gün üst üste
+                {t("home.checkIn.streakConsecutive", { count: streakRoll.to })}
               </Text>
             </Animated.View>
           </View>
         ) : streakDisplay > 0 ? (
           <Text style={styles.captionStrong}>
-            {streakDisplay} gün üst üste — harika gidiyorsun
+            {t("home.checkIn.streakGreat", { count: streakDisplay })}
           </Text>
         ) : todayPrimaryText ? (
           <Text style={styles.planCaption} numberOfLines={2}>
-            Dün planladın: {todayPrimaryText}
+            {t("home.checkIn.plannedYesterday", { text: todayPrimaryText })}
           </Text>
         ) : (
-          <Text style={styles.captionZero}>Tamamlamak için dokun</Text>
+          <Text style={styles.captionZero}>{t("home.checkIn.tapToComplete")}</Text>
         )}
       </Animated.View>
     </View>

@@ -46,7 +46,9 @@
         }
       ],
       "expo-quick-actions",
-      "expo-document-picker"
+      "expo-document-picker",
+      "expo-localization",
+      "expo-font"
     ]
   }
 }
