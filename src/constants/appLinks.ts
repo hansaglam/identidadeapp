@@ -1,12 +1,18 @@
 import { Platform } from "react-native";
 
-/** Mağaza listesi / Play Console’da yayınladığın gizlilik sayfası URL’si. */
-export const PRIVACY_POLICY_URL =
-  "https://github.com/hansaglam/identidadeapp/blob/main/PRIVACY.md";
+/**
+ * Mağaza / uygulama içi hukuki linkler.
+ * GitHub Pages (legal/ workflow): hansaglam/identidadeapp
+ * Özel domain alındığında LEGAL_HOST'u güncelle (ör. https://rito.app).
+ */
+const LEGAL_HOST = "https://hansaglam.github.io/identidadeapp";
 
-/** Abonelik ve kullanım koşulları (aynı repo veya ayrı sayfa). */
-export const TERMS_URL =
-  "https://github.com/hansaglam/identidadeapp/blob/main/TERMS.md";
+export const PRIVACY_POLICY_URL = `${LEGAL_HOST}/privacy.html`;
+
+export const TERMS_URL = `${LEGAL_HOST}/terms.html`;
+
+/** Destek e-postası — mağaza listesi ve PRIVACY/TERMS ile aynı olmalı */
+export const SUPPORT_EMAIL = "ethemsincarbusiness@gmail.com";
 
 export function getManageSubscriptionsUrl(): string {
   if (Platform.OS === "ios") {
