@@ -1,22 +1,25 @@
 # Rito legal pages (GitHub Pages)
 
-Published by `.github/workflows/deploy-legal.yml` on push to `main`.
-
-## Live URLs (after deploy)
+## Canlı URL'ler (Pages açıldıktan sonra)
 
 - https://hansaglam.github.io/identidadeapp/privacy.html
 - https://hansaglam.github.io/identidadeapp/terms.html
-- https://hansaglam.github.io/identidadeapp/ (index)
+- https://hansaglam.github.io/identidadeapp/
 
-## First-time setup on GitHub
+## 404 görüyorsanız — tek seferlik GitHub ayarı
 
-1. Push `legal/` and `.github/workflows/deploy-legal.yml` to `main`.
-2. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**.
-3. Wait for the **Deploy legal pages** workflow to finish (Actions tab).
-4. Open the URLs above in a browser (no login required).
+Workflow `legal/` klasörünü **gh-pages** branch'ine yazar. Sayfanın yayına girmesi için:
 
-## Edit content
+1. https://github.com/hansaglam/identidadeapp → **Settings** → **Pages**
+2. **Build and deployment** → **Source:** **Deploy from a branch**
+3. **Branch:** `gh-pages` · **Folder:** `/ (root)` → **Save**
+4. 1–2 dakika bekleyin; **Actions** sekmesinde “Deploy legal pages” yeşil olmalı
+5. Tarayıcıda privacy.html URL'sini açın
 
-Edit `privacy.html` and `terms.html` directly, then push to `main`. The workflow redeploys automatically.
+Workflow elle çalıştırma: **Actions** → **Deploy legal pages** → **Run workflow**
 
-App links: `src/constants/appLinks.ts` (`LEGAL_HOST`).
+## İçerik düzenleme
+
+`privacy.html` / `terms.html` düzenleyip `main`'e push edin; workflow otomatik yeniden deploy eder.
+
+Uygulama linkleri: `src/constants/appLinks.ts`
