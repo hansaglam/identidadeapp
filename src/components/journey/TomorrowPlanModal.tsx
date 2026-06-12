@@ -1,4 +1,5 @@
 import React, { RefObject } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -47,6 +48,7 @@ export default function TomorrowPlanModal({
   scrollRef,
   onFieldFocus,
 }: TomorrowPlanModalProps) {
+  const { t } = useTranslation();
   const canSave = todoDraft.text.trim().length > 0;
 
   return (
@@ -62,7 +64,7 @@ export default function TomorrowPlanModal({
           style={styles.backdrop}
           onPress={onClose}
           accessibilityRole="button"
-          accessibilityLabel="Kapat"
+          accessibilityLabel={t("common.close")}
         />
         <View
           style={[
@@ -82,16 +84,18 @@ export default function TomorrowPlanModal({
               </View>
               <View>
                 <Text style={styles.title}>
-                  {editingTodoId ? "Maddeyi düzenle" : "Küçük madde ekle"}
+                  {editingTodoId
+                    ? t("journey.tomorrowModal.editTitle")
+                    : t("journey.tomorrowModal.addTitle")}
                 </Text>
-                <Text style={styles.meta}>Yarın için net ve kısa tut</Text>
+                <Text style={styles.meta}>{t("journey.tomorrowModal.meta")}</Text>
               </View>
             </View>
             <TouchableOpacity
               style={styles.closeBtn}
               onPress={onClose}
               hitSlop={12}
-              accessibilityLabel="Kapat"
+              accessibilityLabel={t("common.close")}
             >
               <X size={22} color={Colors.textTertiary} strokeWidth={2} />
             </TouchableOpacity>
@@ -111,7 +115,7 @@ export default function TomorrowPlanModal({
           >
             <View style={styles.form}>
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>Ne yapacaksın?</Text>
+                <Text style={styles.fieldLabel}>{t("journey.tomorrowModal.fieldWhat")}</Text>
                 <TextInput
                   style={styles.input}
                   value={todoDraft.text}
@@ -121,10 +125,10 @@ export default function TomorrowPlanModal({
                   placeholderTextColor="#94A3B8"
                   autoFocus={!editingTodoId}
                 />
-                <Text style={styles.fieldHint}>Kısa ve net tut — tek eylem olsun.</Text>
+                <Text style={styles.fieldHint}>{t("journey.tomorrowModal.fieldWhatHint")}</Text>
               </View>
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>Ne zaman?</Text>
+                <Text style={styles.fieldLabel}>{t("journey.tomorrowModal.fieldWhen")}</Text>
                 <TextInput
                   style={styles.input}
                   value={todoDraft.time}
@@ -135,7 +139,7 @@ export default function TomorrowPlanModal({
                 />
               </View>
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>Hangi bağlamda?</Text>
+                <Text style={styles.fieldLabel}>{t("journey.tomorrowModal.fieldContext")}</Text>
                 <TextInput
                   style={styles.input}
                   value={todoDraft.context}
@@ -144,7 +148,7 @@ export default function TomorrowPlanModal({
                   placeholder={habitAnchor || "Kahvemi içtikten sonra"}
                   placeholderTextColor="#94A3B8"
                 />
-                <Text style={styles.fieldHint}>Tetikleyici yardımcı olur: &quot;X&apos;den sonra Y yaparım.&quot;</Text>
+                <Text style={styles.fieldHint}>{t("journey.tomorrowModal.fieldContextHint")}</Text>
               </View>
 
               <TouchableOpacity
@@ -154,7 +158,9 @@ export default function TomorrowPlanModal({
                 activeOpacity={0.85}
               >
                 <Text style={styles.saveText}>
-                  {editingTodoId ? "Kaydet" : "Listeye ekle"}
+                  {editingTodoId
+                    ? t("common.save")
+                    : t("journey.tomorrowModal.addToList")}
                 </Text>
               </TouchableOpacity>
 
@@ -164,7 +170,7 @@ export default function TomorrowPlanModal({
                   onPress={() => onDelete(editingTodoId)}
                   activeOpacity={0.8}
                 >
-                  <Text style={styles.deleteText}>Maddeyi sil</Text>
+                  <Text style={styles.deleteText}>{t("journey.tomorrowModal.deleteItem")}</Text>
                 </TouchableOpacity>
               ) : null}
             </View>

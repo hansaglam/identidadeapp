@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import i18n from "../i18n/config";
 import { Colors, FontSizes, Radii, Spacing } from "../constants/theme";
 
 interface Props {
@@ -11,14 +12,14 @@ interface State {
   message: string;
 }
 
-/**
- * Beklenmeyen render hatalarında uygulamanın boş ekranda kalmaması için.
- */
 export default class AppErrorBoundary extends Component<Props, State> {
   state: State = { hasError: false, message: "" };
 
   static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, message: error.message || "Bilinmeyen hata" };
+    return {
+      hasError: true,
+      message: error.message || i18n.t("errorBoundary.unknown"),
+    };
   }
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
@@ -35,11 +36,8 @@ export default class AppErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <View style={styles.wrap}>
-          <Text style={styles.title}>Bir şeyler ters gitti</Text>
-          <Text style={styles.body}>
-            Uygulama beklenmedik şekilde durdu. Tekrar dene; sorun sürerse uygulamayı
-            kapatıp aç.
-          </Text>
+          <Text style={styles.title}>{i18n.t("errorBoundary.title")}</Text>
+          <Text style={styles.body}>{i18n.t("errorBoundary.body")}</Text>
           {__DEV__ && this.state.message ? (
             <Text style={styles.devHint} numberOfLines={4}>
               {this.state.message}
@@ -50,7 +48,7 @@ export default class AppErrorBoundary extends Component<Props, State> {
             onPress={this.handleRetry}
             activeOpacity={0.85}
           >
-            <Text style={styles.btnText}>Tekrar dene</Text>
+            <Text style={styles.btnText}>{i18n.t("errorBoundary.retry")}</Text>
           </TouchableOpacity>
         </View>
       );

@@ -3,7 +3,11 @@
  * Profilde yalnızca serbest metin var; anahtar kelime + hazır çapa ifadeleriyle eşleşir.
  */
 
-import { ANCHOR_PRESETS } from "../constants/theme";
+import {
+  ANCHOR_PRESET_CONTEXT,
+  ANCHOR_PRESET_IDS,
+  resolveAnchorId,
+} from "../constants/anchors";
 
 export type AnchorActionContext =
   | "default"
@@ -11,16 +15,6 @@ export type AnchorActionContext =
   | "morning_routine"
   | "midday"
   | "phone_away";
-
-/** `theme.ANCHOR_PRESETS` ile aynı sıra — tema değişince burayı güncelle */
-const ANCHOR_PRESET_CONTEXT: AnchorActionContext[] = [
-  "morning_routine", // Kahvemi içtikten sonra
-  "morning_routine", // Dişlerimi fırçaladıktan sonra
-  "phone_away", // Telefonu elimden bıraktıktan sonra
-  "sleep_winddown", // Yatağa girmeden önce
-  "midday", // Öğle yemeğinden sonra
-  "morning_routine", // Uyandıktan hemen sonra
-];
 
 const SLEEP_HINTS = [
   "yatak",
@@ -39,7 +33,16 @@ const MORNING_HINTS = [
   "diş",
   "fırçala",
   "sabah",
+  "wake",
+  "morning",
+  "brush",
+  "coffee",
+  "drink",
 ];
+
+const WORK_HINTS = ["work", "laptop", "computer", "desk", "office", "is", "bilgisayar"];
+
+const HOME_HINTS = ["home", "arrive", "eve", "geldi"];
 
 const MIDDAY_HINTS = ["öğle", "öğlen", "yemekten", "yemek"];
 
@@ -62,9 +65,13 @@ export function inferAnchorActionContext(habitAnchor: string): AnchorActionConte
   const raw = habitAnchor?.trim() ?? "";
   if (!raw) return "default";
 
-  const presetIdx = ANCHOR_PRESETS.indexOf(raw as (typeof ANCHOR_PRESETS)[number]);
-  if (presetIdx >= 0) {
-    return ANCHOR_PRESET_CONTEXT[presetIdx] ?? "default";
+  const anchorId = resolveAnchorId(raw);
+  if (anchorId) {
+    const presetIdx = ANCHOR_PRESET_IDS.indexOf(anchorId as (typeof ANCHOR_PRESET_IDS)[number]);
+    if (presetIdx >= 0) {
+      return ANCHOR_PRESET_CONTEXT[presetIdx] ?? "default";
+    }
+    if (anchorId === "after_arrive_home") return "morning_routine";
   }
 
   const n = normalizeForMatch(raw);
@@ -74,6 +81,12 @@ export function inferAnchorActionContext(habitAnchor: string): AnchorActionConte
   }
   if (SLEEP_HINTS.some((h) => n.includes(normalizeForMatch(h)))) {
     return "sleep_winddown";
+  }
+  if (WORK_HINTS.some((h) => n.includes(normalizeForMatch(h)))) {
+    return "morning_routine";
+  }
+  if (HOME_HINTS.some((h) => n.includes(normalizeForMatch(h)))) {
+    return "morning_routine";
   }
   if (MORNING_HINTS.some((h) => n.includes(normalizeForMatch(h)))) {
     return "morning_routine";

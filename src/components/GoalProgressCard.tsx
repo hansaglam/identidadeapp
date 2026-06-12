@@ -73,10 +73,12 @@ export default function GoalProgressCard({ dayNumber, startDate }: Props) {
             key={p.label}
             style={[styles.phaseLabelText, dayNumber >= p.start && { color: p.color }]}
           >
-            G{p.start}
+            {t("profile.goalProgress.dayMarker", { day: p.start })}
           </Text>
         ))}
-        <Text style={styles.phaseLabelText}>G66</Text>
+        <Text style={styles.phaseLabelText}>
+          {t("profile.goalProgress.dayMarker", { day: 66 })}
+        </Text>
       </View>
 
       <View style={styles.footer}>

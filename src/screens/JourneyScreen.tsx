@@ -33,10 +33,16 @@ import {
   BookOpen,
   X,
   ClipboardList,
-  FlaskConical,
   Zap,
+  FlaskConical,
 } from "lucide-react-native";
+import { useTabBarMetrics } from "../utils/tabBarInsets";
+import {
+  getKeyboardAvoidingBehavior,
+  useKeyboardModalScrollPadding,
+} from "../utils/keyboardInsets";
 import { useUserStore } from "../store/userStore";
+import { useHabitStore } from "../store/habitStore";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useSDTStore } from "../store/sdtStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
@@ -46,6 +52,7 @@ import {
   useTomorrowPlanStore,
 } from "../store/tomorrowPlanStore";
 import PremiumGateModal from "../components/PremiumGateModal";
+import { DEV_UNLOCK_JOURNEY_PREMIUM } from "../constants/devFlags";
 import JourneyPhaseEducationModal from "../components/JourneyPhaseEducationModal";
 import JourneyMindSentenceModal from "../components/JourneyMindSentenceModal";
 import TomorrowPlanSection from "../components/journey/TomorrowPlanSection";
@@ -56,7 +63,6 @@ import {
   Radii,
   FontSizes,
   JOURNEY_PHASES,
-  SDT_QUESTIONS,
   Shadows,
   getCoachNote,
 } from "../constants/theme";
@@ -66,8 +72,12 @@ import {
   getLocalizedCoachNote,
   getLocalizedDailyPrinciple,
   getLocalizedJourneyEducationCards,
+  getLocalizedJourneyMomentLine,
+  getLocalizedSdtQuestions,
+  localizeJourneyPhaseDays,
+  localizeJourneyPhaseLabel,
+  localizeJourneyPhaseSubtitle,
 } from "../i18n/localizeContent";
-import { getJourneyMomentLine } from "../constants/journeyMoments";
 import { estimateAutomationFromFirst14Linear, getAverageAutomaticity } from "../utils/profileMetrics";
 import type { JourneyEducationPrefsState } from "../utils/journeyEducationPrefs";
 import {
@@ -108,10 +118,13 @@ function useJourneyEntrance(isPremium: boolean) {
   const translateY = useRef(
     Array.from({ length: ENTRANCE_COUNT }, () => new Animated.Value(20))
   ).current;
+  const playedRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
       if (!isPremium) return;
+      if (playedRef.current) return;
+      playedRef.current = true;
       opacity.forEach((o) => o.setValue(0));
       translateY.forEach((y) => y.setValue(20));
       const anims = opacity.flatMap((o, i) => {
@@ -145,6 +158,8 @@ type Props = BottomTabScreenProps<MainTabParamList, "Journey">;
 export default function JourneyScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { scrollPadding: tabBarScrollPad } = useTabBarMetrics();
+  const { paddingBottom: surveyScrollPad } = useKeyboardModalScrollPadding();
   const { height: windowHeight, width: windowWidth } = useWindowDimensions();
   const planScrollRef = useRef<ScrollView>(null);
   const profile = useUserStore((s) => s.profile);
@@ -160,20 +175,24 @@ export default function JourneyScreen({ navigation }: Props) {
     }, [updateProfile])
   );
 
-  const { last66Days } = useCheckinsStore();
-  const { scores, load: loadSDT, saveScore, needsSurvey, latestScore } = useSDTStore();
-
+  const last66Days = useCheckinsStore((s) => s.last66Days);
   const checkins = useCheckinsStore((s) => s.checkins);
-  const { completionRate } = useCheckinsStore();
+  const completionRate = useCheckinsStore((s) => s.completionRate);
+  const scores = useSDTStore((s) => s.scores);
+  const loadSDT = useSDTStore((s) => s.load);
+  const saveScore = useSDTStore((s) => s.saveScore);
+  const needsSurvey = useSDTStore((s) => s.needsSurvey);
+  const latestScore = useSDTStore((s) => s.latestScore);
   const createMindEntry = useMindDumpStore((s) => s.createEntry);
   const loadMindDumps = useMindDumpStore((s) => s.load);
+  const loadHabitData = useHabitStore((s) => s.load);
   const listsByDate = useTomorrowPlanStore((s) => s.listsByDate);
   const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
   const addTomorrowTodo = useTomorrowPlanStore((s) => s.addItem);
   const updateTomorrowTodo = useTomorrowPlanStore((s) => s.updateItem);
   const deleteTomorrowTodo = useTomorrowPlanStore((s) => s.deleteItem);
 
-  const isPremium = profile?.isPremium ?? false;
+  const isPremium = (profile?.isPremium ?? false) || DEV_UNLOCK_JOURNEY_PREMIUM;
   const { entranceOpacity, entranceY } = useJourneyEntrance(isPremium);
   const [showGate, setShowGate] = useState(false);
   const [dayDetail, setDayDetail] = useState<JourneyDayDetail | null>(null);
@@ -213,22 +232,28 @@ export default function JourneyScreen({ navigation }: Props) {
     return phaseIdFromDay(dayNumber);
   }, [dailyPrinciple?.phaseId, dayNumber]);
 
-  const momentLine = useMemo(() => getJourneyMomentLine(dayNumber), [dayNumber]);
+  const momentLine = useMemo(
+    () => getLocalizedJourneyMomentLine(dayNumber),
+    [dayNumber, i18n.language]
+  );
   const [eduPrefs, setEduPrefs] = useState<JourneyEducationPrefsState | null>(null);
 
   const refreshEduPrefs = useCallback(() => {
     void loadJourneyEducationPrefs().then(setEduPrefs);
   }, []);
 
+  const journeyDataLoadedRef = useRef(false);
   useFocusEffect(
     useCallback(() => {
-      if (isPremium) {
+      if (isPremium && !journeyDataLoadedRef.current) {
+        journeyDataLoadedRef.current = true;
         refreshEduPrefs();
         void loadMindDumps();
+        void loadHabitData();
       }
       if (!profile?.id || profile?.hasOpenedJourneyTab) return;
       void updateProfile({ hasOpenedJourneyTab: true });
-    }, [isPremium, refreshEduPrefs, loadMindDumps, profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
+    }, [isPremium, refreshEduPrefs, loadMindDumps, loadHabitData, profile?.id, profile?.hasOpenedJourneyTab, updateProfile])
   );
 
   const eduPhaseCompleted =
@@ -270,7 +295,10 @@ export default function JourneyScreen({ navigation }: Props) {
     setShowPhaseEdu(true);
   }, [isPremium, profile, dayNumber, eduPrefs]);
 
-  const grid = profile ? last66Days(profile.startDate) : [];
+  const grid = useMemo(
+    () => (profile ? last66Days(profile.startDate) : []),
+    [profile?.startDate, checkins, last66Days]
+  );
   const tomorrowDate = useMemo(() => format(addDays(new Date(), 1), "yyyy-MM-dd"), []);
   const tomorrowList = listsByDate[tomorrowDate] ?? null;
   const tomorrowTodos = tomorrowList?.items ?? [];
@@ -279,9 +307,10 @@ export default function JourneyScreen({ navigation }: Props) {
   const plannedTodoCount = tomorrowTodos.length;
   const isAtTodoLimit = plannedTodoCount >= MAX_TOMORROW_TODOS;
   const latest = latestScore();
+  const sdtQuestions = useMemo(() => getLocalizedSdtQuestions(), [i18n.language]);
   const sdtInsight = useMemo(
     () => (latest && profile ? buildSdtInsight(latest, profile.habitName) : null),
-    [latest, profile?.habitName]
+    [latest, profile?.habitName, i18n.language]
   );
   const journeyProgress = Math.min(1, Math.max(0, dayNumber / 66));
   const coachNoteText = coachNote;
@@ -378,11 +407,17 @@ export default function JourneyScreen({ navigation }: Props) {
       }
     : undefined;
 
+  const hasTodayContext =
+    Boolean(coachNoteText || momentLine || dailyPrincipleRich || dailyPrinciple);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: JOURNEY_PAGE_BG }]} edges={["top"]}>
       <ScrollView
         stickyHeaderIndices={isPremium ? [0] : undefined}
-        contentContainerStyle={[styles.scroll, { backgroundColor: JOURNEY_PAGE_BG }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { backgroundColor: JOURNEY_PAGE_BG, paddingBottom: tabBarScrollPad },
+        ]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
@@ -490,6 +525,7 @@ export default function JourneyScreen({ navigation }: Props) {
             <JourneyIdentityMirrorCard
               startDate={profile.startDate}
               habitName={profile.habitName}
+              onOpenMind={() => navigation.navigate("MindDump")}
             />
           </Animated.View>
         ) : null}
@@ -542,80 +578,98 @@ export default function JourneyScreen({ navigation }: Props) {
           <Text style={styles.sectionLabel}>{t("journey.section.todayPack")}</Text>
         </View>
         <View style={styles.packStack}>
-          {coachNoteText ? (
-            <View style={styles.milestoneCard}>
-              <Text style={styles.milestoneLabel}>{t("journey.milestone.label")}</Text>
-              <Text style={styles.milestoneText}>{coachNoteText}</Text>
-            </View>
-          ) : momentLine ? (
-            <View style={styles.milestoneCard}>
-              <Text style={styles.milestoneLabel}>{t("journey.milestone.context")}</Text>
-              <Text style={styles.milestoneText}>{momentLine}</Text>
-            </View>
+          {hasTodayContext ? (
+            <>
+              {coachNoteText || momentLine ? (
+                <View style={styles.todayContextCard}>
+                  {coachNoteText ? (
+                    <>
+                      <Text style={styles.contextKicker}>{t("journey.milestone.label")}</Text>
+                      <Text style={styles.contextBody} numberOfLines={3}>
+                        {coachNoteText}
+                      </Text>
+                    </>
+                  ) : momentLine ? (
+                    <>
+                      <Text style={styles.contextKicker}>{t("journey.milestone.context")}</Text>
+                      <Text style={styles.contextBody} numberOfLines={3}>
+                        {momentLine}
+                      </Text>
+                    </>
+                  ) : null}
+                </View>
+              ) : null}
+              {dailyPrincipleRich ? (
+                <View style={styles.principlePackBlock}>
+                  <Text style={styles.principleQuoteCompact} numberOfLines={3}>
+                    {"\u201C"}
+                    {dailyPrincipleRich.principle}
+                    {"\u201D"}
+                  </Text>
+                  <View style={styles.principleScienceRow}>
+                    <FlaskConical size={11} color="#94A3B8" strokeWidth={1.8} />
+                    <Text style={styles.principleScience} numberOfLines={3}>
+                      {dailyPrincipleRich.science}
+                    </Text>
+                  </View>
+                  <View style={styles.principleActionRow}>
+                    <Zap size={11} color={ACTION_ICON} strokeWidth={2} />
+                    <Text style={styles.principleActionCompact} numberOfLines={2}>
+                      {dailyPrincipleRich.action}
+                    </Text>
+                  </View>
+                </View>
+              ) : dailyPrinciple ? (
+                <View style={styles.principlePackBlock}>
+                  <Text style={styles.principleQuoteCompact} numberOfLines={3}>
+                    {"\u201C"}
+                    {dailyPrinciple.principle}
+                    {"\u201D"}
+                  </Text>
+                </View>
+              ) : null}
+            </>
           ) : null}
 
-          {dailyPrincipleRich ? (
-            <View style={styles.principleBlock}>
-              <Text style={styles.odakLine}>
-                <Text style={styles.odakQuoteMark}>{"\u201C"}</Text>
-                <Text style={styles.odakBody}>{dailyPrincipleRich.principle}</Text>
-                <Text style={styles.odakQuoteMark}>{"\u201D"}</Text>
+          <View style={styles.coachActionRow}>
+            <TouchableOpacity
+              style={styles.coachChip}
+              onPress={() => setShowPhaseEdu(true)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.coachChipIcon, { backgroundColor: ACTION_ICON_BG }]}>
+                <BookOpen size={16} color={ACTION_ICON} strokeWidth={2} />
+              </View>
+              <Text style={styles.coachChipTitle} numberOfLines={2}>
+                {t("journey.coach.brainShort")}
               </Text>
-              <View style={styles.principleMetaRow}>
-                <FlaskConical size={12} color="#94A3B8" strokeWidth={1.8} />
-                <Text style={styles.principleScience}>{dailyPrincipleRich.science}</Text>
-              </View>
-              <View style={styles.principleActionRow}>
-                <Zap size={12} color={ACTION_ICON} strokeWidth={2} />
-                <Text style={styles.principleAction}>{dailyPrincipleRich.action}</Text>
-              </View>
-            </View>
-          ) : dailyPrinciple ? (
-            <Text style={styles.odakLine}>
-              <Text style={styles.odakQuoteMark}>{"\u201C"}</Text>
-              <Text style={styles.odakBody}>{dailyPrinciple.principle}</Text>
-              <Text style={styles.odakQuoteMark}>{"\u201D"}</Text>
-            </Text>
-          ) : null}
-
-          <TouchableOpacity
-            style={[styles.journeyCard, styles.trainRow]}
-            onPress={() => setShowPhaseEdu(true)}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.trainIcon, { backgroundColor: ACTION_ICON_BG }]}>
-              <BookOpen size={20} color={ACTION_ICON} strokeWidth={2} />
-            </View>
-            <View style={styles.trainMid}>
-              <Text style={styles.trainTitle}>{t("journey.coach.brainTitle")}</Text>
-              <Text style={styles.trainSub}>
+              <Text style={styles.coachChipSub} numberOfLines={2}>
                 {eduPhaseCompleted
                   ? t("journey.coach.brainDone")
                   : t("journey.coach.brainCards")}
               </Text>
-            </View>
-            <ChevronRight size={20} color="#CBD5E1" strokeWidth={2} />
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.journeyCard, styles.trainRow]}
-            onPress={() => setShowMindSentence(true)}
-            activeOpacity={0.85}
-          >
-            <View style={[styles.trainIcon, { backgroundColor: ACTION_ICON_BG }]}>
-              <PenLine size={20} color={ACTION_ICON} strokeWidth={2} />
-            </View>
-            <View style={styles.trainMid}>
-              <Text style={styles.trainTitle}>{t("journey.coach.sentenceTitle")}</Text>
-              <Text style={styles.trainSub}>Zihin’e yazılı sırayla tek satır · iste tam Zihine geç</Text>
-              {eduPrefs?.lastMindSentenceSnippet ? (
-                <Text style={styles.mindEcho} numberOfLines={2}>
-                  Son satırın: “{eduPrefs.lastMindSentenceSnippet}”
-                </Text>
-              ) : null}
-            </View>
-            <ChevronRight size={20} color="#CBD5E1" strokeWidth={2} />
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.coachChip}
+              onPress={() => setShowMindSentence(true)}
+              activeOpacity={0.85}
+            >
+              <View style={[styles.coachChipIcon, { backgroundColor: ACTION_ICON_BG }]}>
+                <PenLine size={16} color={ACTION_ICON} strokeWidth={2} />
+              </View>
+              <Text style={styles.coachChipTitle} numberOfLines={2}>
+                {t("journey.coach.sentenceShort")}
+              </Text>
+              <Text style={styles.coachChipSub} numberOfLines={2}>
+                {eduPrefs?.lastMindSentenceSnippet
+                  ? t("journey.coach.lastSentence", {
+                      snippet: eduPrefs.lastMindSentenceSnippet,
+                    })
+                  : t("journey.coach.sentenceSub")}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
         </Animated.View>
 
@@ -652,7 +706,9 @@ export default function JourneyScreen({ navigation }: Props) {
                   key={phase.id}
                   style={[styles.phaseCardLocked, { width: phaseCardWidth, marginRight: 10 }]}
                 >
-                  <Text style={styles.phaseCardLockedLabel}>{phase.label}</Text>
+                  <Text style={styles.phaseCardLockedLabel}>
+                    {localizeJourneyPhaseLabel(pid)}
+                  </Text>
                   <Lock size={28} color="#CBD5E1" strokeWidth={1.8} />
                   <Text style={styles.phaseCardLockedHint}>
                     {t("journey.phase.lockedHint", { day: phase.startDay })}
@@ -674,7 +730,7 @@ export default function JourneyScreen({ navigation }: Props) {
                   <View style={styles.phaseCardBadgeRow}>
                     <CheckCircle2 size={16} color={theme.badgeText} strokeWidth={2} />
                     <Text style={[styles.phaseCardDoneBadgeText, { color: theme.badgeText }]}>
-                      Tamamlandı
+                      {t("journey.phase.completed")}
                     </Text>
                   </View>
                 ) : (
@@ -684,10 +740,14 @@ export default function JourneyScreen({ navigation }: Props) {
                     </Text>
                   </View>
                 )}
-                <Text style={styles.phaseCardTitle}>{phase.label}</Text>
-                <Text style={styles.phaseCardRange}>{phase.days}</Text>
+                <Text style={styles.phaseCardTitle}>
+                  {localizeJourneyPhaseLabel(pid)}
+                </Text>
+                <Text style={styles.phaseCardRange}>
+                  {localizeJourneyPhaseDays(pid)}
+                </Text>
                 <Text style={styles.phaseCardSub} numberOfLines={4}>
-                  {phase.subtitle}
+                  {localizeJourneyPhaseSubtitle(pid)}
                 </Text>
                 <JourneyPhaseMiniGrid
                   phase={phase}
@@ -735,7 +795,7 @@ export default function JourneyScreen({ navigation }: Props) {
 
           {latest ? (
             <View style={styles.sdtBars}>
-              {SDT_QUESTIONS.map((q) => (
+              {sdtQuestions.map((q) => (
                 <SDTBar
                   key={q.id}
                   label={q.label}
@@ -809,10 +869,12 @@ export default function JourneyScreen({ navigation }: Props) {
               onPress={async () => {
                 const pct = avgAuto != null ? Math.round((avgAuto / 10) * 100) : null;
                 const msg = [
-                  `Gün ${dayNumber}/66.`,
-                  pct != null ? `Otomatiklik ~%${pct}.` : null,
-                  `Tamamlama %${Math.round(rate * 100)}.`,
-                  "#KimlikApp",
+                  t("journey.share.dayLine", { day: dayNumber }),
+                  pct != null ? t("journey.share.autoLine", { auto: pct }) : null,
+                  t("journey.share.completionLine", {
+                    completion: Math.round(rate * 100),
+                  }),
+                  t("journey.share.hashtag"),
                 ]
                   .filter(Boolean)
                   .join(" ");
@@ -835,7 +897,6 @@ export default function JourneyScreen({ navigation }: Props) {
         </>
         ) : null}
 
-        <View style={{ height: 100 }} />
       </ScrollView>
 
       <TomorrowPlanModal
@@ -863,7 +924,7 @@ export default function JourneyScreen({ navigation }: Props) {
       >
         <KeyboardAvoidingView
           style={styles.surveyOverlay}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={getKeyboardAvoidingBehavior()}
         >
           <Pressable
             style={styles.surveyBackdrop}
@@ -903,11 +964,15 @@ export default function JourneyScreen({ navigation }: Props) {
 
             <ScrollView
               style={[styles.surveyScroll, { maxHeight: Math.min(420, windowHeight * 0.5) }]}
-              contentContainerStyle={styles.surveyScrollContent}
+              contentContainerStyle={[
+                styles.surveyScrollContent,
+                { paddingBottom: surveyScrollPad },
+              ]}
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
             >
-              {SDT_QUESTIONS.map((q, index) => {
+              {sdtQuestions.map((q, index) => {
                 const key = q.id as "autonomy" | "competence" | "relatedness";
                 return (
                   <View key={q.id} style={styles.questionCard}>
@@ -1062,18 +1127,22 @@ const sdtS = StyleSheet.create({
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: JOURNEY_PAGE_BG },
-  scroll: { paddingHorizontal: Spacing.lg, flexGrow: 1, paddingBottom: Spacing.md, paddingTop: Spacing.sm },
+  scroll: {
+    paddingHorizontal: Spacing.md,
+    flexGrow: 1,
+    paddingTop: Spacing.xs,
+  },
   freeHeader: {
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing.sm,
-    marginBottom: Spacing.xs,
+    paddingTop: Spacing.sm,
+    paddingBottom: Spacing.xs,
+    marginBottom: 0,
   },
   premiumUpsellCard: {
     alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xl,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.lg,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
     borderWidth: StyleSheet.hairlineWidth,
@@ -1082,25 +1151,26 @@ const styles = StyleSheet.create({
     ...Shadows.soft,
   },
   lockIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 52,
+    height: 52,
+    borderRadius: 26,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   lockedTitle: {
-    fontSize: FontSizes.xxl,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: Colors.textPrimary,
     textAlign: "center",
   },
   lockedSub: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     textAlign: "center",
-    lineHeight: 22,
+    lineHeight: 19,
   },
   unlockBtn: {
     flexDirection: "row",
@@ -1108,8 +1178,8 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: Colors.primary,
     borderRadius: Radii.button,
-    paddingVertical: 14,
-    paddingHorizontal: Spacing.xl,
+    paddingVertical: 11,
+    paddingHorizontal: Spacing.lg,
   },
   unlockBtnText: {
     fontSize: FontSizes.md,
@@ -1163,7 +1233,7 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
   },
   hero: {
-    paddingTop: Spacing.md,
+    paddingTop: Spacing.sm,
     marginBottom: 0,
     paddingBottom: Spacing.xs,
   },
@@ -1171,6 +1241,7 @@ const styles = StyleSheet.create({
     backgroundColor: JOURNEY_PAGE_BG,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Colors.borderStrong,
+    paddingBottom: Spacing.xs,
   },
   heroTitles: {
     flex: 1,
@@ -1184,25 +1255,24 @@ const styles = StyleSheet.create({
     marginBottom: 0,
   },
   title: {
-    fontSize: 26,
+    fontSize: 22,
     fontFamily: "Inter_800ExtraBold",
     fontWeight: "800",
     color: "#0F172A",
   },
   subtitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: "Inter_400Regular",
     color: "#64748B",
     marginTop: 2,
-    maxWidth: 240,
-    lineHeight: 20,
+    lineHeight: 17,
   },
   dayPill: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#ECFDF5",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: "#A7F3D0",
@@ -1217,11 +1287,11 @@ const styles = StyleSheet.create({
     color: "#059669",
   },
   progressTrack: {
-    height: 4,
+    height: 3,
     borderRadius: 2,
     backgroundColor: "#E2E8F0",
     overflow: "hidden",
-    marginTop: 12,
+    marginTop: 8,
   },
   progressFillClip: {
     height: 4,
@@ -1233,20 +1303,20 @@ const styles = StyleSheet.create({
     height: 4,
   },
   progressHint: {
-    fontSize: FontSizes.xs,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
-    marginTop: Spacing.sm,
+    marginTop: 4,
   },
   sectionLabelRow: {
-    marginTop: 24,
-    marginBottom: 12,
+    marginTop: 14,
+    marginBottom: 8,
   },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
-    letterSpacing: 1.5,
+    letterSpacing: 1.2,
     color: "#94A3B8",
     textTransform: "uppercase",
   },
@@ -1261,8 +1331,95 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   packStack: {
-    gap: 10,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 6,
+  },
+  todayContextCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    ...Shadows.soft,
+  },
+  contextKicker: {
+    fontSize: 9,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
+    color: "#10B981",
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  contextBody: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
+    color: "#334155",
+    lineHeight: 18,
+  },
+  contextDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: "#E2E8F0",
+    marginVertical: 2,
+  },
+  principlePackBlock: {
+    gap: 6,
+    paddingHorizontal: 2,
+  },
+  principleScienceRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 5,
+  },
+  principleQuoteCompact: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    fontStyle: "italic",
+    color: "#059669",
+    lineHeight: 20,
+    textAlign: "center",
+  },
+  principleActionCompact: {
+    flex: 1,
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_500Medium",
+    color: "#059669",
+    lineHeight: 16,
+  },
+  coachActionRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  coachChip: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 12,
+    padding: 10,
+    gap: 4,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    minHeight: 88,
+    ...Shadows.soft,
+  },
+  coachChipIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  coachChipTitle: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+    lineHeight: 16,
+  },
+  coachChipSub: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 14,
   },
   cardStackGap: {
     marginBottom: 10,
@@ -1620,15 +1777,15 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   phaseHScroll: {
-    paddingVertical: 8,
-    paddingRight: Spacing.lg,
-    marginBottom: 10,
+    paddingVertical: 4,
+    paddingRight: Spacing.md,
+    marginBottom: 6,
   },
   phaseCardOpen: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    gap: Spacing.sm,
+    borderRadius: 12,
+    padding: 12,
+    gap: 6,
     shadowColor: "#0F172A",
     shadowOpacity: 0.04,
     shadowRadius: 12,
@@ -1645,10 +1802,10 @@ const styles = StyleSheet.create({
   },
   phaseCardLocked: {
     backgroundColor: "#F1F5F9",
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 0,
-    padding: 16,
-    minHeight: 260,
+    padding: 12,
+    minHeight: 200,
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
@@ -1689,8 +1846,9 @@ const styles = StyleSheet.create({
     color: "#059669",
   },
   phaseCardTitle: {
-    fontSize: FontSizes.xl,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: Colors.textPrimary,
   },
   phaseCardRange: {
@@ -1699,10 +1857,10 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
   },
   phaseCardSub: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 17,
   },
   phaseMiniGridWrap: {
     flexDirection: "row",
@@ -1894,8 +2052,8 @@ const styles = StyleSheet.create({
   },
   regressionCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 12,
+    padding: 12,
     gap: Spacing.xs,
     shadowColor: "#0F172A",
     shadowOpacity: 0.04,
@@ -1917,11 +2075,11 @@ const styles = StyleSheet.create({
   },
   sdtCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    borderRadius: 12,
     borderWidth: 0,
-    padding: 16,
-    gap: Spacing.md,
-    marginBottom: Spacing.md,
+    padding: 12,
+    gap: Spacing.sm,
+    marginBottom: Spacing.sm,
     shadowColor: "#0F172A",
     shadowOpacity: 0.04,
     shadowRadius: 12,

@@ -6,6 +6,7 @@ import type { CheckinRecord, MindDumpEntry, SDTScore, UserProfile } from "../typ
 import type { TomorrowTodoList } from "../store/tomorrowPlanStore";
 import type { DailyPersistBlob, Habit, JourneyReflection } from "../store/habitStore";
 import type { Muscles, RecentAction } from "../engine";
+import i18n from "../i18n/config";
 
 export const BACKUP_STORAGE_KEYS = {
   tomorrowPlans: "journey:tomorrow-plans:v1",
@@ -53,7 +54,7 @@ export function isExportPayloadV2(p: ExportPayload): p is ExportPayloadV2 {
 export async function shareAppDataBackup(payload: ExportPayload): Promise<void> {
   const json = JSON.stringify(payload, null, 2);
   const versionTag = payload.schemaVersion === 2 ? "v2" : "v1";
-  const name = `kimlik-yedek-${versionTag}-${payload.exportedAt.slice(0, 10)}.json`;
+  const name = `rito-yedek-${versionTag}-${payload.exportedAt.slice(0, 10)}.json`;
   const base = FileSystem.cacheDirectory ?? "";
   const path = `${base}${name}`;
   await FileSystem.writeAsStringAsync(path, json, {
@@ -66,7 +67,7 @@ export async function shareAppDataBackup(payload: ExportPayload): Promise<void> 
   }
   await Sharing.shareAsync(path, {
     mimeType: "application/json",
-    dialogTitle: "Kimlik yedeğini paylaş",
+    dialogTitle: i18n.t("profile.data.backupShareTitle"),
   });
 }
 

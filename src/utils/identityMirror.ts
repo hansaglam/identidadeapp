@@ -1,18 +1,30 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import i18n from "../i18n/config";
 import { MindDumpEntry } from "../types";
+import type { JourneyReflection } from "../store/habitStore";
 
 const TR = "tr-TR";
+
 function tLower(s: string): string {
   return s.toLocaleLowerCase(TR);
 }
 
-// Geniş kelime bankası — tüm günlere açık, faz kısıtı yok
+function matchesContent(content: string, keywords: string[]): string | null {
+  const t = tLower(content);
+  for (const kw of keywords) {
+    if (t.includes(tLower(kw))) return kw;
+  }
+  return null;
+}
+
+// Geniş kelime bankası — TR + yaygın EN ifadeler
 const RESIST = [
   "zorlanıyorum", "istemiyorum", "yapmıyorum", "yapamıyorum",
   "zor", "sıkıldım", "bırakmak", "vazgeçmek", "atlıyorum",
   "atladım", "geçiştirdim", "erteledim", "ihmal ettim", "motivasyon yok",
   "canım istemedi", "bugün olmadı", "olmadı", "başaramadım", "beceremiyorum",
   "güçlük", "uğraşıyorum", "mücadele ediyorum", "direniyorum",
+  "struggling", "don't want", "can't", "skipped", "procrastinat", "failed", "hard day",
 ];
 
 const TRANS = [
@@ -22,6 +34,7 @@ const TRANS = [
   "çabalıyorum", "öğreniyorum", "düzeliyorum", "düzeldi", "iyileşiyor",
   "sürdürüyorum", "tutuyorum", "dengeliyorum", "dengelendi", "ilerliyor",
   "sürekli hale geliyor", "rutin oluyor", "alışkanlık",
+  "getting easier", "progress", "learning", "continuing", "routine", "habit forming",
 ];
 
 const IDENT = [
@@ -30,32 +43,24 @@ const IDENT = [
   "hiç düşünmeden", "refleks gibi", "her zaman yapıyorum",
   "kimliğim", "ben böyleyim", "bu benim", "kendim gibi hissediyorum",
   "ayrılmaz", "içimden geliyor", "içselleştirdim", "artık ben",
+  "automatically", "without thinking", "natural", "part of me", "who i am",
 ];
 
 const POSITIVE = [
   "gururlanıyorum", "mutluyum", "iyi hissediyorum", "keyifli",
   "enerjim var", "harika", "başardım", "güçlüyüm",
   "heyecanlı", "istekli", "motive", "üretken",
+  "proud", "happy", "good", "strong", "motivated", "great",
 ];
 
 const DOUBT = [
   "faydalı mı", "ne işe yarar", "gerçekten değişiyor mu", "etkisi var mı",
   "şüpheliyim", "inanmıyorum", "işe yaramıyor", "sonuç göremiyorum",
   "emin değilim", "hayal kırıklığı",
+  "does it work", "not sure", "skeptic", "disappointed", "useless",
 ];
 
 type Phase = "direnç" | "geçiş" | "kimlik" | "gurur" | "şüphe";
-
-function matchAny(
-  content: string,
-  keywords: string[]
-): string | null {
-  const t = tLower(content);
-  for (const kw of keywords) {
-    if (t.includes(tLower(kw))) return kw;
-  }
-  return null;
-}
 
 export interface IdentityMirrorMatch {
   journeyDay: number;
@@ -63,83 +68,211 @@ export interface IdentityMirrorMatch {
   keyword: string;
 }
 
+interface MirrorTextItem {
+  content: string;
+  journeyDay: number;
+}
+
+function phaseContext(phase: Phase): string {
+  return i18n.t(`journey.identityMirror.report.context.${phase}`);
+}
+
+function phaseLabel(phase: Phase): string {
+  return i18n.t(`journey.identityMirror.report.phase.${phase}`);
+}
+
+function defaultHabitName(): string {
+  return i18n.t("journey.identityMirror.report.defaultHabit");
+}
+
 function dayForEntry(startDate: string, createdAt: string): number {
   return differenceInCalendarDays(parseISO(createdAt), parseISO(startDate)) + 1;
 }
 
+/** Zihin modal notları + günlük yansımalar (Mind ekranı) */
+export function collectMirrorTextItems(
+  startDate: string,
+  mindEntries: MindDumpEntry[],
+  reflections: JourneyReflection[]
+): MirrorTextItem[] {
+  const items: MirrorTextItem[] = [];
+
+  for (const e of mindEntries) {
+    const text = e.content?.trim();
+    if (!text) continue;
+    const d = dayForEntry(startDate, e.createdAt);
+    if (d < 1 || d > 66) continue;
+    items.push({ content: text, journeyDay: d });
+  }
+
+  for (const r of reflections) {
+    const text = r.comment?.trim();
+    if (!text) continue;
+    const d = r.day;
+    if (d < 1 || d > 66) continue;
+    items.push({ content: text, journeyDay: d });
+  }
+
+  return items.sort((a, b) => a.journeyDay - b.journeyDay);
+}
+
 export function collectIdentityMirrorMatches(
   startDate: string,
-  entries: MindDumpEntry[]
+  mindEntries: MindDumpEntry[],
+  reflections: JourneyReflection[] = []
 ): IdentityMirrorMatch[] {
   const out: IdentityMirrorMatch[] = [];
 
-  for (const e of entries) {
-    const d = dayForEntry(startDate, e.createdAt);
-    if (d < 1 || d > 66) continue;
+  for (const { content, journeyDay } of collectMirrorTextItems(
+    startDate,
+    mindEntries,
+    reflections
+  )) {
+    const identKw = matchesContent(content, IDENT);
+    if (identKw) {
+      out.push({ journeyDay, phase: "kimlik", keyword: identKw });
+      continue;
+    }
 
-    // Her keyword grubunu gün kısıtı olmadan tüm yazılara uygula
-    // Öncelik: kimlik > geçiş > gurur > şüphe > direnç
-    const identKw = matchAny(e.content, IDENT);
-    if (identKw) { out.push({ journeyDay: d, phase: "kimlik", keyword: identKw }); continue; }
+    const transKw = matchesContent(content, TRANS);
+    if (transKw) {
+      out.push({ journeyDay, phase: "geçiş", keyword: transKw });
+      continue;
+    }
 
-    const transKw = matchAny(e.content, TRANS);
-    if (transKw) { out.push({ journeyDay: d, phase: "geçiş", keyword: transKw }); continue; }
+    const posKw = matchesContent(content, POSITIVE);
+    if (posKw) {
+      out.push({ journeyDay, phase: "gurur", keyword: posKw });
+      continue;
+    }
 
-    const posKw = matchAny(e.content, POSITIVE);
-    if (posKw) { out.push({ journeyDay: d, phase: "gurur", keyword: posKw }); continue; }
+    const doubtKw = matchesContent(content, DOUBT);
+    if (doubtKw) {
+      out.push({ journeyDay, phase: "şüphe", keyword: doubtKw });
+      continue;
+    }
 
-    const doubtKw = matchAny(e.content, DOUBT);
-    if (doubtKw) { out.push({ journeyDay: d, phase: "şüphe", keyword: doubtKw }); continue; }
-
-    const resistKw = matchAny(e.content, RESIST);
-    if (resistKw) { out.push({ journeyDay: d, phase: "direnç", keyword: resistKw }); continue; }
+    const resistKw = matchesContent(content, RESIST);
+    if (resistKw) {
+      out.push({ journeyDay, phase: "direnç", keyword: resistKw });
+      continue;
+    }
   }
 
   return out.sort((a, b) => a.journeyDay - b.journeyDay);
 }
 
-const PHASE_CONTEXT: Record<Phase, string> = {
-  "direnç": "direnç aşamasındasın — bu tamamen normal, beyin hâlâ yeni yolu inşa ediyor.",
-  "geçiş": "geçiş aşamasındasın — alışkanlık yerleşmeye başlıyor, tutarlılık burada her şey.",
-  "kimlik": "kimlik aşamasındasın — davranış sana özgü hale gelmiş. Bu değişim kalıcı.",
-  "gurur": "olumlu bir an yaşıyorsun. Bu hissi hatırla — zorlandığında geri döneceksin.",
-  "şüphe": "şüphe de yolculuğun parçası. 66 gün sonunda sonuçlar konuşacak.",
-};
+export type IdentityMirrorMode = "matched" | "fallback" | "empty";
 
+export interface IdentityMirrorOutput {
+  mode: IdentityMirrorMode;
+  report: string | null;
+  totalNotes: number;
+  signalCount: number;
+  latestDay: number | null;
+  latestSnippet: string | null;
+}
+
+function snippet(text: string, max = 72): string {
+  const t = text.replace(/\s+/g, " ").trim();
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
+}
+
+function buildMatchedReport(
+  matches: IdentityMirrorMatch[],
+  habitName: string
+): string {
+  const h = habitName.trim() || defaultHabitName();
+  const first = matches[0]!;
+  const last = matches[matches.length - 1]!;
+
+  if (matches.length === 1) {
+    return i18n.t("journey.identityMirror.report.single", {
+      day: first.journeyDay,
+      keyword: first.keyword,
+      habit: h,
+      context: phaseContext(first.phase),
+    });
+  }
+
+  if (first.phase === last.phase) {
+    return i18n.t("journey.identityMirror.report.samePhase", {
+      firstDay: first.journeyDay,
+      lastDay: last.journeyDay,
+      phase: phaseLabel(first.phase),
+      habit: h,
+    });
+  }
+
+  const pairKey = `${first.phase}-${last.phase}`;
+  const pairI18nKey = `journey.identityMirror.report.pair.${pairKey}`;
+  if (i18n.exists(pairI18nKey)) {
+    return i18n.t(pairI18nKey, {
+      habit: h,
+      firstDay: first.journeyDay,
+      lastDay: last.journeyDay,
+    });
+  }
+
+  return i18n.t("journey.identityMirror.report.progress", {
+    firstDay: first.journeyDay,
+    firstKeyword: first.keyword,
+    lastDay: last.journeyDay,
+    lastKeyword: last.keyword,
+    habit: h,
+  });
+}
+
+export function buildIdentityMirrorOutput(
+  startDate: string,
+  mindEntries: MindDumpEntry[],
+  reflections: JourneyReflection[],
+  habitName: string
+): IdentityMirrorOutput {
+  const items = collectMirrorTextItems(startDate, mindEntries, reflections);
+  const matches = collectIdentityMirrorMatches(startDate, mindEntries, reflections);
+
+  if (items.length === 0) {
+    return {
+      mode: "empty",
+      report: null,
+      totalNotes: 0,
+      signalCount: 0,
+      latestDay: null,
+      latestSnippet: null,
+    };
+  }
+
+  const latest = items[items.length - 1]!;
+
+  if (matches.length > 0) {
+    return {
+      mode: "matched",
+      report: buildMatchedReport(matches, habitName),
+      totalNotes: items.length,
+      signalCount: matches.length,
+      latestDay: latest.journeyDay,
+      latestSnippet: snippet(latest.content),
+    };
+  }
+
+  return {
+    mode: "fallback",
+    report: null,
+    totalNotes: items.length,
+    signalCount: 0,
+    latestDay: latest.journeyDay,
+    latestSnippet: snippet(latest.content),
+  };
+}
+
+/** @deprecated buildIdentityMirrorOutput kullanın */
 export function buildIdentityMirrorReport(
   startDate: string,
   entries: MindDumpEntry[],
   habitName: string
 ): string | null {
-  const m = collectIdentityMirrorMatches(startDate, entries);
-  if (m.length === 0) return null;
-
-  const h = habitName.trim() || "bu davranış";
-  const first = m[0]!;
-  const last = m[m.length - 1]!;
-
-  if (m.length === 1) {
-    return `Gün ${first.journeyDay}'de "${first.keyword}" demiştin. ${h} için ${PHASE_CONTEXT[first.phase]}`;
-  }
-
-  // Birden fazla eşleşme varsa yolculuğu anlat
-  if (first.phase === last.phase) {
-    return `Gün ${first.journeyDay}'den ${last.journeyDay}'e kadar ${first.phase} aşamasında notlar bıraktın. "${h}" için dönüşüm devam ediyor — her gün biraz daha.`;
-  }
-
-  // Farklı fazlar — büyüme hikayesi
-  const phasePair: Record<string, string> = {
-    "direnç-geçiş": `"${h}" için direnç aşamasından geçiş aşamasına geçtin. Gün ${first.journeyDay}'deki o zorluk artık geride.`,
-    "direnç-kimlik": `"${h}" bir dönem zor görünüyordu. Şimdi doğal hale geliyor. Bu 66 günlük yolculuğun özü.`,
-    "direnç-gurur": `Gün ${first.journeyDay}'deki zorluğun ardından gurur geliyor. Bu geçiş kaçınılmazdı.`,
-    "geçiş-kimlik": `"${h}" yerleşiyor. Gün ${first.journeyDay}'de alışma vardı, gün ${last.journeyDay}'de artık içinden geliyor.`,
-    "şüphe-geçiş": `Şüphenin ardından devam ettin — ve bu devam etmek tam da fark yaratıyor.`,
-    "şüphe-gurur": `Şüpheye rağmen devam ettin ve artık gurur duyuyorsun. Karar doğruydu.`,
-  };
-
-  const key = `${first.phase}-${last.phase}`;
-  const specific = phasePair[key];
-  if (specific) return specific;
-
-  return `Gün ${first.journeyDay}'de "${first.keyword}" demiştin. Gün ${last.journeyDay}'de "${last.keyword}" dedin. "${h}" artık dışarıdan değil, içeriden geliyor.`;
+  const out = buildIdentityMirrorOutput(startDate, entries, [], habitName);
+  return out.report;
 }

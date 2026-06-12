@@ -9,9 +9,7 @@ import { IDENTITY_TEMPLATES } from "../constants/identityTemplates";
 import type { UserProfile } from "../types";
 
 export function localizeActionTitle(id: string, fallback: string): string {
-  const key = `actions.${id}.title`;
-  const v = i18n.t(key);
-  return v === key ? fallback : v;
+  return tOrFallback(`actions.${id}.title`, fallback);
 }
 
 export function localizeAction(action: Action): Action {
@@ -84,6 +82,38 @@ export function getLocalizedIdentityLine(profile: UserProfile): string {
   return i18n.t("home.identityFallback", { habitName: getLocalizedHabitTitle(profile) });
 }
 
+export function localizeAnchorLabel(anchorId: string, fallback?: string): string {
+  const key = `anchors.${anchorId}.label`;
+  const v = i18n.t(key);
+  return v === key ? (fallback ?? anchorId) : v;
+}
+
+export function localizeTimeRangeLabel(timeId: string, fallback: string): string {
+  const key = `timeRanges.${timeId}.label`;
+  const v = i18n.t(key);
+  return v === key ? fallback : v;
+}
+
+export function localizeTimeRangeShort(timeId: string, fallback: string): string {
+  const key = `timeRanges.${timeId}.short`;
+  const v = i18n.t(key);
+  return v === key ? fallback : v;
+}
+
+export function localizeShortHabitLabel(tagId: string, fallback: string): string {
+  return tTemplate(tagId, "shortHabitLabel", fallback);
+}
+
+export function localizeWhyPlaceholder(tagId: string, fallback: string): string {
+  return tTemplate(tagId, "whyPlaceholder", fallback);
+}
+
+export function localizeAnchorPreview(tagId: string, anchorId: string, fallback: string): string {
+  const key = `identityTemplates.${tagId}.anchorPreview.${anchorId}`;
+  const v = i18n.t(key);
+  return v === key ? fallback : v;
+}
+
 export function getLocalizedPhaseFocus(
   tpl: IdentityTemplate,
   dayNumber: number
@@ -120,11 +150,56 @@ export function localizeSituationCue(
 }
 
 export function localizeJourneyPhaseLabel(phaseId: 1 | 2 | 3): string {
-  return i18n.t(`journey.phases.${phaseId}.label`);
+  const { JOURNEY_PHASES } = require("../constants/theme") as typeof import("../constants/theme");
+  const base = JOURNEY_PHASES[phaseId - 1]?.label ?? "";
+  return tOrFallback(`journey.phases.${phaseId}.label`, base);
 }
 
 export function localizeJourneyPhaseDays(phaseId: 1 | 2 | 3): string {
-  return i18n.t(`journey.phases.${phaseId}.days`);
+  const { JOURNEY_PHASES } = require("../constants/theme") as typeof import("../constants/theme");
+  const base = JOURNEY_PHASES[phaseId - 1]?.days ?? "";
+  return tOrFallback(`journey.phases.${phaseId}.days`, base);
+}
+
+export type LocalizedSdtQuestion = {
+  id: "autonomy" | "competence" | "relatedness";
+  label: string;
+  question: string;
+  low: string;
+  high: string;
+};
+
+export function getLocalizedSdtQuestions(): LocalizedSdtQuestion[] {
+  const { SDT_QUESTIONS } = require("../constants/theme") as typeof import("../constants/theme");
+  const ids = ["autonomy", "competence", "relatedness"] as const;
+  return ids.map((id, index) => {
+    const base = SDT_QUESTIONS[index]!;
+    const prefix = `journey.sdt.questions.${id}`;
+    return {
+      id,
+      label: tOrFallback(`${prefix}.label`, base.label),
+      question: tOrFallback(`${prefix}.question`, base.question),
+      low: tOrFallback(`${prefix}.low`, base.low),
+      high: tOrFallback(`${prefix}.high`, base.high),
+    };
+  });
+}
+
+export function pickLocalizedCheckInToast(
+  habitName: string,
+  day: number,
+  streakReset: boolean
+): string {
+  if (streakReset) {
+    const { IDENTITY_MESSAGES } = require("../constants/identity-copy") as typeof import("../constants/identity-copy");
+    return tOrFallback("home.checkInToast.streakReset", IDENTITY_MESSAGES.streakReset);
+  }
+  const { IDENTITY_MESSAGES, pickMessage } = require("../constants/identity-copy") as typeof import("../constants/identity-copy");
+  const fallback = IDENTITY_MESSAGES.checkInComplete(habitName, day);
+  const messages = tArrayOrFallback("home.checkInToast.complete", fallback).map((line) =>
+    line.replace(/\{\{habit\}\}/g, habitName).replace(/\{\{day\}\}/g, String(day))
+  );
+  return pickMessage(messages, day);
 }
 
 export function localizeJourneyPhaseSubtitle(phaseId: 1 | 2 | 3): string {
@@ -234,6 +309,19 @@ export function getLocalizedMindModalStartPhrases(dayNumber: number): readonly s
   const base = tArrayOrFallback("mindPrompts.modal", MIND_MODAL_START_PHRASES);
   if (!base.includes(daily)) return [daily, ...base.slice(0, 3)];
   return base;
+}
+
+export function getLocalizedJourneyMomentLine(dayNumber: number): string | null {
+  const byDayKey = `journeyMoments.byDay.${dayNumber}`;
+  const exact = i18n.t(byDayKey);
+  if (exact !== byDayKey) return exact;
+
+  const {
+    JOURNEY_MOMENT_POOL,
+  } = require("../constants/journeyMoments") as typeof import("../constants/journeyMoments");
+  const pool = tArrayOrFallback("journeyMoments.pool", JOURNEY_MOMENT_POOL);
+  if (pool.length === 0) return null;
+  return pool[dayNumber % pool.length] ?? null;
 }
 
 export function getLocalizedCoachNote(dayNumber: number): string | null {

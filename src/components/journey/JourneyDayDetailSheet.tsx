@@ -7,18 +7,11 @@ import {
   Pressable,
   TouchableOpacity,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { X } from "lucide-react-native";
 import type { JourneyDayDetail } from "../../utils/journeyDayDetail";
 import { Colors, Spacing, Radii, FontSizes } from "../../constants/theme";
-
-const STATUS_LABEL: Record<JourneyDayDetail["status"], string> = {
-  done: "Tamamlandı",
-  missed: "Kaçırıldı",
-  future: "Gelecek",
-  today: "Bugün",
-  before_start: "—",
-};
 
 interface Props {
   visible: boolean;
@@ -36,8 +29,11 @@ export default function JourneyDayDetailSheet({
   isPreview = false,
   onUnlockPremium,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   if (!detail) return null;
+
+  const statusLabel = t(`journey.dayDetail.status.${detail.status}`);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -49,7 +45,7 @@ export default function JourneyDayDetailSheet({
           <View style={styles.handle} />
           <View style={styles.header}>
             <View style={{ flex: 1 }}>
-              <Text style={styles.title}>Gün {detail.day}</Text>
+              <Text style={styles.title}>{t("journey.dayDetail.dayTitle", { day: detail.day })}</Text>
               <Text style={styles.date}>{detail.dateLabel}</Text>
             </View>
             <TouchableOpacity onPress={onClose} hitSlop={12}>
@@ -57,7 +53,7 @@ export default function JourneyDayDetailSheet({
             </TouchableOpacity>
           </View>
           <View style={styles.badge}>
-            <Text style={styles.badgeText}>{STATUS_LABEL[detail.status]}</Text>
+            <Text style={styles.badgeText}>{statusLabel}</Text>
           </View>
           {(isPreview ? detail.lines.slice(0, 3) : detail.lines).map((line, i) => (
             <Text key={`${i}-${line}`} style={styles.line}>
@@ -66,9 +62,7 @@ export default function JourneyDayDetailSheet({
           ))}
           {isPreview ? (
             <>
-              <Text style={styles.previewHint}>
-                Premium ile o günün tam özeti: plan maddeleri, check-in notu ve otomatiklik.
-              </Text>
+              <Text style={styles.previewHint}>{t("journey.dayDetail.previewHint")}</Text>
               <TouchableOpacity
                 style={styles.btn}
                 onPress={() => {
@@ -77,7 +71,7 @@ export default function JourneyDayDetailSheet({
                 }}
                 activeOpacity={0.85}
               >
-                <Text style={styles.btnText}>Tam paneli aç</Text>
+                <Text style={styles.btnText}>{t("journey.dayDetail.unlockCta")}</Text>
               </TouchableOpacity>
             </>
           ) : null}
@@ -86,7 +80,9 @@ export default function JourneyDayDetailSheet({
             onPress={onClose}
             activeOpacity={0.85}
           >
-            <Text style={[styles.btnText, isPreview && styles.btnSecondaryText]}>Kapat</Text>
+            <Text style={[styles.btnText, isPreview && styles.btnSecondaryText]}>
+              {t("common.close")}
+            </Text>
           </TouchableOpacity>
         </Pressable>
       </Pressable>

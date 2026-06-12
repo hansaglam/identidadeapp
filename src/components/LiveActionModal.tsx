@@ -46,7 +46,7 @@ export default function LiveActionModal({
   onComplete,
   onCancel,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [phase, setPhase] = useState<Phase>("countdown");
   const [count, setCount] = useState(3);
   const [actionLeft, setActionLeft] = useState(0);
@@ -62,7 +62,7 @@ export default function LiveActionModal({
       actionTitle: action.title,
       duration: action.duration,
     });
-  }, [action, habitAnchor, habitName]);
+  }, [action, habitAnchor, habitName, i18n.language]);
 
   const clearTimers = useCallback(() => {
     if (tickRef.current) {
@@ -225,12 +225,18 @@ export default function LiveActionModal({
                   <Text style={styles.countdown}>{count}</Text>
                   <Text style={styles.countHint}>{t("home.anchorStep.modal.afterMove")}</Text>
                   {renderAnchorChip()}
-                  <Text style={styles.lead} numberOfLines={3}>
+                  <Text style={styles.lead} numberOfLines={4}>
                     {anchorUi.modalLead}
                   </Text>
                   <Text style={styles.previewTitle} numberOfLines={2}>
                     {action.title}
                   </Text>
+                  {anchorUi.modalTip ? (
+                    <Text style={styles.tipText} numberOfLines={3}>
+                      {anchorUi.modalTip}
+                    </Text>
+                  ) : null}
+                  {renderSteps()}
                 </>
               )}
 
@@ -260,9 +266,14 @@ export default function LiveActionModal({
                   <Text style={styles.actionTitle} numberOfLines={2}>
                     {action.title}
                   </Text>
-                  <Text style={styles.lead} numberOfLines={3}>
+                  <Text style={styles.lead} numberOfLines={4}>
                     {anchorUi.modalLead}
                   </Text>
+                  {anchorUi.modalTip ? (
+                    <Text style={styles.tipText} numberOfLines={2}>
+                      {anchorUi.modalTip}
+                    </Text>
+                  ) : null}
                   {!recovery ? renderSteps() : null}
                   {recovery ? (
                     <>
@@ -435,6 +446,15 @@ const styles = StyleSheet.create({
     color: "rgba(255,255,255,0.9)",
     textAlign: "center",
     lineHeight: 22,
+  },
+  tipText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: "rgba(255,255,255,0.5)",
+    textAlign: "center",
+    lineHeight: 17,
+    paddingHorizontal: 6,
+    fontStyle: "italic",
   },
   actionTitle: {
     fontSize: FontSizes.lg,

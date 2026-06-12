@@ -11,20 +11,22 @@ import { Check, ChevronLeft, Info } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
-import { Colors, Spacing, Radii, FontSizes, Shadows, ANCHOR_PRESETS, TIME_RANGES } from "../constants/theme";
+import { Colors, Spacing, Radii, FontSizes, Shadows, TIME_RANGES } from "../constants/theme";
 import { useTranslation } from "react-i18next";
+import {
+  ANCHOR_EMOJI_BY_ID,
+  ANCHOR_PRESET_IDS,
+  type AnchorId,
+} from "../constants/anchors";
 import { getIdentityTemplate, previewHabitPhraseForAnchor } from "../constants/identityTemplates";
+import {
+  getLocalizedTemplate,
+  localizeAnchorLabel,
+  localizeTimeRangeLabel,
+  localizeTimeRangeShort,
+} from "../i18n/localizeContent";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep2">;
-
-const ANCHOR_EMOJIS: Record<string, string> = {
-  "Kahvemi içtikten sonra": "☕",
-  "Dişlerimi fırçaladıktan sonra": "🪥",
-  "Telefonu elimden bıraktıktan sonra": "📵",
-  "Yatağa girmeden önce": "🛏️",
-  "Öğle yemeğinden sonra": "🍽️",
-  "Uyandıktan hemen sonra": "⏰",
-};
 
 const TIME_EMOJIS: Record<string, string> = {
   sabah: "🌅",
@@ -76,38 +78,57 @@ function StepBar({ current }: { current: number }) {
   );
 }
 
+function buildAnchorOptions(defaultAnchorId: string | undefined): AnchorId[] {
+  const base = [...ANCHOR_PRESET_IDS] as AnchorId[];
+  if (!defaultAnchorId) return base;
+  if (!base.includes(defaultAnchorId as AnchorId)) {
+    return [defaultAnchorId as AnchorId, ...base];
+  }
+  return [defaultAnchorId as AnchorId, ...base.filter((id) => id !== defaultAnchorId)];
+}
+
 export default function OnboardingStep2Screen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { habitName, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
+  const localizedTemplate = getLocalizedTemplate(identityTagId);
 
-  const anchorOptions = React.useMemo<readonly string[]>(() => {
-    if (!template) return ANCHOR_PRESETS;
-    if ((ANCHOR_PRESETS as readonly string[]).includes(template.defaultAnchor)) return ANCHOR_PRESETS;
-    return [template.defaultAnchor, ...ANCHOR_PRESETS];
-  }, [template]);
+  const anchorOptions = React.useMemo(
+    () => buildAnchorOptions(template?.defaultAnchor),
+    [template?.defaultAnchor]
+  );
 
-  const [selectedAnchor, setSelectedAnchor] = useState<string | null>(
-    template?.defaultAnchor ?? null
+  const [selectedAnchorId, setSelectedAnchorId] = useState<AnchorId | null>(
+    (template?.defaultAnchor as AnchorId | undefined) ?? null
   );
   const [selectedTime, setSelectedTime] = useState<string | null>(
     template?.defaultTimeId ?? null
   );
 
-  const canContinue = !!selectedAnchor && !!selectedTime;
+  const canContinue = !!selectedAnchorId && !!selectedTime;
+
+  const selectedAnchorLabel = selectedAnchorId
+    ? localizeAnchorLabel(selectedAnchorId)
+    : "";
 
   const commitmentBody =
-    selectedAnchor && template
-      ? previewHabitPhraseForAnchor(template, selectedAnchor, habitName)
-      : selectedAnchor && !template
-        ? `${habitName} için küçük adımı atacağım`
+    selectedAnchorId && template
+      ? previewHabitPhraseForAnchor(template, selectedAnchorId, habitName)
+      : selectedAnchorId && !template
+        ? t("onboarding.step2.customCommitment", { habit: habitName })
         : "";
 
-  const selectedTimeLabel = TIME_RANGES.find((t) => t.id === selectedTime)?.label ?? "";
+  const selectedTimeMeta = TIME_RANGES.find((tr) => tr.id === selectedTime);
+  const selectedTimeLabel = selectedTimeMeta
+    ? localizeTimeRangeLabel(selectedTime!, selectedTimeMeta.label)
+    : "";
+  const selectedTimeShort = selectedTimeMeta
+    ? localizeTimeRangeShort(selectedTime!, selectedTimeMeta.label.split("(")[0].trim())
+    : "";
 
-  const handleSelectAnchor = (anchor: string) => {
+  const handleSelectAnchor = (anchorId: AnchorId) => {
     void Haptics.selectionAsync();
-    setSelectedAnchor(anchor);
+    setSelectedAnchorId(anchorId);
   };
 
   const handleSelectTime = (id: string) => {
@@ -127,54 +148,52 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
         <Text style={styles.title}>{t("onboarding.step2.title")}</Text>
         <Text style={styles.sub}>{t("onboarding.step2.sub")}</Text>
 
-        {/* Commitment preview */}
         <View style={styles.previewCard}>
           <Text style={styles.previewKicker}>{t("onboarding.step2.commitmentLabel")}</Text>
-          {!selectedAnchor ? (
+          {!selectedAnchorId ? (
             <Text style={styles.previewPlaceholder}>
               {t("onboarding.step2.commitmentPlaceholder")}
             </Text>
           ) : (
             <Text style={styles.previewStatement}>
-              <Text style={styles.previewAnchor}>{selectedAnchor}</Text>
+              <Text style={styles.previewAnchor}>{selectedAnchorLabel}</Text>
               <Text style={styles.previewBody}> {commitmentBody}.</Text>
             </Text>
           )}
           {selectedTime && (
             <View style={styles.previewTimePill}>
               <Text style={styles.previewTimeEmoji}>{TIME_EMOJIS[selectedTime] ?? "⏰"}</Text>
-              <Text style={styles.previewTimeText}>{selectedTimeLabel}</Text>
+              <Text style={styles.previewTimeText}>{selectedTimeShort}</Text>
             </View>
           )}
-          {template && (
+          {localizedTemplate && (
             <Text style={styles.previewHint}>
-              {template.emoji} {template.title} — {t("onboarding.step2.templateHint")}
+              {template?.emoji} {localizedTemplate.title} — {t("onboarding.step2.templateHint")}
             </Text>
           )}
         </View>
 
-        {/* Info note */}
         <View style={styles.infoRow}>
           <Info size={13} color={Colors.textTertiary} strokeWidth={2} />
           <Text style={styles.infoText}>{t("onboarding.step2.infoText")}</Text>
         </View>
 
-        {/* Anchor options */}
         <Text style={styles.sectionLabel}>{t("onboarding.step2.anchorLabel")}</Text>
         <View style={styles.anchorList}>
-          {anchorOptions.map((anchor) => {
-            const active = selectedAnchor === anchor;
-            const emoji = ANCHOR_EMOJIS[anchor] ?? "🔗";
+          {anchorOptions.map((anchorId) => {
+            const active = selectedAnchorId === anchorId;
+            const emoji = ANCHOR_EMOJI_BY_ID[anchorId] ?? "🔗";
+            const label = localizeAnchorLabel(anchorId);
             return (
               <TouchableOpacity
-                key={anchor}
+                key={anchorId}
                 style={[styles.anchorOption, active && styles.anchorOptionActive]}
-                onPress={() => handleSelectAnchor(anchor)}
+                onPress={() => handleSelectAnchor(anchorId)}
                 activeOpacity={0.8}
               >
                 <Text style={styles.anchorEmoji}>{emoji}</Text>
                 <Text style={[styles.anchorText, active && styles.anchorTextActive]}>
-                  {anchor}
+                  {label}
                 </Text>
                 {active && (
                   <View style={styles.checkWrap}>
@@ -186,25 +205,27 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
           })}
         </View>
 
-        {/* Time range */}
         <Text style={styles.sectionLabel}>{t("onboarding.step2.timeLabel")}</Text>
         <View style={styles.timeGrid}>
-          {TIME_RANGES.map((t) => {
-            const active = selectedTime === t.id;
-            const emoji = TIME_EMOJIS[t.id] ?? "⏰";
+          {TIME_RANGES.map((tr) => {
+            const active = selectedTime === tr.id;
+            const emoji = TIME_EMOJIS[tr.id] ?? "⏰";
+            const label = localizeTimeRangeLabel(tr.id, tr.label);
+            const short = localizeTimeRangeShort(tr.id, tr.label.split("(")[0].trim());
+            const hours = tr.label.match(/\(([^)]+)\)/)?.[1] ?? "";
             return (
               <TouchableOpacity
-                key={t.id}
+                key={tr.id}
                 style={[styles.timeCard, active && styles.timeCardActive]}
-                onPress={() => handleSelectTime(t.id)}
+                onPress={() => handleSelectTime(tr.id)}
                 activeOpacity={0.8}
               >
                 <Text style={styles.timeEmoji}>{emoji}</Text>
                 <Text style={[styles.timeText, active && styles.timeTextActive]}>
-                  {t.label.split("(")[0].trim()}
+                  {short}
                 </Text>
                 <Text style={[styles.timeSub, active && styles.timeSubActive]}>
-                  {(t.label.match(/\(([^)]+)\)/)?.[1]) ?? ""}
+                  {hours || label}
                 </Text>
                 {active && <View style={styles.timeActiveDot} />}
               </TouchableOpacity>
@@ -213,7 +234,6 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
         </View>
       </ScrollView>
 
-      {/* Footer */}
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -229,11 +249,11 @@ export default function OnboardingStep2Screen({ route, navigation }: Props) {
         <TouchableOpacity
           style={[styles.cta, !canContinue && styles.ctaDisabled]}
           onPress={() => {
-            if (!canContinue) return;
+            if (!canContinue || !selectedAnchorId) return;
             void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             navigation.navigate("OnboardingStep3", {
               habitName,
-              anchorBehavior: selectedAnchor!,
+              anchorBehavior: selectedAnchorLabel,
               anchorTime: selectedTime!,
               identityTagId,
             });
@@ -256,8 +276,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.xl,
     flexGrow: 1,
   },
-
-  /* Step bar */
   stepWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -305,8 +323,6 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontFamily: "Inter_500Medium",
   },
-
-  /* Header */
   title: {
     fontSize: FontSizes.xxl,
     fontFamily: "Inter_500Medium",
@@ -322,8 +338,6 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: Spacing.lg,
   },
-
-  /* Commitment preview */
   previewCard: {
     backgroundColor: Colors.primaryLight,
     borderRadius: Radii.card,
@@ -381,8 +395,6 @@ const styles = StyleSheet.create({
     color: Colors.primaryDark,
     fontStyle: "italic",
   },
-
-  /* Info note */
   infoRow: {
     flexDirection: "row",
     gap: 6,
@@ -396,8 +408,6 @@ const styles = StyleSheet.create({
     color: Colors.textTertiary,
     lineHeight: 17,
   },
-
-  /* Sections */
   sectionLabel: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_500Medium",
@@ -406,8 +416,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.7,
     marginBottom: Spacing.sm,
   },
-
-  /* Anchor list */
   anchorList: {
     gap: Spacing.xs,
     marginBottom: Spacing.lg,
@@ -447,8 +455,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
-  /* Time grid */
   timeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -495,8 +501,6 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: Colors.primary,
   },
-
-  /* Footer */
   footer: {
     flexDirection: "row",
     gap: Spacing.sm,

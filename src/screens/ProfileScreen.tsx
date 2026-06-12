@@ -28,8 +28,8 @@ import {
   cancelAllMorningNotifications,
   scheduleMorningNotifications,
   requestNotificationPermissions,
-  setupNotifications,
 } from "../utils/notifications";
+import { flushNotificationSetup } from "../utils/notificationScheduler";
 import { getAverageAutomaticity } from "../utils/profileMetrics";
 import PremiumGateModal from "../components/PremiumGateModal";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -37,6 +37,18 @@ import PrivacyDataModal from "../components/PrivacyDataModal";
 import AdvancedPreferencesCard from "../components/AdvancedPreferencesCard";
 import GoalProgressCard from "../components/GoalProgressCard";
 import WeeklySummaryCard from "../components/WeeklySummaryCard";
+import DisciplineMusclesView from "../components/DisciplineMusclesView";
+import {
+  DisciplineScoreCard,
+  ResilienceCard,
+  WeeklyGrowthReportCard,
+} from "../components/growth";
+import { computeDisciplineScore } from "../utils/disciplineScore";
+import { computeResilienceStats } from "../utils/resilienceStats";
+import {
+  DISCIPLINE_DEFAULT_LEVELS,
+  DISCIPLINE_DEFAULT_XP,
+} from "../utils/disciplineProgress";
 import type { UserProfile } from "../types";
 import {
   PRIVACY_POLICY_URL,
@@ -48,6 +60,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { getLocalizedHabitTitle } from "../i18n/localizeContent";
 import type { AppLocale } from "../i18n/config";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
+import { useTabBarMetrics } from "../utils/tabBarInsets";
 import { trackEvent } from "../utils/analytics";
 
 const PAGE_BG = "#F8FAFC";
@@ -125,22 +138,23 @@ function useLast14Bars(startDateIso: string, checkins: Record<string, { complete
 
 export default function ProfileScreen() {
   const { t, i18n } = useTranslation();
+  const { scrollPadding: tabBarScrollPad } = useTabBarMetrics();
   const { currentLocale, changeAppLanguage, supportedLocales } = useLanguage();
   const [showLangModal, setShowLangModal] = useState(false);
-  const {
-    profile,
-    setName,
-    setHapticsEnabled,
-    clearData,
-    updateProfile,
-  } = useUserStore();
+  const profile = useUserStore((s) => s.profile);
+  const setName = useUserStore((s) => s.setName);
+  const setHapticsEnabled = useUserStore((s) => s.setHapticsEnabled);
+  const clearData = useUserStore((s) => s.clearData);
+  const updateProfile = useUserStore((s) => s.updateProfile);
   const loadProfileAgain = useUserStore((s) => s.loadProfile);
   const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const checkins = useCheckinsStore((s) => s.checkins);
   const habit = useHabitStore((s) => s.habit);
-  const { getStreakState, completionRate, getTodayCheckin } = useCheckinsStore();
-  const streakState = getStreakState();
+  const getStreakState = useCheckinsStore((s) => s.getStreakState);
+  const completionRate = useCheckinsStore((s) => s.completionRate);
+  const getTodayCheckin = useCheckinsStore((s) => s.getTodayCheckin);
+  const streakState = useMemo(() => getStreakState(), [getStreakState, checkins]);
 
   const [editingName, setEditingName] = useState(false);
   const [nameInput, setNameInput] = useState(profile?.name ?? "");
@@ -179,6 +193,16 @@ export default function ProfileScreen() {
 
   const last14 = useLast14Bars(profile?.startDate ?? "", checkins);
 
+  const disciplineScore = useMemo(() => {
+    if (!profile?.startDate) return null;
+    return computeDisciplineScore(profile, checkins);
+  }, [profile, checkins]);
+
+  const resilienceStats = useMemo(() => {
+    if (!profile?.startDate) return null;
+    return computeResilienceStats(profile.startDate, checkins);
+  }, [profile?.startDate, checkins]);
+
   const displayHabitName = useMemo(
     () => (profile ? getLocalizedHabitTitle(profile) : ""),
     [profile, i18n.language]
@@ -190,12 +214,13 @@ export default function ProfileScreen() {
       const next = useUserStore.getState().profile;
       const todayDone = getTodayCheckin()?.completed ?? false;
       if (next) {
-        await setupNotifications(
-          next,
+        await flushNotificationSetup({
+          profile: next,
           todayDone,
-          useTomorrowPlanStore.getState().listsByDate,
-          useCheckinsStore.getState().checkins
-        ).catch(console.warn);
+          listsByDate: useTomorrowPlanStore.getState().listsByDate,
+          checkins: useCheckinsStore.getState().checkins,
+          immediate: true,
+        });
       }
     },
     [updateProfile, getTodayCheckin]
@@ -251,7 +276,7 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: PAGE_BG }]} edges={["top"]}>
       <ScrollView
-        contentContainerStyle={styles.scroll}
+        contentContainerStyle={[styles.scroll, { paddingBottom: tabBarScrollPad }]}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -332,6 +357,22 @@ export default function ProfileScreen() {
 
           <GoalProgressCard dayNumber={dayNumber} startDate={profile.startDate} />
         </Animated.View>
+
+        {/* ── Gelişim: Disiplin + Dayanıklılık ── */}
+        {disciplineScore || resilienceStats ? (
+          <Animated.View style={{ opacity: entO[1], transform: [{ translateY: entY[1]! }] }}>
+            <Text style={[styles.sectionLabel, styles.statsSectionLabel]}>
+              {t("growth.sectionTitle")}
+            </Text>
+            {disciplineScore ? <DisciplineScoreCard result={disciplineScore} /> : null}
+            {resilienceStats ? <ResilienceCard stats={resilienceStats} /> : null}
+            <DisciplineMusclesView
+              muscles={profile.disciplineMuscles ?? DISCIPLINE_DEFAULT_LEVELS}
+              xp={profile.disciplineMuscleXp ?? DISCIPLINE_DEFAULT_XP}
+            />
+            <WeeklyGrowthReportCard profile={profile} checkins={checkins} />
+          </Animated.View>
+        ) : null}
 
         {/* ── Stat Kartları + Haftalık özet ── */}
         <Animated.View style={[styles.statsSection, { opacity: entO[1], transform: [{ translateY: entY[1]! }] }]}>
@@ -590,19 +631,25 @@ export default function ProfileScreen() {
           <View style={styles.footerQuote}>
             <Text style={styles.quoteMain}>{t("profile.footer.quote")}</Text>
             <Text style={styles.quoteSub}>
-              {t("profile.footer.versionDay", { version: APP_VERSION, day: dayNumber })}
+              {t("profile.footer.versionDay", {
+                appName: t("brand.storeName"),
+                version: APP_VERSION,
+                day: dayNumber,
+              })}
             </Text>
           </View>
 
           <TouchableOpacity
             style={styles.aboutRow}
             onPress={() =>
-              Alert.alert(t("profile.footer.aboutAlertTitle"), `${APP_VERSION}\n\n${t("profile.footer.aboutAlertMsg")}`)
+              Alert.alert(t("brand.storeName"), `${APP_VERSION}\n\n${t("profile.footer.aboutAlertMsg")}`)
             }
             activeOpacity={0.7}
           >
             <Ionicons name="information-circle-outline" size={16} color="#94A3B8" />
-            <Text style={styles.aboutText}>{t("profile.footer.about", { version: APP_VERSION })}</Text>
+            <Text style={styles.aboutText}>
+              {t("profile.footer.about", { appName: t("brand.storeName"), version: APP_VERSION })}
+            </Text>
           </TouchableOpacity>
         </Animated.View>
 

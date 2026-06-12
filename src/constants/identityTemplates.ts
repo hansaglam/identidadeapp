@@ -77,6 +77,7 @@ export interface IdentityTemplate {
    * Eşleşme yoksa shortHabitLabel kullanılır.
    */
   anchorPreviewByAnchor?: Partial<Record<string, string>>;
+  /** Stable anchor ID — see constants/anchors.ts */
   defaultAnchor: string;
   defaultTimeId: string; // theme TIME_RANGES id
   /** Ana mikro-aksiyon metni (UI kopya) */
@@ -129,25 +130,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "mental",
     emoji: "🧠",
     title: "Zihni berrak biri",
-    blurb:
-      "Dikkat yoğunken zihnine nefes alanı açmak. Küçük bir yazı veya Zihin sekmesi — aynı yönde küçült.",
+    blurb: "Kafandaki gürültüyü tek satırla boşalt.",
     identityStatement: "Ben, zihni berrak ve önceliklerini bilen biriyim.",
-    shortHabitLabel: "kafamdaki en büyük kaygıyı on saniyede not edeceğim",
+    shortHabitLabel: "tek kaygımı on saniyede not edeceğim",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "kafamdaki tek kaygıyı on saniyede not edeceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "aklımdan geçen tek şeyi hemen not edeceğim",
-      "Telefonu elimden bıraktıktan sonra":
-        "o anki düşünceyi tek cümleye dökeceğim",
-      "Yatağa girmeden önce":
-        "yarına taşımak istemediğim tek kaygıyı yazıp bırakacağım",
-      "Öğle yemeğinden sonra":
-        "öğleden sonra kafamı en çok meşgul eden konuyu on saniyede yazacağım",
-      "Uyandıktan hemen sonra":
-        "ilk iki dakikada zihnimdeki gürültüyü not edeceğim",
+      after_morning_drink: "tek kaygımı on saniyede not edeceğim",
+      after_brush: "aklımdan geçen tek şeyi not edeceğim",
+      after_phone_down: "o anki düşünceyi tek cümleye dökeceğim",
+      before_bed: "yarına taşımak istemediğim tek kaygıyı yazacağım",
+      after_lunch: "öğleden sonra kafamı en çok meşgul eden konuyu yazacağım",
+      after_wake: "ilk iki dakikada zihnimdeki gürültüyü not edeceğim",
+      after_start_work: "işe başlamadan önce önceliğimi tek satır yazacağım",
     },
-    defaultAnchor: "Kahvemi içtikten sonra",
+    defaultAnchor: "after_morning_drink",
     defaultTimeId: timeIdOrFallback("sabah", "sabah"),
     microActionInitial:
       "Zihin sekmesine tek cümle yaz: şu an kafana takılan en büyük şey.",
@@ -186,25 +181,20 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "body",
     emoji: "🦿",
     title: "Hareket eden biri",
-    blurb: "‘Ya hep ya hiç’e son. Küçük hareket = ivme — kendi temponda.",
+    blurb: "Her gün küçük hareket — mükemmellik değil, ivme.",
     identityStatement: "Ben, vücuduna saygı duyan ve her gün hareket eden biriyim.",
-    shortHabitLabel: "bir küçük hareket yapacağım — örneğin bir şınav veya otuz saniye zıplama",
+    shortHabitLabel: "küçük bir hareket yapacağım",
     anchorPreviewByAnchor: {
-      "Eve geldikten ve ayakkabılarımı çıkardıktan sonra":
-        "bir küçük hareket yapacağım; örneğin bir şınav veya otuz saniye zıplama",
-      "Kahvemi içtikten sonra": "yerimde otuz saniye hareket edeceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "fırçaladıktan sonra beş şınav veya squat deneyeceğim",
-      "Telefonu elimden bıraktıktan sonra":
-        "telefonu koyunca omuz çevirip otuz saniye hareket edeceğim",
-      "Yatağa girmeden önce":
-        "yatmadan önce hafif esneme veya on squat yapacağım",
-      "Öğle yemeğinden sonra":
-        "öğle sonrası kısa yürüyüş veya zıplama yapacağım",
-      "Uyandıktan hemen sonra":
-        "uyanınca bir dakika esneme veya yerinde zıplama yapacağım",
+      after_arrive_home: "eve gelince kısa bir hareket yapacağım",
+      after_morning_drink: "sabah içeceğinden sonra 30 sn hareket edeceğim",
+      after_brush: "fırçaladıktan sonra 5 squat veya şınav deneyeceğim",
+      after_phone_down: "telefonu koyunca omuz çevirip hareket edeceğim",
+      before_bed: "yatmadan önce hafif esneme yapacağım",
+      after_lunch: "öğle sonrası kısa yürüyüş veya zıplama yapacağım",
+      after_wake: "uyanınca bir dakika esneme yapacağım",
+      after_start_work: "işe başlamadan önce 30 sn hareket edeceğim",
     },
-    defaultAnchor: "Eve geldikten ve ayakkabılarımı çıkardıktan sonra",
+    defaultAnchor: "after_arrive_home",
     defaultTimeId: timeIdOrFallback("aksam", "aksam"),
     microActionInitial:
       "30 saniye olduğun yerde zıpla veya 1 şınav çek.",
@@ -244,25 +234,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "career",
     emoji: "📚",
     title: "Öğrenen biri",
-    blurb:
-      "Büyük hedefi küçült: bir satır, bir ilk sayfa bile başlangıçtır. Başlatmayı hafif tut.",
+    blurb: "Bir satır bile yeter — başlamak kazançtır.",
     identityStatement: "Ben, her gün yeni bir tuğla koyan, öğrenen biriyim.",
     shortHabitLabel: "öğrenme kaynağımı açıp yalnızca ilk satıra bakacağım",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "öğrenme kaynağımı açıp yalnızca ilk satıra bakacağım",
-      "Dişlerimi fırçaladıktan sonra":
-        "öğrenme penceremi açıp yalnızca ilk satıra bakacağım",
-      "Telefonu elimden bıraktıktan sonra":
-        "kaynağı açıp yalnızca ilk satıra bakacağım",
-      "Yatağa girmeden önce":
-        "yarının tek öğrenme hedefini bir satırda yazıp bırakacağım",
-      "Öğle yemeğinden sonra":
-        "kaynağı açıp yalnızca ilk satıra bakacağım",
-      "Uyandıktan hemen sonra":
-        "öğrenme kaynağımı açıp yalnızca ilk satıra bakacağım",
+      after_phone_down: "kaynağı açıp yalnızca ilk satıra bakacağım",
+      after_morning_drink: "sabah içeceğinden sonra ilk satıra bakacağım",
+      after_brush: "fırçaladıktan sonra öğrenme penceresini açacağım",
+      before_bed: "yarının tek öğrenme hedefini bir satır yazacağım",
+      after_lunch: "öğle arasında ilk satıra bakacağım",
+      after_wake: "uyanınca kaynağı açıp ilk satıra bakacağım",
+      after_start_work: "işe başlarken tek öğrenme kaynağını açacağım",
     },
-    defaultAnchor: "Telefonu elimden bıraktıktan sonra",
+    defaultAnchor: "after_phone_down",
     defaultTimeId: timeIdOrFallback("gece", "gece"),
     microActionInitial:
       "Kaynağı (kitap/app/ders) aç ve sadece ilk satıra bak (15 sn).",
@@ -302,24 +286,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "self",
     emoji: "💧",
     title: "Kendine bakan biri",
-    blurb:
-      "Kendini son sıraya atma ritüeli: önce bardak, sonra nefes — en düşük direnç.",
+    blurb: "Su, nefes, küçük bakım — önce sen.",
     identityStatement: "Ben, kendi ihtiyaçlarını ihmal etmeyen, sistemli biriyim.",
     shortHabitLabel: "bir bardak su hazırlayıp en az bir yudum içeceğim",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "kahveye başlamadan bir bardak su içeceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "bir bardak su hazırlayıp en az bir yudum içeceğim",
-      "Telefonu elimden bıraktıktan sonra":
-        "ekrana dönmeden önce bir yudum su içeceğim",
-      "Yatağa girmeden önce": "yatağa girmeden son bir yudum su içeceğim",
-      "Öğle yemeğinden sonra":
-        "öğle arasında suyu hatırlayıp bir yudum içeceğim",
-      "Uyandıktan hemen sonra":
-        "ilk iş olarak masaya su koyup bir yudum alacağım",
+      after_brush: "bir bardak su hazırlayıp bir yudum içeceğim",
+      after_morning_drink: "içecekten önce bir yudum su içeceğim",
+      after_phone_down: "ekrana dönmeden önce bir yudum su içeceğim",
+      before_bed: "yatmadan önce son bir yudum su içeceğim",
+      after_lunch: "öğle arasında suyu hatırlayıp bir yudum içeceğim",
+      after_wake: "ilk iş olarak masaya su koyup bir yudum alacağım",
+      after_start_work: "işe başlarken masaya su koyacağım",
     },
-    defaultAnchor: "Dişlerimi fırçaladıktan sonra",
+    defaultAnchor: "after_brush",
     defaultTimeId: timeIdOrFallback("sabah", "sabah"),
     microActionInitial: "Bir bardak suyu masaya koy ve bir yudum al.",
     recoveryAction: "Bardağı sadece masaya koy. Yudum sonra.",
@@ -357,25 +336,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "career",
     emoji: "✍️",
     title: "Yaratan biri",
-    blurb:
-      "Mükemmellik yok; küçük dokunuş bile sayılır. Dosyayı aç, yazmak şart değil.",
+    blurb: "Mükemmellik yok; dosyayı açmak üretmektir.",
     identityStatement: "Ben, her gün bir şeyler yaratan ve üretimini kesmeyenin biriyim.",
     shortHabitLabel: "yaratıcı işime küçük bir dokunuş yapacağım",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "yaratıcı dosyamı açıp imleci ilk satıra götüreceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "rutin sonrası yaratıcı işime küçük bir dokunuş yapacağım",
-      "Telefonu elimden bıraktıktan sonra":
-        "üretim alanıma tek bir dokunuş yapacağım",
-      "Yatağa girmeden önce":
-        "yarının tek üretim satırını not edeceğim",
-      "Öğle yemeğinden sonra":
-        "öğle arasında yaratıcı işime küçük bir dokunuş yapacağım",
-      "Uyandıktan hemen sonra":
-        "güne yaratıcı dosyamı açarak başlayacağım",
+      after_morning_drink: "yaratıcı dosyamı açıp imleci ilk satıra götüreceğim",
+      after_brush: "rutin sonrası yaratıcı işime dokunacağım",
+      after_phone_down: "üretim alanıma tek bir dokunuş yapacağım",
+      before_bed: "yarının tek üretim satırını not edeceğim",
+      after_lunch: "öğle arasında yaratıcı işime dokunacağım",
+      after_wake: "güne yaratıcı dosyamı açarak başlayacağım",
+      after_start_work: "işe başlarken üretim dosyamı açacağım",
     },
-    defaultAnchor: "Kahvemi içtikten sonra",
+    defaultAnchor: "after_morning_drink",
     defaultTimeId: timeIdOrFallback("sabah", "sabah"),
     microActionInitial:
       "Dosyayı aç ve sadece ilk satıra imleç götür. Yazmak zorunda değilsin — sadece aç.",
@@ -414,25 +387,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "career",
     emoji: "🎯",
     title: "Odaklı çalışan biri",
-    blurb: "Çoklu görev yok: önce tek sekme tek iş. Derinlik için küçük bloklar.",
+    blurb: "Tek sekme, tek iş — dağınıklığı kes.",
     identityStatement: "Ben, dikkatini seçen ve tek işe tam odaklanabilen biriyim.",
-    shortHabitLabel: "bir derin odak geçişi yapacağım",
+    shortHabitLabel: "tek göreve odak geçişi yapacağım",
     anchorPreviewByAnchor: {
-      "Bilgisayarımı açtıktan sonra": "bir derin odak geçişi yapacağım",
-      "Kahvemi içtikten sonra":
-        "tüm sekmeleri kapatıp tek göreve kilitleneceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "sabah rutininden sonra tek sekmede tek görev seçeceğim",
-      "Telefonu elimden bıraktıktan sonra":
-        "tek göreve beş dakika tam odak vereceğim",
-      "Yatağa girmeden önce":
-        "işi kapatıp yarının tek önceliğini yazacağım",
-      "Öğle yemeğinden sonra":
-        "tek pencerede derin odak bloğu açacağım",
-      "Uyandıktan hemen sonra":
-        "bugünün tek ana işini seçip ona kilitleneceğim",
+      after_start_work: "işe başlarken tek sekmede tek göreve kilitleneceğim",
+      after_morning_drink: "içecekten sonra tüm sekmeleri kapatıp tek göreve geçeceğim",
+      after_brush: "sabah rutininden sonra tek görev seçeceğim",
+      after_phone_down: "telefonu koyunca tek göreve 5 dk odak vereceğim",
+      before_bed: "yarının tek önceliğini yazıp işi kapatacağım",
+      after_lunch: "öğle sonrası tek pencerede odak bloğu açacağım",
+      after_wake: "bugünün ana işini seçip ona kilitleneceğim",
     },
-    defaultAnchor: "Bilgisayarımı açtıktan sonra",
+    defaultAnchor: "after_start_work",
     defaultTimeId: timeIdOrFallback("sabah", "sabah"),
     microActionInitial:
       "Tüm sekmeleri kapat, tek bir görev bırak. Sadece o ekranla kal.",
@@ -472,25 +439,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "self",
     emoji: "🌙",
     title: "Düzenli uyuyan biri",
-    blurb:
-      "Ekran bitmiyor uyku bitiyor. Bilinçli kapanış: ekran kapanır beynin nefes alır.",
+    blurb: "Ekranı kapat — uykunu koru.",
     identityStatement: "Ben, uykusunu ciddiye alan ve geceleri kapatan biriyim.",
     shortHabitLabel: "ekranı kapatıp uykuya geçiş ritüelimi yapacağım",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "ekranı erken azaltıp yavaşlama sinyali vereceğim",
-      "Dişlerimi fırçaladıktan sonra":
-        "telefonu odadan çıkarıp uyku ritüeline geçeceğim",
-      "Telefonu elimden bıraktıktan sonra":
-        "ekranı kapatıp on saniye nefesle günü kapatacağım",
-      "Yatağa girmeden önce":
-        "ekranı kapatıp uykuya geçiş ritüelimi yapacağım",
-      "Öğle yemeğinden sonra":
-        "akşam için uyku sınırımı kendime hatırlatacağım",
-      "Uyandıktan hemen sonra":
-        "bugün için yatış ritüel saatimi netleştireceğim",
+      before_bed: "ekranı kapatıp uyku ritüeline geçeceğim",
+      after_phone_down: "ekranı kapatıp on saniye nefesle günü kapatacağım",
+      after_brush: "telefonu odadan çıkarıp uyku ritüeline geçeceğim",
+      after_morning_drink: "akşam için uyku sınırımı hatırlatacağım",
+      after_lunch: "bu akşam yatış saatimi netleştireceğim",
+      after_wake: "bugün için yatış ritüel saatimi belirleyeceğim",
+      after_start_work: "akşam ekran sınırımı kendime hatırlatacağım",
     },
-    defaultAnchor: "Yatağa girmeden önce",
+    defaultAnchor: "before_bed",
     defaultTimeId: timeIdOrFallback("gece", "gece"),
     microActionInitial:
       "Ekranı kapat. 10 saniye sadece gözlerini kapat, nefes al.",
@@ -529,24 +490,19 @@ export const IDENTITY_TEMPLATES: readonly IdentityTemplate[] = [
     pillar: "self",
     emoji: "🤝",
     title: "Bağ kuran biri",
-    blurb:
-      "Büyük jest şart değil: minik temaslar; mesaj, selam, iyi dilek. Bağ her gün biraz büyür.",
+    blurb: "Küçük temas — ilişki büyür.",
     identityStatement: "Ben, insanlarla gerçek bağ kuran ve ilişkilerini besleyen biriyim.",
     shortHabitLabel: "biriyle küçük bir temas kuracağım",
     anchorPreviewByAnchor: {
-      "Kahvemi içtikten sonra":
-        "birine kısa bir merhaba veya nasılsın yazacağım",
-      "Dişlerimi fırçaladıktan sonra":
-        "aklıma gelen birine küçük bir temas planlayacağım",
-      "Telefonu elimden bıraktıktan sonra":
-        "birinin adını yazıp gün içi mesajımı hatırlatacağım",
-      "Yatağa girmeden önce":
-        "sevdiğim birine iyi geceler veya kısa bir not düşüneceğim",
-      "Öğle yemeğinden sonra": "biriyle küçük bir temas kuracağım",
-      "Uyandıktan hemen sonra":
-        "bugün kiminle bağ kurmak istediğimi tek cümle yazacağım",
+      after_lunch: "biriyle kısa bir temas kuracağım",
+      after_morning_drink: "birine kısa bir merhaba yazacağım",
+      after_brush: "aklıma gelen birine küçük temas planlayacağım",
+      after_phone_down: "birinin adını yazıp gün içi mesajımı hatırlatacağım",
+      before_bed: "sevdiğim birine iyi geceler düşüneceğim",
+      after_wake: "bugün kiminle bağ kurmak istediğimi yazacağım",
+      after_start_work: "işe başlarken birine kısa check-in planlayacağım",
     },
-    defaultAnchor: "Öğle yemeğinden sonra",
+    defaultAnchor: "after_lunch",
     defaultTimeId: timeIdOrFallback("ogle", "ogle"),
     microActionInitial:
       "Aklına gelen birinin adını yaz. Bir şey söylemek zorunda değilsin — sadece düşün.",
@@ -588,13 +544,20 @@ const BY_ID: Record<string, IdentityTemplate> = Object.fromEntries(
 /** Onboarding 2. adımda önizleme: çapa + şablona uygun eylem metni */
 export function previewHabitPhraseForAnchor(
   template: IdentityTemplate | null | undefined,
-  selectedAnchor: string | null,
+  selectedAnchorId: string | null,
   habitFallback: string
 ): string {
+  const { localizeAnchorPreview, localizeShortHabitLabel } =
+    require("../i18n/localizeContent") as typeof import("../i18n/localizeContent");
   if (!template) return habitFallback;
-  if (!selectedAnchor) return template.shortHabitLabel;
-  const mapped = template.anchorPreviewByAnchor?.[selectedAnchor];
-  return mapped ?? template.shortHabitLabel;
+  if (!selectedAnchorId) {
+    return localizeShortHabitLabel(template.id, template.shortHabitLabel);
+  }
+  const mapped = template.anchorPreviewByAnchor?.[selectedAnchorId];
+  if (mapped) {
+    return localizeAnchorPreview(template.id, selectedAnchorId, mapped);
+  }
+  return localizeShortHabitLabel(template.id, template.shortHabitLabel);
 }
 
 export function getIdentityTemplate(

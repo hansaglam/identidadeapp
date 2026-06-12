@@ -1,5 +1,5 @@
+import i18n from "../i18n/config";
 import type { DisciplineMuscles } from "../types/discipline";
-import { MUSCLE_NAMES } from "../types/discipline";
 
 export type DisciplineMuscleKey = keyof DisciplineMuscles;
 
@@ -46,7 +46,7 @@ const TINY_BY_MUSCLE: Record<DisciplineMuscleKey, TinyHabitSuggestion[]> = {
     },
     {
       habitTitle: "Bir tabak / bir mail",
-      habitAnchor: "Evi bırakmadan önce masada veya masada tek tabak/kupa topla veya tek maili cevapla.",
+      habitAnchor: "Evi bırakmadan önce masada tek tabak/kupa topla veya tek maili cevapla.",
       targetMuscle: "direnc",
       reason: "Mikro tamamlama ile direnç eşiğini alçaltmak.",
     },
@@ -95,6 +95,29 @@ const TINY_BY_MUSCLE: Record<DisciplineMuscleKey, TinyHabitSuggestion[]> = {
   ],
 };
 
+function muscleName(key: DisciplineMuscleKey): string {
+  const k = `habitStacking.muscleNames.${key}`;
+  const v = i18n.t(k);
+  return v === k ? key : v;
+}
+
+function localizePoolItem(
+  muscle: DisciplineMuscleKey,
+  index: number,
+  base: TinyHabitSuggestion
+): TinyHabitSuggestion {
+  const prefix = `habitStacking.pool.${muscle}.${index}`;
+  const title = i18n.t(`${prefix}.title`);
+  const anchor = i18n.t(`${prefix}.anchor`);
+  const reason = i18n.t(`${prefix}.reason`);
+  return {
+    habitTitle: title === `${prefix}.title` ? base.habitTitle : title,
+    habitAnchor: anchor === `${prefix}.anchor` ? base.habitAnchor : anchor,
+    targetMuscle: base.targetMuscle,
+    reason: reason === `${prefix}.reason` ? base.reason : reason,
+  };
+}
+
 function weakestMuscle(muscles: DisciplineMuscles): DisciplineMuscleKey {
   const entries = Object.entries(muscles) as [DisciplineMuscleKey, number][];
   entries.sort((a, b) => a[1] - b[1]);
@@ -106,18 +129,27 @@ function pickUnique(
   completedName: string
 ): TinyHabitSuggestion[] {
   const pool = TINY_BY_MUSCLE[weakest];
-  const first = pool[0]!;
+  const first = localizePoolItem(weakest, 0, pool[0]!);
   const altMuscles = (Object.keys(TINY_BY_MUSCLE) as DisciplineMuscleKey[]).filter(
     (k) => k !== weakest
   );
   const secondMuscle = altMuscles[0]!;
   const thirdMuscle = altMuscles[1] ?? altMuscles[0]!;
-  const second = TINY_BY_MUSCLE[secondMuscle][0]!;
-  const third = TINY_BY_MUSCLE[thirdMuscle][1] ?? TINY_BY_MUSCLE[thirdMuscle][0]!;
+  const secondBase = TINY_BY_MUSCLE[secondMuscle][0]!;
+  const thirdBase = TINY_BY_MUSCLE[thirdMuscle][1] ?? TINY_BY_MUSCLE[thirdMuscle][0]!;
+  const second = localizePoolItem(secondMuscle, 0, secondBase);
+  const third = localizePoolItem(thirdMuscle, 1, thirdBase);
+
+  const completed =
+    completedName.trim() || i18n.t("habitStacking.defaultHabit");
 
   const withReason = (t: TinyHabitSuggestion, focus: DisciplineMuscleKey): TinyHabitSuggestion => ({
     ...t,
-    reason: `${completedName} yolculuğun ${MUSCLE_NAMES[focus]} kasını güçlendirdi. Sırada: ${MUSCLE_NAMES[t.targetMuscle]} için mini bir katman.`,
+    reason: i18n.t("habitStacking.suggestionReason", {
+      completed,
+      focus: muscleName(focus),
+      target: muscleName(t.targetMuscle),
+    }),
   });
 
   return [
@@ -127,9 +159,6 @@ function pickUnique(
   ];
 }
 
-/**
- * 66. gün sonrası: en zayıf kasa odaklı 3 tiny habit + aynı meta dil.
- */
 export function suggestStackedHabits(
   completedHabitName: string,
   muscles: DisciplineMuscles
@@ -139,8 +168,10 @@ export function suggestStackedHabits(
   headlineReason: string;
 } {
   const weakest = weakestMuscle(muscles);
-  const suggestions = pickUnique(weakest, completedHabitName.trim() || "Bu alışkanlık");
-  const headlineReason = `Şu an en çok gelişime açık kasın: ${MUSCLE_NAMES[weakest]}. Üzerine kurulacak yeni küçük alışkanlık, bunu hedefleyebilir.`;
+  const suggestions = pickUnique(weakest, completedHabitName.trim());
+  const headlineReason = i18n.t("habitStacking.headlineReason", {
+    muscle: muscleName(weakest),
+  });
 
   return { weakest, suggestions, headlineReason };
 }

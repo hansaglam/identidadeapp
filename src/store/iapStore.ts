@@ -224,12 +224,10 @@ export const useIAPStore = create<IAPState>((set, get) => {
           await persistPremiumAfterPurchase(ours);
           return true;
         }
-        set({ isPro: false });
-        const profile = useUserStore.getState().profile;
-        if (profile?.isPremium && profile.purchaseToken) {
-          await useUserStore.getState().setPremium(false);
-        }
-        return false;
+        // Boş mağaza yanıtı geçici olabilir — yerel premium'u sessizce düşürme
+        const cached = useUserStore.getState().profile?.isPremium ?? false;
+        set({ isPro: cached });
+        return cached;
       } catch {
         return useUserStore.getState().profile?.isPremium ?? false;
       }

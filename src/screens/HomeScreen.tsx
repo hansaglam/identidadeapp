@@ -13,10 +13,7 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import {
-  BottomTabScreenProps,
-  useBottomTabBarHeight,
-} from "@react-navigation/bottom-tabs";
+import { BottomTabScreenProps } from "@react-navigation/bottom-tabs";
 import { CompositeScreenProps } from "@react-navigation/native";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import * as Haptics from "expo-haptics";
@@ -33,12 +30,9 @@ import { useMindDumpStore } from "../store/mindDumpStore";
 import { useHabitStore } from "../store/habitStore";
 import { useTomorrowPlanStore } from "../store/tomorrowPlanStore";
 import FiveSecondTrainer, { FiveSecondScenario } from "../components/FiveSecondTrainer";
-import {
-  cancelEveningReminderToday,
-  setupNotifications,
-} from "../utils/notifications";
+import { cancelEveningReminderToday } from "../utils/notifications";
+import { flushNotificationSetup } from "../utils/notificationScheduler";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
-import { IDENTITY_MESSAGES, pickMessage } from "../constants/identity-copy";
 import { IDENTITY_TEMPLATES, getIdentitySlugForTag } from "../constants/identityTemplates";
 import { RootStackParamList, MainTabParamList, UserProfile } from "../types";
 import { buildCalendarWeekAroundToday, countConsecutiveMissesFromYesterday } from "../utils/journeyHome";
@@ -79,7 +73,18 @@ import { hasCompletedActionToday } from "../utils/behaviorToday";
 import {
   getLocalizedIdentityLine,
   getLocalizedHabitTitle,
+  pickLocalizedCheckInToast,
 } from "../i18n/localizeContent";
+import { useTabBarMetrics } from "../utils/tabBarInsets";
+import { computeDisciplineScore } from "../utils/disciplineScore";
+import {
+  computeResilienceStats,
+  isComebackCheckIn,
+} from "../utils/resilienceStats";
+import {
+  DisciplineScoreCard,
+  FirstComebackModal,
+} from "../components/growth";
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<MainTabParamList, "Home">,
@@ -100,17 +105,26 @@ function getIdentityLine(profile: UserProfile): string {
 export default function HomeScreen({ navigation }: Props) {
   const { t, i18n: i18nInstance } = useTranslation();
   const route = useRoute<RouteProp<MainTabParamList, "Home">>();
-  const tabBarHeight = useBottomTabBarHeight();
+  const { scrollPadding: tabBarScrollPad, totalHeight: tabBarHeight } = useTabBarMetrics();
   const profile = useUserStore((s) => s.profile);
   const profileLoadFailed = useUserStore((s) => s.profileLoadFailed);
   const loadProfileAgain = useUserStore((s) => s.loadProfile);
+
+  /** Main açıldı ama profil bellekte yoksa (nav geçişi / cold start) sessizce yeniden yükle. */
+  useEffect(() => {
+    if (profile == null && !profileLoadFailed) {
+      void loadProfileAgain({ quiet: true });
+    }
+  }, [profile, profileLoadFailed, loadProfileAgain]);
   const dayNumber = useUserStore((s) => s.dayNumber());
   const markPremiumGateShown = useUserStore((s) => s.markPremiumGateShown);
   const addDisciplineMuscleXp = useUserStore((s) => s.addDisciplineMuscleXp);
   const updateProfile = useUserStore((s) => s.updateProfile);
 
   const checkins = useCheckinsStore((s) => s.checkins);
-  const { completeTodayWithRatings, getTodayCheckin, getStreakState } = useCheckinsStore();
+  const completeTodayWithRatings = useCheckinsStore((s) => s.completeTodayWithRatings);
+  const getTodayCheckin = useCheckinsStore((s) => s.getTodayCheckin);
+  const getStreakState = useCheckinsStore((s) => s.getStreakState);
   const mindDumpEntries = useMindDumpStore((s) => s.entries);
   const listsByDate = useTomorrowPlanStore((s) => s.listsByDate);
   const loadTomorrowPlans = useTomorrowPlanStore((s) => s.load);
@@ -128,6 +142,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [showStackingModal, setShowStackingModal] = useState(false);
   const [show66CompleteModal, setShow66CompleteModal] = useState(false);
   const [showPremiumGate, setShowPremiumGate] = useState(false);
+  const [showFirstComebackModal, setShowFirstComebackModal] = useState(false);
   const isPremium = profile?.isPremium ?? false;
   const [checkInAnimating, setCheckInAnimating] = useState(false);
   const [streakRoll, setStreakRoll] = useState<{ from: number; to: number } | null>(null);
@@ -161,6 +176,7 @@ export default function HomeScreen({ navigation }: Props) {
   const checkingRef = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const proactiveHandledRef = useRef<string | null>(null);
+  const entrancePlayedRef = useRef(false);
 
   // --- Derived data ---
 
@@ -179,9 +195,9 @@ export default function HomeScreen({ navigation }: Props) {
     }, [route.params?.openTaskSheet, navigation])
   );
 
-  const todayCheckin = getTodayCheckin();
+  const todayCheckin = useMemo(() => getTodayCheckin(), [getTodayCheckin, checkins]);
   const todayDone = todayCheckin?.completed ?? false;
-  const streakState = getStreakState();
+  const streakState = useMemo(() => getStreakState(), [getStreakState, checkins]);
   const todayPlanDate = calendarToday;
   const tomorrowPlanDate = useMemo(
     () => format(addDays(new Date(), 1), "yyyy-MM-dd"),
@@ -214,6 +230,16 @@ export default function HomeScreen({ navigation }: Props) {
     if (!profile?.startDate) return 0;
     return countConsecutiveMissesFromYesterday(profile.startDate, checkins);
   }, [profile?.startDate, checkins]);
+
+  const resilienceStats = useMemo(() => {
+    if (!profile?.startDate) return null;
+    return computeResilienceStats(profile.startDate, checkins);
+  }, [profile?.startDate, checkins]);
+
+  const disciplineScore = useMemo(() => {
+    if (!profile?.startDate) return null;
+    return computeDisciplineScore(profile, checkins);
+  }, [profile, checkins]);
 
   const showRestartCard = consecutiveMiss >= 3 && !todayDone;
   const showMissRecovery = consecutiveMiss >= 1 && !todayDone && !showRestartCard;
@@ -249,7 +275,7 @@ export default function HomeScreen({ navigation }: Props) {
   const userBehaviorState = useMemo(() => {
     if (!behaviorData) return null;
     return getUserState(behaviorData);
-  }, [behaviorData]);
+  }, [behaviorData, i18nInstance.language]);
 
   const hasActionToday = useMemo(
     () =>
@@ -322,6 +348,8 @@ export default function HomeScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       if (!profile) return;
+      if (entrancePlayedRef.current) return;
+      entrancePlayedRef.current = true;
       entranceHeader.setValue(0);
       entranceButton.setValue(0);
       entranceCards.forEach((c) => c.setValue(0));
@@ -401,7 +429,11 @@ export default function HomeScreen({ navigation }: Props) {
   );
 
   const afterCheckInFollowUp = useCallback(
-    async (automaticity: number, effort: number) => {
+    async (
+      automaticity: number,
+      effort: number,
+      opts?: { skipCelebrationToast?: boolean }
+    ) => {
       if (!profile) return;
       if (dayNumber === 66) {
         await updateProfile({ stackingOfferPending: true });
@@ -412,11 +444,12 @@ export default function HomeScreen({ navigation }: Props) {
       const streakJustReset = useCheckinsStore.getState().isStreakReset();
       if (automaticity < 5 || effort > 7) {
         setShowFiveSecond(true);
-      } else {
-        const messages = IDENTITY_MESSAGES.checkInComplete(profile.habitName, dayNumber);
-        const msg = streakJustReset
-          ? IDENTITY_MESSAGES.streakReset
-          : pickMessage(messages, dayNumber);
+      } else if (!opts?.skipCelebrationToast) {
+        const msg = pickLocalizedCheckInToast(
+          profile.habitName,
+          dayNumber,
+          streakJustReset
+        );
         showToast(msg);
       }
     },
@@ -439,12 +472,13 @@ export default function HomeScreen({ navigation }: Props) {
       await useBehaviorStore.getState().reset();
       const fresh = useUserStore.getState().profile;
       if (fresh) {
-        await setupNotifications(
-          fresh,
-          false,
-          useTomorrowPlanStore.getState().listsByDate,
-          useCheckinsStore.getState().checkins
-        );
+        await flushNotificationSetup({
+          profile: fresh,
+          todayDone: false,
+          listsByDate: useTomorrowPlanStore.getState().listsByDate,
+          checkins: useCheckinsStore.getState().checkins,
+          immediate: true,
+        });
       }
       setShowStackingModal(false);
       void trackEvent("journey_stacked", {
@@ -464,6 +498,8 @@ export default function HomeScreen({ navigation }: Props) {
     async (automaticity: number | null, effort: number | null) => {
       if (!profile || todayDone || checkingRef.current) return;
       checkingRef.current = true;
+      const isComeback = isComebackCheckIn(consecutiveMiss);
+      const priorComebacks = resilienceStats?.comebacks ?? 0;
       const prevStreak = getStreakState().currentStreak;
       const followUpAuto = automaticity ?? 5;
       const followUpEffort = effort ?? 5;
@@ -528,9 +564,29 @@ export default function HomeScreen({ navigation }: Props) {
             gateMode: checkInActionGate,
           });
 
+          if (isComeback) {
+            void trackEvent("miss_recovered", {
+              source: "checkin",
+              consecutiveMiss,
+              comebackNumber: priorComebacks + 1,
+            });
+            if (priorComebacks === 0 && !profile.firstComebackCelebrated) {
+              if (profile.hapticsEnabled !== false) {
+                void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              }
+              setShowFirstComebackModal(true);
+            } else {
+              showToast(
+                t("growth.comeback.nth", { count: priorComebacks + 1 })
+              );
+            }
+          }
+
           if (automaticity != null && effort != null) {
-            void afterCheckInFollowUp(automaticity, effort);
-          } else {
+            void afterCheckInFollowUp(automaticity, effort, {
+              skipCelebrationToast: isComeback,
+            });
+          } else if (!isComeback) {
             showToast(t("home.toast.dayComplete"));
           }
         } finally {
@@ -541,6 +597,8 @@ export default function HomeScreen({ navigation }: Props) {
     [
       profile,
       todayDone,
+      consecutiveMiss,
+      resilienceStats?.comebacks,
       completeTodayWithRatings,
       dayNumber,
       tickScale,
@@ -553,6 +611,7 @@ export default function HomeScreen({ navigation }: Props) {
       showToast,
       checkInActionGate,
       userBehaviorState?.suggestedAction.id,
+      t,
     ]
   );
 
@@ -762,7 +821,7 @@ export default function HomeScreen({ navigation }: Props) {
       <ScrollView
         ref={scrollRef}
         style={styles.scroll}
-        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarHeight + 24 }]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: tabBarScrollPad + 12 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -788,12 +847,23 @@ export default function HomeScreen({ navigation }: Props) {
           </View>
         </Animated.View>
 
+        {disciplineScore ? (
+          <Animated.View style={[styles.growthHomeWrap, headerEnterStyle]}>
+            <DisciplineScoreCard result={disciplineScore} compact />
+          </Animated.View>
+        ) : null}
+
         {/* --- Miss recovery (1–2 gün kaçırma) --- */}
         {showMissRecovery ? (
           <Animated.View style={cardEnterStyle(0)}>
             <MissRecoveryCard
               consecutiveMiss={consecutiveMiss}
               suggestedActionTitle={userBehaviorState?.suggestedAction.title ?? null}
+              priorComebacks={
+                resilienceStats?.status === "measured"
+                  ? resilienceStats.comebacks
+                  : undefined
+              }
               onStartSmallestStep={handleMissStartStep}
               onOpenCheckIn={handleMissOpenCheckIn}
             />
@@ -993,6 +1063,15 @@ export default function HomeScreen({ navigation }: Props) {
         }}
       />
 
+      <FirstComebackModal
+        visible={showFirstComebackModal}
+        onContinue={() => {
+          setShowFirstComebackModal(false);
+          void updateProfile({ firstComebackCelebrated: true });
+          void trackEvent("first_comeback_celebrated");
+        }}
+      />
+
       <PremiumGateModal
         visible={showPremiumGate}
         onClose={() => setShowPremiumGate(false)}
@@ -1066,6 +1145,10 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: Colors.bg },
   scroll: { flex: 1 },
   scrollContent: { flexGrow: 1 },
+  growthHomeWrap: {
+    marginHorizontal: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
   header: {
     marginHorizontal: Spacing.md,
     marginTop: Spacing.sm,

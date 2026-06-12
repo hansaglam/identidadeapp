@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
-import { MUSCLE_NAMES, DisciplineMuscles } from "../types/discipline";
+import { DisciplineMuscles } from "../types/discipline";
 
 const KEYS: (keyof DisciplineMuscles)[] = [
   "karar", "direnc", "baglam", "energi", "sosyal",
@@ -13,6 +14,11 @@ export interface DisciplineMusclesViewProps {
 }
 
 export default function DisciplineMusclesView({ muscles, xp }: DisciplineMusclesViewProps) {
+  const { t } = useTranslation();
+
+  const muscleLabel = (key: keyof DisciplineMuscles) =>
+    t(`growth.muscles.${key}`);
+
   const weakest = useMemo(() => {
     let k: keyof DisciplineMuscles = "karar";
     let minLv = Infinity;
@@ -31,14 +37,14 @@ export default function DisciplineMusclesView({ muscles, xp }: DisciplineMuscles
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.title}>Disiplin kasları</Text>
+      <Text style={styles.title}>{t("growth.muscles.title")}</Text>
       {KEYS.map((key) => {
         const pct = Math.min(1, (xp[key] % 100) / 100);
         return (
           <View key={key} style={styles.row}>
             <View style={styles.rowTop}>
-              <Text style={styles.muscleName}>{MUSCLE_NAMES[key]}</Text>
-              <Text style={styles.lv}>Lv. {muscles[key]}</Text>
+              <Text style={styles.muscleName}>{muscleLabel(key)}</Text>
+              <Text style={styles.lv}>{t("growth.muscles.level", { level: muscles[key] })}</Text>
             </View>
             <View style={styles.track}>
               <View style={[styles.fill, { width: `${Math.max(0.04, pct) * 100}%` }]} />
@@ -48,8 +54,7 @@ export default function DisciplineMusclesView({ muscles, xp }: DisciplineMuscles
       })}
       <View style={styles.tipBox}>
         <Text style={styles.tipText}>
-          💡 {MUSCLE_NAMES[weakest]} en zayıf kasın. Sonraki antrenmanlar bu yönde
-          ağırlık kazanabilir.
+          {t("growth.muscles.weakestTip", { muscle: muscleLabel(weakest) })}
         </Text>
       </View>
     </View>

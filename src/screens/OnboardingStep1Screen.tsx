@@ -7,7 +7,7 @@ import {
   TextInput,
   ScrollView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import KeyboardAwareFormShell from "../components/KeyboardAwareFormShell";
 import { Check } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -15,6 +15,7 @@ import { AuthStackParamList } from "../types";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
 import { IDENTITY_TEMPLATES, type IdentityTagId } from "../constants/identityTemplates";
 import { useTranslation } from "react-i18next";
+import { getLocalizedTemplate } from "../i18n/localizeContent";
 import { trackEvent } from "../utils/analytics";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep1">;
@@ -65,7 +66,9 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
   const isCustom = selected === CUSTOM_ID;
   const chosenTemplate = IDENTITY_TEMPLATES.find((t) => t.id === selected);
 
-  const habitName = isCustom ? customText.trim() : chosenTemplate?.title ?? "";
+  const habitName = isCustom
+    ? customText.trim()
+    : (getLocalizedTemplate(chosenTemplate?.id)?.title ?? chosenTemplate?.title ?? "");
   const identityTagId: IdentityTagId | null =
     (chosenTemplate?.id as IdentityTagId | undefined) ?? null;
   const canContinue = habitName.length >= 2;
@@ -85,12 +88,24 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <ScrollView
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+    <KeyboardAwareFormShell
+      scrollContentStyle={styles.scroll}
+      footer={
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.cta, !canContinue && styles.ctaDisabled]}
+            onPress={handleContinue}
+            disabled={!canContinue}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.ctaText}>{t("common.continue")}</Text>
+          </TouchableOpacity>
+          {!canContinue && (
+            <Text style={styles.footerHint}>{t("onboarding.step1.footerHint")}</Text>
+          )}
+        </View>
+      }
+    >
         <StepBar current={1} />
 
         <Text style={styles.title}>{t("onboarding.step1.title")}</Text>
@@ -106,6 +121,7 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
         <View style={styles.list}>
           {IDENTITY_TEMPLATES.map((tpl) => {
             const active = selected === tpl.id;
+            const loc = getLocalizedTemplate(tpl.id) ?? tpl;
             return (
               <TouchableOpacity
                 key={tpl.id}
@@ -119,9 +135,9 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
                   </View>
                   <View style={styles.cardTextWrap}>
                     <Text style={[styles.cardTitle, active && styles.cardTitleActive]}>
-                      {tpl.title}
+                      {loc.title}
                     </Text>
-                    <Text style={styles.cardBlurb} numberOfLines={2}>{tpl.blurb}</Text>
+                    <Text style={styles.cardBlurb} numberOfLines={2}>{loc.blurb}</Text>
                   </View>
                   <View style={[styles.radioOuter, active && styles.radioOuterActive]}>
                     {active && <View style={styles.radioDot} />}
@@ -132,11 +148,11 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
                   <View style={styles.previewBox}>
                     <View style={styles.previewRow}>
                       <Text style={styles.previewLabel}>{t("onboarding.step1.previewIdentity")}</Text>
-                      <Text style={styles.previewLine}>"{tpl.identityStatement}"</Text>
+                      <Text style={styles.previewLine}>"{loc.identityStatement}"</Text>
                     </View>
                     <View style={[styles.previewRow, styles.previewRowBorder]}>
                       <Text style={styles.previewLabel}>{t("onboarding.step1.previewMicro")}</Text>
-                      <Text style={styles.previewLine}>{tpl.microActionInitial}</Text>
+                      <Text style={styles.previewLine}>{loc.microActionInitial}</Text>
                     </View>
                   </View>
                 )}
@@ -182,33 +198,14 @@ export default function OnboardingStep1Screen({ navigation }: Props) {
             )}
           </TouchableOpacity>
         </View>
-      </ScrollView>
-
-      {/* Footer */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={[styles.cta, !canContinue && styles.ctaDisabled]}
-          onPress={handleContinue}
-          disabled={!canContinue}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.ctaText}>{t("common.continue")}</Text>
-        </TouchableOpacity>
-        {!canContinue && (
-          <Text style={styles.footerHint}>{t("onboarding.step1.footerHint")}</Text>
-        )}
-      </View>
-    </SafeAreaView>
+    </KeyboardAwareFormShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
   scroll: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    flexGrow: 1,
   },
 
   /* Step bar */
@@ -420,11 +417,7 @@ const styles = StyleSheet.create({
   /* Footer */
   footer: {
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
     paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
     gap: Spacing.sm,
     alignItems: "center",
   },

@@ -13,6 +13,7 @@ import {
   Platform,
   KeyboardAvoidingView,
 } from "react-native";
+import { getKeyboardAvoidingBehavior } from "../utils/keyboardInsets";
 import {
   Moon,
   MapPin,
@@ -433,7 +434,7 @@ export default function AdvancedPreferencesCard({
 
       <Modal visible={pasteOpen} animationType="slide" transparent onRequestClose={() => setPasteOpen(false)}>
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={getKeyboardAvoidingBehavior()}
           style={styles.modalOverlay}
         >
           <TouchableOpacity style={StyleSheet.absoluteFill} activeOpacity={1} onPress={() => setPasteOpen(false)} />

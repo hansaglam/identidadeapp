@@ -9,9 +9,9 @@ import {
   ScrollView,
   Pressable,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getKeyboardAvoidingBehavior, useKeyboardModalScrollPadding } from "../utils/keyboardInsets";
 import { useTranslation } from "react-i18next";
 import { X } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
@@ -43,6 +43,7 @@ export default function EditCommitmentModal({
 }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const { paddingBottom: scrollPad } = useKeyboardModalScrollPadding();
   const [habitName, setHabitName] = useState(h0);
   const [habitAnchor, setHabitAnchor] = useState(a0);
   const [habitWhy, setHabitWhy] = useState(w0);
@@ -87,7 +88,7 @@ export default function EditCommitmentModal({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={getKeyboardAvoidingBehavior()}
         style={styles.wrap}
       >
         <Pressable style={styles.backdrop} onPress={onClose} />
@@ -106,6 +107,8 @@ export default function EditCommitmentModal({
           <ScrollView
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: scrollPad }}
+            keyboardDismissMode="on-drag"
           >
             <Text style={styles.label}>{t("profile.commitment.labelHabit")}</Text>
             <TextInput

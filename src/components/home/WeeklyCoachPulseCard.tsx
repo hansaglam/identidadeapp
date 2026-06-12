@@ -27,7 +27,7 @@ export default function WeeklyCoachPulseCard({
   recentActions,
   latestSdt,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const pulse = useMemo(
     () =>
       buildWeeklyCoachPulse({
@@ -39,7 +39,7 @@ export default function WeeklyCoachPulseCard({
         recentActions,
         latestSdt,
       }),
-    [startDate, checkins, habitName, dayNumber, currentStreak, recentActions, latestSdt]
+    [startDate, checkins, habitName, dayNumber, currentStreak, recentActions, latestSdt, i18n.language]
   );
 
   return (

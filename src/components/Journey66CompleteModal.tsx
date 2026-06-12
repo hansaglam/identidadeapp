@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Share,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Sparkles, Share2, ArrowRight } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes, Shadows } from "../constants/theme";
@@ -29,14 +30,11 @@ export default function Journey66CompleteModal({
   totalCheckins,
   onContinue,
 }: Props) {
-  const h = habitName.trim() || "alışkanlığın";
+  const { t } = useTranslation();
+  const h = habitName.trim() || t("journey.complete66.defaultHabit");
 
   const onShare = () => {
-    const msg = [
-      "66 günlük kimlik yolculuğunu tamamladım.",
-      `${h} artık kimliğimin parçası.`,
-      `#KimlikApp`,
-    ].join(" ");
+    const msg = t("journey.complete66.shareMessage", { habit: h });
     void Share.share({ message: msg });
   };
 
@@ -50,42 +48,36 @@ export default function Journey66CompleteModal({
           <View style={styles.iconWrap}>
             <Sparkles size={32} color={Colors.primary} strokeWidth={1.8} />
           </View>
-          <Text style={styles.title}>66 gün tamamlandı</Text>
-          <Text style={styles.lead}>
-            {h} için kurduğun yolculuğu bitirdin. Bu bir rozet değil — davranışın artık sende
-            oturmuş olabilir.
-          </Text>
+          <Text style={styles.title}>{t("journey.complete66.title")}</Text>
+          <Text style={styles.lead}>{t("journey.complete66.lead", { habit: h })}</Text>
 
           <View style={styles.statsCard}>
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Tamamlama (dönem)</Text>
+              <Text style={styles.statLabel}>{t("journey.complete66.completion")}</Text>
               <Text style={styles.statValue}>%{Math.round(completionPct * 100)}</Text>
             </View>
             {avgAutomaticity != null ? (
               <View style={styles.statRow}>
-                <Text style={styles.statLabel}>Ort. otomatiklik</Text>
+                <Text style={styles.statLabel}>{t("journey.complete66.automaticity")}</Text>
                 <Text style={styles.statValue}>{avgAutomaticity.toFixed(1)}/10</Text>
               </View>
             ) : null}
             <View style={styles.statRow}>
-              <Text style={styles.statLabel}>Toplam check-in</Text>
+              <Text style={styles.statLabel}>{t("journey.complete66.checkins")}</Text>
               <Text style={styles.statValue}>{totalCheckins}</Text>
             </View>
           </View>
 
-          <Text style={styles.nextHint}>
-            İstersen aynı alışkanlıkta devam edebilir veya üzerine yeni bir kimlik katmanı
-            ekleyebilirsin.
-          </Text>
+          <Text style={styles.nextHint}>{t("journey.complete66.nextHint")}</Text>
 
           <TouchableOpacity style={styles.primaryBtn} onPress={onContinue} activeOpacity={0.88}>
-            <Text style={styles.primaryBtnText}>Sonraki adım</Text>
+            <Text style={styles.primaryBtnText}>{t("journey.complete66.continue")}</Text>
             <ArrowRight size={18} color="#fff" strokeWidth={2} />
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.shareBtn} onPress={onShare} activeOpacity={0.75}>
             <Share2 size={16} color={Colors.primary} strokeWidth={2} />
-            <Text style={styles.shareBtnText}>Paylaş</Text>
+            <Text style={styles.shareBtnText}>{t("journey.complete66.share")}</Text>
           </TouchableOpacity>
         </ScrollView>
       </SafeAreaView>
@@ -99,8 +91,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.bg,
   },
   scroll: {
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.xl,
+    paddingBottom: Spacing.xl + 24,
+    alignItems: "center",
   },
   iconWrap: {
     width: 64,
@@ -109,77 +103,84 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.lg,
   },
   title: {
-    fontSize: 26,
-    fontFamily: "Inter_700Bold",
-    fontWeight: "700",
+    fontSize: FontSizes.xxl,
+    fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
     textAlign: "center",
+    marginBottom: Spacing.sm,
   },
   lead: {
-    marginTop: Spacing.sm,
     fontSize: FontSizes.md,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 24,
+    marginBottom: Spacing.lg,
+    maxWidth: 340,
   },
   statsCard: {
-    marginTop: Spacing.lg,
+    width: "100%",
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
     padding: Spacing.md,
-    gap: Spacing.sm,
-    ...Shadows.soft,
+    marginBottom: Spacing.lg,
+    ...Shadows.card,
   },
   statRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingVertical: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
   statLabel: {
     fontSize: FontSizes.sm,
+    fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
   },
   statValue: {
     fontSize: FontSizes.md,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
-    color: Colors.primaryDark,
+    fontFamily: "Inter_500Medium",
+    color: Colors.textPrimary,
   },
   nextHint: {
-    marginTop: Spacing.lg,
     fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
     textAlign: "center",
     lineHeight: 22,
+    marginBottom: Spacing.lg,
+    maxWidth: 320,
   },
   primaryBtn: {
-    marginTop: Spacing.lg,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
+    gap: Spacing.sm,
     backgroundColor: Colors.primary,
     borderRadius: Radii.button,
-    paddingVertical: 16,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.xl,
+    width: "100%",
+    marginBottom: Spacing.md,
   },
   primaryBtnText: {
     fontSize: FontSizes.md,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
+    fontFamily: "Inter_500Medium",
     color: "#fff",
   },
   shareBtn: {
-    marginTop: Spacing.md,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    paddingVertical: 12,
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
   },
   shareBtnText: {
     fontSize: FontSizes.sm,

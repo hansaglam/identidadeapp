@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Animated, {
   useSharedValue,
@@ -82,16 +82,12 @@ export default function WelcomeScreen({ navigation }: Props) {
 
         {/* Brand mark */}
         <Animated.View style={[styles.logoWrap, logoStyle]}>
-          <LinearGradient
-            colors={["#3AAFA0", Colors.primaryDark]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.logoGradient}
-          >
-            <Text style={styles.logoLetter}>K</Text>
-          </LinearGradient>
-          <View style={styles.brandPill}>
-            <Text style={styles.brandText}>kimlik</Text>
+          <View style={styles.logoImageWrap}>
+            <Image source={require("../../assets/icon.png")} style={styles.logoImage} />
+          </View>
+          <View style={styles.brandCol}>
+            <Text style={styles.brandStoreName}>{t("brand.storeName")}</Text>
+            <Text style={styles.brandTagline}>{t("brand.tagline")}</Text>
           </View>
         </Animated.View>
 
@@ -176,31 +172,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.sm,
   },
-  logoGradient: {
-    width: 44,
-    height: 44,
+  logoImageWrap: {
+    width: 56,
+    height: 56,
     borderRadius: Radii.button,
-    alignItems: "center",
-    justifyContent: "center",
     ...Shadows.card,
   },
-  logoLetter: {
-    fontSize: 22,
+  logoImage: {
+    width: 56,
+    height: 56,
+    borderRadius: Radii.button,
+  },
+  brandCol: {
+    flex: 1,
+    gap: 2,
+  },
+  brandStoreName: {
+    fontSize: FontSizes.md,
     fontFamily: "Inter_500Medium",
-    color: "#fff",
-    letterSpacing: -0.5,
+    color: Colors.textPrimary,
+    lineHeight: 22,
   },
-  brandPill: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.pill,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 5,
-  },
-  brandText: {
+  brandTagline: {
     fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
-    color: Colors.primary,
-    letterSpacing: 1.2,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 18,
   },
 
   /* Headline */

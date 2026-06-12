@@ -5,25 +5,22 @@ import {
   StyleSheet,
   TouchableOpacity,
   TextInput,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Alert,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import KeyboardAwareFormShell from "../components/KeyboardAwareFormShell";
 import { Check, ChevronLeft, Lock, Zap, BarChart2, Shield } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { AuthStackParamList } from "../types";
 import { useUserStore } from "../store/userStore";
 import { useHabitStore } from "../store/habitStore";
-import {
-  scheduleMorningNotifications,
-  schedulePhaseTransitions,
-} from "../utils/notifications";
 import { Colors, Spacing, Radii, FontSizes, Shadows, TIME_RANGES } from "../constants/theme";
 import { useTranslation } from "react-i18next";
+import { ANCHOR_EMOJI_BY_ID, resolveAnchorId } from "../constants/anchors";
 import { getIdentitySlugForTag, getIdentityTemplate } from "../constants/identityTemplates";
+import { localizeTimeRangeShort, localizeWhyPlaceholder } from "../i18n/localizeContent";
+import { resetToMainAfterOnboarding } from "../navigation/navigationRef";
 import { trackEvent } from "../utils/analytics";
 
 type Props = NativeStackScreenProps<AuthStackParamList, "OnboardingStep3">;
@@ -35,15 +32,6 @@ const SYSTEM_PROMISE_ICONS = [
   { Icon: BarChart2, color: Colors.purple },
   { Icon: Shield, color: Colors.primary },
 ] as const;
-
-const ANCHOR_EMOJIS: Record<string, string> = {
-  "Kahvemi içtikten sonra": "☕",
-  "Dişlerimi fırçaladıktan sonra": "🪥",
-  "Telefonu elimden bıraktıktan sonra": "📵",
-  "Yatağa girmeden önce": "🛏️",
-  "Öğle yemeğinden sonra": "🍽️",
-  "Uyandıktan hemen sonra": "⏰",
-};
 
 const TIME_EMOJIS: Record<string, string> = {
   sabah: "🌅",
@@ -99,7 +87,18 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { habitName, anchorBehavior, anchorTime, identityTagId } = route.params;
   const template = getIdentityTemplate(identityTagId);
-  const timeSlotLabel = TIME_RANGES.find((r) => r.id === anchorTime)?.label ?? anchorTime;
+  const timeMeta = TIME_RANGES.find((r) => r.id === anchorTime);
+  const timeSlotLabel = timeMeta?.label ?? anchorTime;
+  const timeSlotShort = timeMeta
+    ? localizeTimeRangeShort(anchorTime, timeMeta.label.split("(")[0].trim())
+    : anchorTime;
+  const anchorEmoji =
+    (resolveAnchorId(anchorBehavior) &&
+      ANCHOR_EMOJI_BY_ID[resolveAnchorId(anchorBehavior)!]) ||
+    "🔗";
+  const whyPlaceholder = template
+    ? localizeWhyPlaceholder(template.id, template.whyPlaceholder)
+    : t("onboarding.step3.placeholder");
 
   const [whyText, setWhyText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -112,8 +111,10 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
 
   const handleStart = async () => {
     if (!canStart || saving) return;
+    Keyboard.dismiss();
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setSaving(true);
+    const savingGuard = setTimeout(() => setSaving(false), 20_000);
     try {
       await completeOnboarding({
         habitName,
@@ -122,7 +123,10 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         identityTagId,
       });
 
-      await useHabitStore.getState().saveHabitFromOnboarding({
+      // Profil bellekte — hemen ana ekrana geç; alışkanlık kaydı arka planda.
+      resetToMainAfterOnboarding();
+
+      void useHabitStore.getState().saveHabitFromOnboarding({
         identity: template?.title ?? habitName,
         identityIcon: template?.emoji ?? "✏️",
         identitySlug: getIdentitySlugForTag(identityTagId),
@@ -131,126 +135,24 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
         why: whyText.trim(),
       });
 
-      trackEvent("onboarding_completed", {
+      void trackEvent("onboarding_completed", {
         identityTagId: identityTagId ?? "custom",
-      });
-
-      const profile = useUserStore.getState().profile;
-      if (profile) {
-        try {
-          await scheduleMorningNotifications(profile);
-          await schedulePhaseTransitions(profile);
-        } catch {
-          if (__DEV__) console.warn("[OnboardingStep3] notification schedule failed");
-        }
-      }
-
-      navigation.getParent()?.reset({
-        index: 0,
-        routes: [{ name: "Main" }],
       });
     } catch {
       Alert.alert(
-        "Kaydedilemedi",
-        "Veriler bu cihaza yazılamadı. Depolama alanını kontrol edip tekrar dene."
+        t("onboarding.step3.saveErrorTitle"),
+        t("onboarding.step3.saveErrorBody")
       );
     } finally {
+      clearTimeout(savingGuard);
       setSaving(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <KeyboardAvoidingView
-        style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scroll}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-        >
-          <StepBar current={3} />
-
-          <Text style={styles.title}>{t("onboarding.step3.title")}</Text>
-          <Text style={styles.sub}>{t("onboarding.step3.sub")}</Text>
-
-          {/* Choices summary */}
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>{t("onboarding.step3.title")}</Text>
-            <View style={styles.summaryChips}>
-              <View style={styles.chip}>
-                <Text style={styles.chipEmoji}>{template?.emoji ?? "✏️"}</Text>
-                <Text style={styles.chipText}>{habitName}</Text>
-              </View>
-              <View style={styles.chip}>
-                <Text style={styles.chipEmoji}>{ANCHOR_EMOJIS[anchorBehavior] ?? "🔗"}</Text>
-                <Text style={styles.chipText} numberOfLines={1}>{anchorBehavior}</Text>
-              </View>
-              <View style={styles.chip}>
-                <Text style={styles.chipEmoji}>{TIME_EMOJIS[anchorTime] ?? "⏰"}</Text>
-                <Text style={styles.chipText}>{timeSlotLabel.split("(")[0].trim()}</Text>
-              </View>
-            </View>
-          </View>
-
-          {/* Why textarea */}
-          <View style={styles.textareaWrap}>
-            <TextInput
-              style={styles.whyInput}
-              value={whyText}
-              onChangeText={setWhyText}
-              placeholder={template?.whyPlaceholder ?? t("onboarding.step3.placeholder")}
-              placeholderTextColor={Colors.textTertiary}
-              multiline
-              textAlignVertical="top"
-            />
-            <View style={styles.textareaFooter}>
-              {!canStart && whyText.length > 0 ? (
-                <Text style={styles.hintText}>{remaining} karakter daha</Text>
-              ) : canStart ? (
-                <View style={styles.readyBadge}>
-                  <Check size={10} color={Colors.primary} strokeWidth={3} />
-                  <Text style={styles.readyText}>Harika görünüyor</Text>
-                </View>
-              ) : (
-                <Text style={styles.hintEmpty}>Düşünmeden, özgürce yaz</Text>
-              )}
-              <Text style={styles.wordCount}>{wordCount} kelime</Text>
-            </View>
-          </View>
-
-          {/* Privacy note */}
-          <View style={styles.privacyNote}>
-            <Lock size={12} color={Colors.primaryDark} strokeWidth={2} />
-            <Text style={styles.privacyText}>
-              Bu neden yalnızca senin için. Kimse görmeyecek.
-            </Text>
-          </View>
-
-          <View style={styles.tabsCard}>
-            <Text style={styles.tabsTitle}>Başladıktan sonra</Text>
-            <Text style={styles.tabsBody}>
-              4 sekme: Bugün (her gün buradan başla) · Zihin · Yolculuk (yarın planı) · Profil.
-              Önce kartındaki tek hareketi yap, sonra check-in.
-            </Text>
-          </View>
-
-          {/* System promises */}
-          <View style={styles.systemCard}>
-            <Text style={styles.systemTitle}>{t("onboarding.step3.systemTitle")}</Text>
-            {SYSTEM_PROMISE_ICONS.map(({ Icon, color }, i) => (
-              <View key={i} style={styles.systemRow}>
-                <View style={[styles.systemIconWrap, { backgroundColor: `${color}18` }]}>
-                  <Icon size={15} color={color} strokeWidth={2} />
-                </View>
-                <Text style={styles.systemRowText}>{t(`onboarding.step3.promises.${i}`)}</Text>
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        {/* Footer */}
+    <KeyboardAwareFormShell
+      scrollContentStyle={styles.scroll}
+      footer={
         <View style={styles.footer}>
           <TouchableOpacity
             style={styles.backBtn}
@@ -275,19 +177,93 @@ export default function OnboardingStep3Screen({ route, navigation }: Props) {
             </Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      }
+    >
+          <StepBar current={3} />
+
+          <Text style={styles.title}>{t("onboarding.step3.title")}</Text>
+          <Text style={styles.sub}>{t("onboarding.step3.sub")}</Text>
+
+          {/* Choices summary */}
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>{t("onboarding.step3.summaryLabel")}</Text>
+            <View style={styles.summaryChips}>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{template?.emoji ?? "✏️"}</Text>
+                <Text style={styles.chipText}>{habitName}</Text>
+              </View>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{anchorEmoji}</Text>
+                <Text style={styles.chipText} numberOfLines={1}>{anchorBehavior}</Text>
+              </View>
+              <View style={styles.chip}>
+                <Text style={styles.chipEmoji}>{TIME_EMOJIS[anchorTime] ?? "⏰"}</Text>
+                <Text style={styles.chipText}>{timeSlotShort}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Why textarea */}
+          <View style={styles.textareaWrap}>
+            <TextInput
+              style={styles.whyInput}
+              value={whyText}
+              onChangeText={setWhyText}
+              placeholder={whyPlaceholder}
+              placeholderTextColor={Colors.textTertiary}
+              multiline
+              textAlignVertical="top"
+            />
+            <View style={styles.textareaFooter}>
+              {!canStart && whyText.length > 0 ? (
+                <Text style={styles.hintText}>
+                  {t("onboarding.step3.charsMore", { count: remaining })}
+                </Text>
+              ) : canStart ? (
+                <View style={styles.readyBadge}>
+                  <Check size={10} color={Colors.primary} strokeWidth={3} />
+                  <Text style={styles.readyText}>{t("onboarding.step3.readyHint")}</Text>
+                </View>
+              ) : (
+                <Text style={styles.hintEmpty}>{t("onboarding.step3.writeFree")}</Text>
+              )}
+              <Text style={styles.wordCount}>
+                {t("onboarding.step3.wordCount", { count: wordCount })}
+              </Text>
+            </View>
+          </View>
+
+          {/* Privacy note */}
+          <View style={styles.privacyNote}>
+            <Lock size={12} color={Colors.primaryDark} strokeWidth={2} />
+            <Text style={styles.privacyText}>{t("onboarding.step3.privacyNote")}</Text>
+          </View>
+
+          <View style={styles.tabsCard}>
+            <Text style={styles.tabsTitle}>{t("onboarding.step3.tabsTitle")}</Text>
+            <Text style={styles.tabsBody}>{t("onboarding.step3.tabsBody")}</Text>
+          </View>
+
+          {/* System promises */}
+          <View style={styles.systemCard}>
+            <Text style={styles.systemTitle}>{t("onboarding.step3.systemTitle")}</Text>
+            {SYSTEM_PROMISE_ICONS.map(({ Icon, color }, i) => (
+              <View key={i} style={styles.systemRow}>
+                <View style={[styles.systemIconWrap, { backgroundColor: `${color}18` }]}>
+                  <Icon size={15} color={color} strokeWidth={2} />
+                </View>
+                <Text style={styles.systemRowText}>{t(`onboarding.step3.promises.${i}`)}</Text>
+              </View>
+            ))}
+          </View>
+    </KeyboardAwareFormShell>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
-  flex: { flex: 1 },
   scroll: {
     paddingHorizontal: Spacing.lg,
     paddingTop: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    flexGrow: 1,
   },
 
   /* Step bar */
@@ -536,11 +512,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.sm,
     paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.xl,
     paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.surface,
   },
   backBtn: {
     flexDirection: "row",

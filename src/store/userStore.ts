@@ -12,6 +12,7 @@ import {
   DISCIPLINE_DEFAULT_LEVELS,
   DISCIPLINE_DEFAULT_XP,
 } from "../utils/disciplineProgress";
+import { applyDisciplineSnapshotPatch } from "../utils/disciplineSnapshot";
 
 const DEFAULT_NOTIF_HOUR = 9;
 const DEFAULT_NOTIF_MINUTE = 0;
@@ -54,6 +55,18 @@ async function persist(profile: UserProfile): Promise<void> {
   await saveProfile(profile);
 }
 
+async function persistWithSnapshots(profile: UserProfile): Promise<UserProfile> {
+  const withSnapshots = applyDisciplineSnapshotPatch(normalizeProfile(profile));
+  await persist(withSnapshots);
+  return withSnapshots;
+}
+
+function persistUserIdSecure(id: string): void {
+  void SecureStore.setItemAsync("user_id", id).catch((e) => {
+    if (__DEV__) console.warn("[userStore] SecureStore user_id failed", e);
+  });
+}
+
 export const useUserStore = create<UserState>((set, get) => ({
   profile: null,
   isLoading: true,
@@ -66,7 +79,10 @@ export const useUserStore = create<UserState>((set, get) => ({
     }
     try {
       const raw = await loadProfile();
-      const profile = raw ? normalizeProfile(raw) : null;
+      let profile = raw ? normalizeProfile(raw) : null;
+      if (profile) {
+        profile = await persistWithSnapshots(profile);
+      }
       if (quiet) {
         set({ profile, profileLoadFailed: false });
       } else {
@@ -88,6 +104,26 @@ export const useUserStore = create<UserState>((set, get) => ({
     habitWhy,
     identityTagId,
   }) => {
+    const existing = get().profile;
+    if (existing?.startDate) {
+      const updated = normalizeProfile({
+        ...existing,
+        habitName,
+        habitAnchor,
+        habitWhy,
+        identityTagId,
+      });
+      set({ profile: updated });
+      try {
+        await persist(updated);
+        persistUserIdSecure(updated.id);
+      } catch (e) {
+        if (__DEV__) console.warn("[userStore] completeOnboarding merge failed", e);
+        throw e;
+      }
+      return;
+    }
+
     const id = uuid();
     const now = new Date().toISOString();
     const profile: UserProfile = {
@@ -98,8 +134,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       habitAnchor,
       habitWhy,
       startDate: now,          // day-1 = today
-      isPremium: false,
-      purchaseToken: null,
+      isPremium: existing?.isPremium ?? false,
+      purchaseToken: existing?.purchaseToken ?? null,
       name: "",
       notificationHour: DEFAULT_NOTIF_HOUR,
       notificationMinute: DEFAULT_NOTIF_MINUTE,
@@ -116,14 +152,15 @@ export const useUserStore = create<UserState>((set, get) => ({
       hasOpenedJourneyTab: false,
     };
     const normalized = normalizeProfile(profile);
+    set({ profile: normalized });
     try {
-      await persist(normalized);
-      await SecureStore.setItemAsync("user_id", id);
+      const withSnapshots = await persistWithSnapshots(normalized);
+      set({ profile: withSnapshots });
+      persistUserIdSecure(id);
     } catch (e) {
       if (__DEV__) console.warn("[userStore] completeOnboarding persist failed", e);
       throw e;
     }
-    set({ profile: normalized });
   },
 
   setName: async (name) => {
@@ -205,8 +242,8 @@ export const useUserStore = create<UserState>((set, get) => ({
       disciplineMuscles: levels,
       disciplineMuscleXp: xp,
     };
-    await persist(updated);
-    set({ profile: normalizeProfile(updated) });
+    const withSnapshots = await persistWithSnapshots(updated);
+    set({ profile: withSnapshots });
   },
 
   stackNewJourney: async ({

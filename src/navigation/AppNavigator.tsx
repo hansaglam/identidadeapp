@@ -3,7 +3,6 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Platform, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTranslation } from "react-i18next";
 import {
   CheckSquare, PenLine, Map, User,
@@ -14,6 +13,8 @@ import {
 } from "../types";
 import { FontSizes, Colors, type AppColors } from "../constants/theme";
 import DataLoadBanner from "../components/DataLoadBanner";
+import SafeBottomTabBar from "./SafeBottomTabBar";
+import { TAB_BAR_CONTENT_HEIGHT } from "../utils/tabBarInsets";
 
 // Auth screens
 import WelcomeScreen from "../screens/WelcomeScreen";
@@ -52,18 +53,6 @@ function createMainTabStyles(colors: AppColors) {
     },
     tabBar: {
       backgroundColor: Colors.surface,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: Colors.border,
-      ...Platform.select({
-        ios: {
-          shadowColor: "#071018",
-          shadowOffset: { width: 0, height: -6 },
-          shadowOpacity: 0.07,
-          shadowRadius: 12,
-        },
-        default: {},
-      }),
-      ...(Platform.OS === "android" ? { elevation: 10 } : {}),
     },
     tabBarItem: {
       flex: 1,
@@ -80,25 +69,30 @@ function createMainTabStyles(colors: AppColors) {
 function MainTabNavigator() {
   const { t } = useTranslation();
   const styles = useMemo(() => createMainTabStyles(Colors), []);
-  const insets = useSafeAreaInsets();
-  const bottomInset = Math.max(insets.bottom, Platform.OS === "android" ? 12 : 8);
 
   return (
     <View style={styles.shell}>
       <DataLoadBanner />
       <Tab.Navigator
-        detachInactiveScreens={false}
+        detachInactiveScreens
+        tabBar={(props) => <SafeBottomTabBar {...props} />}
+        safeAreaInsets={{ top: 0, right: 0, bottom: 0, left: 0 }}
         screenOptions={{
           headerShown: false,
+          tabBarHideOnKeyboard: Platform.OS === "android",
+          tabBarLabelPosition: "below-icon",
           tabBarStyle: [
             styles.tabBar,
             {
-              paddingBottom: bottomInset,
-              paddingTop: 10,
-              minHeight: 52 + bottomInset,
+              height: TAB_BAR_CONTENT_HEIGHT,
+              paddingBottom: 0,
+              paddingTop: Platform.OS === "android" ? 6 : 8,
             },
           ],
-          tabBarItemStyle: styles.tabBarItem,
+          tabBarItemStyle: [
+            styles.tabBarItem,
+            Platform.OS === "android" ? { paddingVertical: 2 } : null,
+          ],
           tabBarButton: (props) => (
             <PlatformPressable
               {...props}

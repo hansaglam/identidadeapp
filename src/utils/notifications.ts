@@ -23,11 +23,6 @@ import {
   isBefore,
 } from "date-fns";
 import { AppState, Platform } from "react-native";
-import {
-  NOTIFICATION_EVENING_TITLE,
-  pickEveningNotificationBody,
-  PHASE_MILESTONE_NOTIFICATIONS,
-} from "../constants/purposeCopy";
 import type { TomorrowTodoList } from "../store/tomorrowPlanStore";
 import { UserProfile, CheckinRecord } from "../types";
 import { isRestModeActive } from "./restMode";
@@ -36,6 +31,8 @@ import {
   getEveningNotification,
   getStreakCelebrationCopy,
   getRecoveryPush,
+  getPhaseMilestoneNotifications,
+  type Status as NStatus,
 } from "./notificationCopy";
 import { countConsecutiveMissesFromYesterday } from "./journeyHome";
 import * as NotificationPerms from "./notificationPermissions";
@@ -116,6 +113,75 @@ function getPrimaryTodoText(list: TomorrowTodoList | undefined): string | null {
   if (!list?.items.length) return null;
   const primary = list.items.find((i) => i.isPrimary) ?? list.items[0];
   return primary?.text?.trim() || null;
+}
+
+// ─── Check-in helpers (notification context) ─────────────────────────────────
+
+function computeLast3AvgAuto(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): number | null {
+  const start = startOfDay(parseISO(startDate));
+  const vals: number[] = [];
+  for (let i = 1; i <= 3; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const day = startOfDay(d);
+    if (isBefore(day, start)) continue;
+    const key = format(day, "yyyy-MM-dd");
+    const c = checkins[key];
+    if (c?.completed && c.automaticityRating != null) {
+      vals.push(c.automaticityRating);
+    }
+  }
+  if (vals.length === 0) return null;
+  return vals.reduce((a, b) => a + b, 0) / vals.length;
+}
+
+function computeYesterdayEffort(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): number | null {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const day = startOfDay(yesterday);
+  const start = startOfDay(parseISO(startDate));
+  if (isBefore(day, start)) return null;
+  const key = format(day, "yyyy-MM-dd");
+  const c = checkins[key];
+  if (!c?.completed || c.effortRating == null) return null;
+  return c.effortRating;
+}
+
+function computeCurrentStreak(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): number {
+  const start = startOfDay(parseISO(startDate));
+  let streak = 0;
+  for (let i = 1; i <= 66; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const day = startOfDay(d);
+    if (isBefore(day, start)) break;
+    const key = format(day, "yyyy-MM-dd");
+    if (checkins[key]?.completed) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function computeStatusFromCheckins(
+  startDate: string,
+  checkins: Record<string, CheckinRecord>
+): NStatus {
+  const misses = countConsecutiveMissesFromYesterday(startDate, checkins);
+  const avg = computeLast3AvgAuto(startDate, checkins);
+  if (misses >= 2) return "red";
+  if (misses === 1) return "yellow";
+  if (avg != null && avg < 4) return "red";
+  if (avg != null && avg < 5) return "yellow";
+  return "green";
 }
 
 /** Yerel saat diliminde gün + saat (DST güvenli). */
@@ -482,85 +548,6 @@ export async function scheduleHabitReminder(
 
 // ─── Morning "Müdahale" ─────────────────────────────────────────────────────
 
-function getMorningCopy(
-  dayN: number,
-  habitName: string,
-  plannedAction: string | null
-): { title: string; body: string } {
-  const h = habitName.trim() || "bu alışkanlık";
-  const planHint = plannedAction
-    ? ` Dün planladığın: “${plannedAction}”.`
-    : "";
-
-  if (dayN <= 3) {
-    return {
-      title: `Gün ${dayN} — Beyin yeni yol açıyor.`,
-      body: `Bugün kartında net seçim: ${h} için 1 küçük adım.${planHint}`,
-    };
-  }
-  if (dayN <= 7) {
-    return {
-      title: `Gün ${dayN} — Yol inşa edilirken.`,
-      body: `${h}: Bugün kartındaki mikro-hedefi seç — on saniye bile yeter.${planHint}`,
-    };
-  }
-
-  if (dayN <= 14) {
-    return {
-      title: `Gün ${dayN} — Alışkanlık kurulurken.`,
-      body: `${h} yapan biri gibi küçük bir adım daha.${planHint || " Bugün ekranındaki kart seni sıkıştırmadan yönlendirir."}`,
-    };
-  }
-  if (dayN <= 22) {
-    return {
-      title: `Gün ${dayN} — Kuruluş fazı bitmek üzere.`,
-      body: `22. güne yaklaşıyorsun. İzini sürdür: Bugün kartı + check-in.`,
-    };
-  }
-
-  if (dayN === 23) {
-    return {
-      title: "Pekiştirme başlıyor.",
-      body: `${h} küçültülmüş tekrarda oturuyor. Bugün yine karttaki tek net eylemi seç.`,
-    };
-  }
-  if (dayN <= 35) {
-    return {
-      title: `Gün ${dayN} — Momentum.`,
-      body: `${h} için küçük olsa da yönün seçildi.`,
-    };
-  }
-  if (dayN <= 44) {
-    return {
-      title: `Gün ${dayN} — ${66 - dayN} gün daha.`,
-      body: `Kaçırmanın ardından bile toparlama zamanı — Bugün kartı en küçük sürümü hatırlatır.`,
-    };
-  }
-
-  if (dayN === 45) {
-    return {
-      title: "Son faz: Otomatikleşme.",
-      body: `${h} seçimleri alışkanlığa dönüşüyor — Bugün kartı mikro-tekrardan vazgeçme.`,
-    };
-  }
-  if (dayN <= 60) {
-    return {
-      title: `Gün ${dayN} — Kimlik netleşiyor.`,
-      body: `${66 - dayN} gün kaldı. Zor bir günde bile Bugün’de yön seçmek yeter.`,
-    };
-  }
-  if (dayN < 66) {
-    return {
-      title: `Gün ${dayN} — Bitiş çizgisi.`,
-      body: `${66 - dayN} gün kaldı. ${h}: kart + check-in akışına güven.`,
-    };
-  }
-  return {
-    title: "66 gün tamam.",
-    body: `${h} artık kim olduğunun parçası. Kaçırdığında yapı hep burada.`,
-  };
-}
-
 export async function scheduleMorningNotifications(
   profile: UserProfile,
   days = 30,
@@ -570,14 +557,15 @@ export async function scheduleMorningNotifications(
   const granted = await NotificationPerms.requestNotificationPermissions();
   if (!granted) return;
 
-  const today = new Date();
+  const baseDate = new Date();
   const streak = computeCurrentStreak(profile.startDate, checkins);
   const misses = countConsecutiveMissesFromYesterday(profile.startDate, checkins);
   const status = computeStatusFromCheckins(profile.startDate, checkins);
   const last3Avg = computeLast3AvgAuto(profile.startDate, checkins);
+  const lastEffort = computeYesterdayEffort(profile.startDate, checkins);
 
   for (let i = 0; i < days; i++) {
-    const target = addDays(today, i);
+    const target = addDays(baseDate, i);
     const dateStr = format(target, "yyyy-MM-dd");
     const dayN = differenceInDays(target, parseISO(profile.startDate)) + 1;
 
@@ -596,6 +584,7 @@ export async function scheduleMorningNotifications(
       consecutiveMisses: i === 0 ? misses : 0,
       status: i === 0 ? status : ("green" as const),
       last3AvgAuto: i === 0 ? last3Avg : null,
+      lastEffortRating: i === 0 ? lastEffort : null,
       plannedAction,
       todayDone: false,
     };
@@ -644,7 +633,8 @@ const EVENING_MINUTE = 0;
 
 export async function scheduleEveningReminderToday(
   profile: UserProfile,
-  checkins: Record<string, CheckinRecord> = {}
+  checkins: Record<string, CheckinRecord> = {},
+  listsByDate: Record<string, TomorrowTodoList> = {}
 ): Promise<void> {
   const granted = await NotificationPerms.requestNotificationPermissions();
   if (!granted) return;
@@ -660,6 +650,7 @@ export async function scheduleEveningReminderToday(
   const streak = computeCurrentStreak(profile.startDate, checkins);
   const misses = countConsecutiveMissesFromYesterday(profile.startDate, checkins);
   const status = computeStatusFromCheckins(profile.startDate, checkins);
+  const plannedAction = getPrimaryTodoText(listsByDate[today]);
 
   const ctx = {
     habitName: profile.habitName,
@@ -668,7 +659,8 @@ export async function scheduleEveningReminderToday(
     consecutiveMisses: misses,
     status,
     last3AvgAuto: computeLast3AvgAuto(profile.startDate, checkins),
-    plannedAction: null,
+    lastEffortRating: computeYesterdayEffort(profile.startDate, checkins),
+    plannedAction,
     todayDone: false,
   };
   const copy = getEveningNotification(ctx);
@@ -691,7 +683,7 @@ export async function cancelEveningReminderToday(): Promise<void> {
 }
 
 async function cancelPhaseMilestoneNotifications(): Promise<void> {
-  for (const phase of PHASE_MILESTONE_NOTIFICATIONS) {
+  for (const phase of getPhaseMilestoneNotifications()) {
     const id = `phase:day${phase.dayOffset + 1}`;
     await Notifications.cancelScheduledNotificationAsync(id).catch(() => {});
   }
@@ -708,7 +700,7 @@ export async function schedulePhaseTransitions(profile: UserProfile): Promise<vo
 
   const start = parseISO(profile.startDate);
 
-  for (const phase of PHASE_MILESTONE_NOTIFICATIONS) {
+  for (const phase of getPhaseMilestoneNotifications()) {
     const triggerDate = atLocalTime(addDays(start, phase.dayOffset), 9, 30);
     if (triggerDate <= new Date()) continue;
 
@@ -751,62 +743,6 @@ export async function scheduleRecoveryPushIfNeeded(
   });
 }
 
-// ─── Status helpers for notification context ─────────────────────────────────
-
-type NStatus = "green" | "yellow" | "red";
-
-function computeCurrentStreak(
-  startDate: string,
-  checkins: Record<string, CheckinRecord>
-): number {
-  const start = startOfDay(parseISO(startDate));
-  let streak = 0;
-  for (let i = 1; i <= 66; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const day = startOfDay(d);
-    if (isBefore(day, start)) break;
-    const key = format(day, "yyyy-MM-dd");
-    if (checkins[key]?.completed) streak++;
-    else break;
-  }
-  return streak;
-}
-
-function computeStatusFromCheckins(
-  startDate: string,
-  checkins: Record<string, CheckinRecord>
-): NStatus {
-  const misses = countConsecutiveMissesFromYesterday(startDate, checkins);
-  const avg = computeLast3AvgAuto(startDate, checkins);
-  if (misses >= 2) return "red";
-  if (misses === 1) return "yellow";
-  if (avg != null && avg < 4) return "red";
-  if (avg != null && avg < 5) return "yellow";
-  return "green";
-}
-
-function computeLast3AvgAuto(
-  startDate: string,
-  checkins: Record<string, CheckinRecord>
-): number | null {
-  const start = startOfDay(parseISO(startDate));
-  const vals: number[] = [];
-  for (let i = 1; i <= 3; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const day = startOfDay(d);
-    if (isBefore(day, start)) continue;
-    const key = format(day, "yyyy-MM-dd");
-    const c = checkins[key];
-    if (c?.completed && c.automaticityRating != null) {
-      vals.push(c.automaticityRating);
-    }
-  }
-  if (vals.length === 0) return null;
-  return vals.reduce((a, b) => a + b, 0) / vals.length;
-}
-
 // ─── Full setup on app startup ───────────────────────────────────────────────
 
 export async function setupNotifications(
@@ -828,7 +764,7 @@ export async function setupNotifications(
     scheduleRecoveryPushIfNeeded(profile, checkins),
   ]);
   if (!todayCheckedIn) {
-    await scheduleEveningReminderToday(profile, checkins);
+    await scheduleEveningReminderToday(profile, checkins, listsByDate);
   } else {
     await cancelEveningReminderToday();
   }

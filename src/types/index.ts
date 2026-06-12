@@ -1,6 +1,13 @@
 import { NavigatorScreenParams } from "@react-navigation/native";
 import type { DisciplineMuscles } from "./discipline";
 
+/** Haftalık kas composite snapshot (disciplineSnapshot.ts) */
+export interface DisciplineMuscleSnapshot {
+  weekKey: string;
+  date: string;
+  scores: DisciplineMuscles;
+}
+
 export type { DisciplineMuscles } from "./discipline";
 export { MUSCLE_NAMES } from "./discipline";
 
@@ -54,6 +61,12 @@ export interface UserProfile {
   disciplineMuscles?: DisciplineMuscles;
   /** Kas başına toplam XP; yoksa 0 kabul */
   disciplineMuscleXp?: DisciplineMuscleXP;
+  /** İlk geri dönüş tam ekran kutlaması gösterildi mi */
+  firstComebackCelebrated?: boolean;
+  /** ISO hafta başına kas composite snapshot geçmişi */
+  disciplineMuscleSnapshots?: DisciplineMuscleSnapshot[];
+  /** Snapshot sistemi en az bir kez yazıldı mı */
+  disciplineSnapshotsInitialized?: boolean;
   /** Kaç tam 66 tur tamamlandı (0 = ilk yolculuk) */
   journeySequence?: number;
   /** Tamamlanan yolculuklar; yeni tur başlarken son kayıt eklenir */

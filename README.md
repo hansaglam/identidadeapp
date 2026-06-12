@@ -1,6 +1,8 @@
-# Kimlik — Alışkanlık Takip Değil, Kimlik İnşası
+# Rito — Habit & Identity Journey
 
-> "Alışkanlık takip etmiyorsun. Yeni biri oluyorsun."
+> **Rito** (*Alışkanlık ve Kimlik Yolculuğu*) — "Alışkanlık takip etmiyorsun. Yeni biri oluyorsun."
+
+Mağaza adı (EN): **Rito: Habit & Identity Journey**
 
 ## Teknik Stack
 
@@ -19,6 +21,7 @@
 
 - **Kök:** [`App.tsx`](App.tsx) — fontlar, store bootstrap, bildirimler
 - **Navigasyon:** [`src/navigation/AppNavigator.tsx`](src/navigation/AppNavigator.tsx) — Auth + 4 tab (Bugün, Zihin, Yolculuk, Profil)
+- **Marka sabitleri:** [`src/constants/brand.ts`](src/constants/brand.ts)
 - **`app/` klasörü:** Opsiyonel Expo Router re-export (ör. `app/(tabs)/yolculuk.tsx`); aktif yönlendirme burada değil
 
 ## Store'lar
@@ -28,41 +31,9 @@
 | `userStore` | Profil, premium, bildirim saati |
 | `checkinsStore` | Günlük check-in + otomatiklik/çaba |
 | `habitStore` | Alışkanlık tanımı, günlük bayrak |
-| `tomorrowPlanStore` | Yarının küçük listesi (max 3 madde) |
-| `mindDumpStore` | Zihin notları |
-| `useBehaviorStore` | Davranış motoru sayaçları |
-| `sdtStore` | Haftalık SDT anketi |
-| `iapStore` | Abonelik |
 
-## Yedekleme
+## Yayın notları
 
-Profil → Gelişmiş tercihler → JSON yedek.
-
-- **v1:** profil, check-in, mind dump (davranış sayacı sıfırlanır)
-- **v2:** v1 + yarın planları, habit, SDT, behavior state
-
-Şema: [`src/utils/exportBackup.ts`](src/utils/exportBackup.ts), geri yükleme: [`src/utils/restoreBackup.ts`](src/utils/restoreBackup.ts)
-
-## Çalıştırma
-
-```bash
-cd kimlik-app
-npm install
-npx expo start --android
-```
-
-EAS Build:
-
-```bash
-npm install -g eas-cli
-eas login
-eas build --platform android --profile preview
-```
-
-## Öne çıkan özellikler
-
-- 66 günlük kimlik yolculuğu (premium harita + faz eğitimi)
-- Yarının küçük listesi (free) → ertesi gün Bugün ekranında check-in
-- Check-in: hızlı teyit + otomatiklik/çaba değerlendirmesi
-- Zihin dump + davranış motoru (engine)
-- Offline analitik buffer + JSON yedek
+- **Bundle ID:** `com.rito.app` (iOS + Android)
+- Paket kimliği değişikliği sonrası native rebuild gerekir: `npx expo prebuild --clean` veya `npx expo run:android` / `run:ios`
+- Hukuki metinler: [`PRIVACY.md`](PRIVACY.md), [`TERMS.md`](TERMS.md) — yayın öncesi URL'leri [`src/constants/appLinks.ts`](src/constants/appLinks.ts) içinde güncelle

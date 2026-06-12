@@ -127,14 +127,8 @@ export const HABIT_PRESETS = [
   { id: "custom", label: "Kendi belirle", emoji: "✏️" },
 ] as const;
 
-export const ANCHOR_PRESETS = [
-  "Kahvemi içtikten sonra",
-  "Dişlerimi fırçaladıktan sonra",
-  "Telefonu elimden bıraktıktan sonra",
-  "Yatağa girmeden önce",
-  "Öğle yemeğinden sonra",
-  "Uyandıktan hemen sonra",
-] as const;
+/** @deprecated Use ANCHOR_PRESET_IDS from ./anchors — kept for imports during migration */
+export { ANCHOR_PRESET_IDS as ANCHOR_PRESETS } from "./anchors";
 
 export const TIME_RANGES = [
   { id: "sabah", label: "Sabah (06–12)" },

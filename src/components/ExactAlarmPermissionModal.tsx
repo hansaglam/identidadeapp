@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
+import { useTranslation } from "react-i18next";
 import {
   hideExactAlarmPermissionModal,
   openExactAlarmSettings,
@@ -9,6 +10,7 @@ import {
 import { Colors, FontSizes, Radii, Spacing } from "../constants/theme";
 
 export default function ExactAlarmPermissionModal() {
+  const { t } = useTranslation();
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
@@ -21,12 +23,8 @@ export default function ExactAlarmPermissionModal() {
     <Modal visible={visible} transparent animationType="fade" onRequestClose={() => hideExactAlarmPermissionModal()}>
       <View style={styles.overlay}>
         <View style={styles.card}>
-          <Text style={styles.title}>Tam saatte hatırlatma</Text>
-          <Text style={styles.body}>
-            Android 12 ve üzeri cihazlarda sabah/akşam bildirimlerinin doğru saatte gelmesi için
-            &quot;Alarmlar ve hatırlatıcılar&quot; iznine ihtiyaç var. İzin vermezsen yaklaşık
-            hatırlatma kullanılır (uygulama açıkken daha güvenilir).
-          </Text>
+          <Text style={styles.title}>{t("exactAlarm.title")}</Text>
+          <Text style={styles.body}>{t("exactAlarm.body")}</Text>
           <TouchableOpacity
             style={styles.primaryBtn}
             activeOpacity={0.88}
@@ -34,7 +32,7 @@ export default function ExactAlarmPermissionModal() {
               void openExactAlarmSettings();
             }}
           >
-            <Text style={styles.primaryText}>Ayarlara git</Text>
+            <Text style={styles.primaryText}>{t("exactAlarm.openSettings")}</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.secondaryBtn}
@@ -44,7 +42,7 @@ export default function ExactAlarmPermissionModal() {
               hideExactAlarmPermissionModal();
             }}
           >
-            <Text style={styles.secondaryText}>Şimdilik atla</Text>
+            <Text style={styles.secondaryText}>{t("exactAlarm.skip")}</Text>
           </TouchableOpacity>
         </View>
       </View>

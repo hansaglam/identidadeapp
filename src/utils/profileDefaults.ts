@@ -20,5 +20,8 @@ export function normalizeProfile(p: UserProfile): UserProfile {
     journeySequence: next.journeySequence ?? 0,
     completedHabits: next.completedHabits ?? [],
     stackingOfferPending: next.stackingOfferPending ?? false,
+    firstComebackCelebrated: next.firstComebackCelebrated ?? false,
+    disciplineMuscleSnapshots: next.disciplineMuscleSnapshots ?? [],
+    disciplineSnapshotsInitialized: next.disciplineSnapshotsInitialized ?? false,
   };
 }

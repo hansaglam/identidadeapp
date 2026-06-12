@@ -1,10 +1,12 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useCheckinsStore } from "../store/checkinsStore";
 import { useMindDumpStore } from "../store/mindDumpStore";
 import { Spacing, FontSizes, Colors } from "../constants/theme";
 
 export default function DataLoadBanner() {
+  const { t } = useTranslation();
   const checkFail = useCheckinsStore((s) => s.loadFailed);
   const mindFail = useMindDumpStore((s) => s.loadFailed);
   const reloadCheckins = useCheckinsStore((s) => s.load);
@@ -13,14 +15,16 @@ export default function DataLoadBanner() {
   if (!checkFail && !mindFail) return null;
 
   const parts = [
-    checkFail ? "Bugün kayıtları" : null,
-    mindFail ? "Zihin notları" : null,
-  ].filter(Boolean);
+    checkFail ? t("dataLoadBanner.checkins") : null,
+    mindFail ? t("dataLoadBanner.mind") : null,
+  ].filter(Boolean) as string[];
 
   return (
     <View style={[styles.wrap, { backgroundColor: Colors.coralLight, borderBottomColor: Colors.border }]}>
       <Text style={[styles.text, { color: Colors.textPrimary }]}>
-        {parts.join(" ve ")} bu cihazdan yüklenemedi. Yerel özete güvenemediğinden yenilemek iyi olur.
+        {t("dataLoadBanner.messageFull", {
+          items: parts.join(t("dataLoadBanner.joinAnd")),
+        })}
       </Text>
       <TouchableOpacity
         style={[styles.btn, { backgroundColor: Colors.coral }]}
@@ -29,7 +33,7 @@ export default function DataLoadBanner() {
           reloadMind();
         }}
       >
-        <Text style={styles.btnText}>Yeniden yükle</Text>
+        <Text style={styles.btnText}>{t("dataLoadBanner.retry")}</Text>
       </TouchableOpacity>
     </View>
   );

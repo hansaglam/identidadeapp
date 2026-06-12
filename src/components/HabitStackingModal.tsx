@@ -24,6 +24,8 @@ import {
   type StackingMindEvolution,
 } from "../utils/stackingModalRules";
 import { trackEvent } from "../utils/analytics";
+import { useTranslation } from "react-i18next";
+import { BRAND_HASHTAG } from "../constants/brand";
 
 export type MindEvolution = StackingMindEvolution;
 
@@ -52,11 +54,12 @@ export default function HabitStackingModal({
   onSameHabit,
   onPickSuggestion,
 }: HabitStackingModalProps) {
+  const { t, i18n } = useTranslation();
   const { width: winW } = useWindowDimensions();
   const copyVariant = useMemo(() => getStackingModalCopyVariant(dayNumber), [dayNumber]);
   const copy = useMemo(
     () => getStackingModalStrings(completedHabitName, copyVariant, mindEvolution),
-    [completedHabitName, copyVariant, mindEvolution]
+    [completedHabitName, copyVariant, mindEvolution, i18n.language]
   );
 
   const muscles = useMemo(
@@ -78,7 +81,10 @@ export default function HabitStackingModal({
       dayNumber,
     });
     Share.share({
-      message: `66 günlük yolculuğu tamamladım: “${completedHabitName}”. Bu artık kimliğimde bir katman. Şimdi üzerine yenisini ekliyorum. #66GunDisiplin`,
+      message: t("stackingModal.shareMessage", {
+        habit: completedHabitName,
+        hashtag: BRAND_HASHTAG,
+      }),
     }).catch(() => {});
   };
 
@@ -104,7 +110,7 @@ export default function HabitStackingModal({
 
           {copy.evolutionIntro || copy.evolutionClosing ? (
             <View style={styles.evoCard}>
-              <Text style={styles.evoTitle}>Bu turda içeriden ne oldu?</Text>
+              <Text style={styles.evoTitle}>{t("stackingModal.evoTitle")}</Text>
               {copy.evolutionIntro ? (
                 <Text style={styles.evoHint}>{copy.evolutionIntro}</Text>
               ) : null}
@@ -116,7 +122,7 @@ export default function HabitStackingModal({
 
           <View style={styles.stackHeader}>
             <Layers size={20} color={Colors.purple} strokeWidth={1.6} />
-            <Text style={styles.stackTitle}>Şimdi? Bu kimliğin üzerine küçük bir katman ekleyelim.</Text>
+            <Text style={styles.stackTitle}>{t("stackingModal.stackTitle")}</Text>
           </View>
           <Text style={styles.stackSub}>{pack.headlineReason}</Text>
 
@@ -134,19 +140,17 @@ export default function HabitStackingModal({
           ))}
 
           <TouchableOpacity style={styles.sameBtn} onPress={onSameHabit} activeOpacity={0.88}>
-            <Text style={styles.sameBtnText}>Aynı alışkanlık — yeni 66 gün</Text>
-            <Text style={styles.sameBtnHint}>
-              Aynı kimlik hedefiyle taze tur; günlük işaretler sıfırlanır, kas seviyelerin ve notların korunur.
-            </Text>
+            <Text style={styles.sameBtnText}>{t("stackingModal.sameHabit")}</Text>
+            <Text style={styles.sameBtnHint}>{t("stackingModal.sameHabitHint")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.shareRow} onPress={onShare} hitSlop={8}>
             <Share2 size={18} color={Colors.primary} strokeWidth={1.8} />
-            <Text style={styles.shareText}>Bu ana özel paylaş</Text>
+            <Text style={styles.shareText}>{t("stackingModal.share")}</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.laterBtn} onPress={onLater} hitSlop={12}>
-            <Text style={styles.laterText}>Daha sonra hatırlat</Text>
+            <Text style={styles.laterText}>{t("stackingModal.later")}</Text>
           </TouchableOpacity>
 
           <View style={{ height: Math.max(24, winW * 0.05) }} />

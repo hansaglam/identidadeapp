@@ -8,6 +8,7 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 
@@ -17,14 +18,13 @@ export interface ProactiveInterventionModalProps {
   onDismiss: () => void;
 }
 
-/**
- * Açılış / odak: düşüş sinyali; kullanıcı otonomisini korur (atlayabilir).
- */
 export default function ProactiveInterventionModal({
   visible,
   onStartFiveSecond,
   onDismiss,
 }: ProactiveInterventionModalProps) {
+  const { t } = useTranslation();
+
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onDismiss}>
       <Pressable style={styles.backdrop} onPress={onDismiss}>
@@ -33,21 +33,17 @@ export default function ProactiveInterventionModal({
             <View style={styles.iconWrap}>
               <AlertTriangle size={28} color={Colors.coral} strokeWidth={1.8} />
             </View>
-            <Text style={styles.title}>Bugün riskli bir gün görünüyor</Text>
-            <Text style={styles.body}>
-              Son günlerde otomatiklik düşmüş veya tutarlılıkta küçük bir kesinti olmuş olabilir.
-              Bu, 66 günlük yolun normal bir parçası; Lally çizgisine göre çoğu insan bu aşamada
-              dalgalanır. Küçük bir müdahale işe yarayabilir.
-            </Text>
+            <Text style={styles.title}>{t("proactiveIntervention.title")}</Text>
+            <Text style={styles.body}>{t("proactiveIntervention.body")}</Text>
             <TouchableOpacity
               style={styles.primaryBtn}
               onPress={onStartFiveSecond}
               activeOpacity={0.88}
             >
-              <Text style={styles.primaryBtnText}>5 saniye antrenmanını başlat</Text>
+              <Text style={styles.primaryBtnText}>{t("proactiveIntervention.cta")}</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.secondaryBtn} onPress={onDismiss} hitSlop={12}>
-              <Text style={styles.secondaryBtnText}>Kendi başıma hallederim</Text>
+              <Text style={styles.secondaryBtnText}>{t("proactiveIntervention.dismiss")}</Text>
             </TouchableOpacity>
           </SafeAreaView>
         </Pressable>

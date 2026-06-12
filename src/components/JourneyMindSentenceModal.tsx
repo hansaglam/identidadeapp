@@ -13,10 +13,15 @@ import {
   ActivityIndicator,
   AccessibilityInfo,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { X, Clock, ArrowRight } from "lucide-react-native";
 import { Colors, Spacing, Radii, FontSizes } from "../constants/theme";
 import { JOURNEY_MIND_DUMP_PREFIX, stripJourneyMindPrefix } from "../constants/mindDumpJourney";
 import { saveLastMindSentenceSnippet } from "../utils/journeyEducationPrefs";
+import {
+  getKeyboardAvoidingBehavior,
+  useKeyboardModalScrollPadding,
+} from "../utils/keyboardInsets";
 
 const SESSION_SECONDS = 72;
 const INPUT_MAX = 260;
@@ -30,7 +35,7 @@ interface Props {
   /** Tam metin kalıcı; prefix burada eklenir */
   onSave: (text: string) => Promise<{ hitLimit: boolean }>;
   onOpenMindDump: () => void;
-  /** Başarılı kayıttan sonra (örn. Yolculuk snippet’ını yeniden okutmak için) */
+  /** Başarılı kayıttan sonra (örn. Yolculuk snippet'ını yeniden okutmak için) */
   onAfterMindSave?: () => void;
 }
 
@@ -43,6 +48,8 @@ export default function JourneyMindSentenceModal({
   onOpenMindDump,
   onAfterMindSave,
 }: Props) {
+  const { t } = useTranslation();
+  const { paddingBottom: scrollPad } = useKeyboardModalScrollPadding();
   const [line, setLine] = useState("");
   const [seconds, setSeconds] = useState(SESSION_SECONDS);
   const [busy, setBusy] = useState(false);
@@ -70,26 +77,27 @@ export default function JourneyMindSentenceModal({
 
   useEffect(() => {
     if (!visible || !sessionEnded) return;
-    AccessibilityInfo.announceForAccessibility(
-      "Yazılı sıra süresi doldu. İstersen yazmaya ve kaydetmeye devam edebilirsin."
-    );
-  }, [visible, sessionEnded]);
+    AccessibilityInfo.announceForAccessibility(t("journey.mindSentence.a11yTimerEnded"));
+  }, [visible, sessionEnded, t]);
 
   const save = useCallback(async () => {
-    const t = line.trim();
-    if (t.length < MIN_CHARS) {
-      Alert.alert("Zihin", `En az ${MIN_CHARS} karakter; tek düzgün cümle yeter.`);
+    const trimmed = line.trim();
+    if (trimmed.length < MIN_CHARS) {
+      Alert.alert(
+        t("journey.mindSentence.alertTitle"),
+        t("journey.mindSentence.alertMinChars", { min: MIN_CHARS })
+      );
       return;
     }
     setBusy(true);
     try {
-      const body = `${JOURNEY_MIND_DUMP_PREFIX}${t}`;
+      const body = `${JOURNEY_MIND_DUMP_PREFIX}${trimmed}`;
       const res = await onSave(body);
       if (res.hitLimit && !isPremium) {
         onHitFreeLimit();
         Alert.alert(
-          "Zihin kotası",
-          "Ücretsiz planda günlük not sınırına takılmamak için kısıtlı yazım var. Çözüm: Premium veya Zihinden eski kayıtları sadeleştir."
+          t("journey.mindSentence.alertQuotaTitle"),
+          t("journey.mindSentence.alertQuota")
         );
         onClose();
         return;
@@ -97,28 +105,39 @@ export default function JourneyMindSentenceModal({
       const snippet = stripJourneyMindPrefix(body);
       await saveLastMindSentenceSnippet(snippet);
       onAfterMindSave?.();
-      Alert.alert("Kaydedildi", "Satırın Zihin listesinde. İstersen sekmeden genişleterek devam et.");
+      Alert.alert(
+        t("journey.mindSentence.alertSavedTitle"),
+        t("journey.mindSentence.alertSaved")
+      );
       onClose();
     } catch {
-      Alert.alert("Zihin", "Kaydedilemedi. Biraz sonra tekrar dene.");
+      Alert.alert(
+        t("journey.mindSentence.alertTitle"),
+        t("journey.mindSentence.alertFailed")
+      );
     } finally {
       setBusy(false);
     }
-  }, [line, onSave, isPremium, onHitFreeLimit, onClose, onAfterMindSave]);
+  }, [line, onSave, isPremium, onHitFreeLimit, onClose, onAfterMindSave, t]);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={styles.overlay}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={getKeyboardAvoidingBehavior()}
       >
         <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
         <View style={styles.sheet}>
-          <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <ScrollView
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: scrollPad }}
+            keyboardDismissMode="on-drag"
+          >
             <View style={styles.head}>
               <View>
-                <Text style={styles.title}>Yolculuktan bir cümle</Text>
-                <Text style={styles.sub}>Zihin’e mikro çıkış; uzun yazı için sekmede kal.</Text>
+                <Text style={styles.title}>{t("journey.mindSentence.title")}</Text>
+                <Text style={styles.sub}>{t("journey.mindSentence.sub")}</Text>
               </View>
               <TouchableOpacity onPress={onClose} hitSlop={14} style={styles.closeChip}>
                 <X size={20} color={Colors.textSecondary} strokeWidth={1.8} />
@@ -129,8 +148,8 @@ export default function JourneyMindSentenceModal({
               <Clock size={16} color={sessionEnded ? Colors.coral : Colors.primary} strokeWidth={2} />
               <Text style={[styles.timerText, sessionEnded && { color: Colors.coral }]}>
                 {sessionEnded
-                  ? "Sıralı zaman doldu — yine de kaydedebilir veya yazmaya devam edebilirsin."
-                  : `Yazılı sıra süresi: ${seconds}s`}
+                  ? t("journey.mindSentence.timerEnded")
+                  : t("journey.mindSentence.timerActive", { seconds })}
               </Text>
             </View>
 
@@ -139,7 +158,9 @@ export default function JourneyMindSentenceModal({
               value={line}
               onChangeText={setLine}
               placeholder={
-                sessionEnded ? "Şimdi ne istiyorsan…" : "Şu an için tek cümle bırak (korku, yorgunluk, minnet…)…"
+                sessionEnded
+                  ? t("journey.mindSentence.placeholderEnded")
+                  : t("journey.mindSentence.placeholderActive")
               }
               placeholderTextColor={Colors.textTertiary}
               multiline
@@ -148,7 +169,11 @@ export default function JourneyMindSentenceModal({
               textAlignVertical="top"
             />
             <Text style={styles.countHint}>
-              {line.length}/{INPUT_MAX} karakter · en az {MIN_CHARS}
+              {t("journey.mindSentence.charHint", {
+                current: line.length,
+                max: INPUT_MAX,
+                min: MIN_CHARS,
+              })}
             </Text>
 
             <TouchableOpacity
@@ -160,17 +185,17 @@ export default function JourneyMindSentenceModal({
               {busy ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.saveBtnText}>Zihine kaydet</Text>
+                <Text style={styles.saveBtnText}>{t("journey.mindSentence.save")}</Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.mindTabRow} onPress={onOpenMindDump} activeOpacity={0.85}>
-              <Text style={styles.mindTabText}>Zihin sekmesini tam ekranda aç</Text>
+              <Text style={styles.mindTabText}>{t("journey.mindSentence.openMind")}</Text>
               <ArrowRight size={18} color={Colors.purple} strokeWidth={2} />
             </TouchableOpacity>
 
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.cancelPlain}>Şimdi değil</Text>
+              <Text style={styles.cancelPlain}>{t("journey.mindSentence.notNow")}</Text>
             </TouchableOpacity>
           </ScrollView>
         </View>

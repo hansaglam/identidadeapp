@@ -27,6 +27,7 @@ export type AnalyticsEventName =
   | "checkin_gate_action_first"
   | "checkin_gate_skipped"
   | "miss_recovered"
+  | "first_comeback_celebrated"
   | "journey_66_complete"
   | "journey_stacked"
   | "stacking_modal_dismissed"

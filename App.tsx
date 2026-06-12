@@ -1,12 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  View,
-  ActivityIndicator,
-  StyleSheet,
-  AppState,
-  Text,
-  TouchableOpacity,
-} from "react-native";
+import { View, StyleSheet, AppState, Text, TouchableOpacity } from "react-native";
 import {
   NavigationContainer,
   Theme as NavigationTheme,
@@ -14,7 +7,10 @@ import {
 } from "@react-navigation/native";
 import * as Notifications from "expo-notifications";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  initialWindowMetrics,
+} from "react-native-safe-area-context";
 import {
   useFonts,
   Inter_400Regular,
@@ -23,6 +19,7 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from "@expo-google-fonts/inter";
+import * as Font from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as QuickActions from "expo-quick-actions";
@@ -40,19 +37,22 @@ import { useTomorrowPlanStore } from "./src/store/tomorrowPlanStore";
 import AppNavigator from "./src/navigation/AppNavigator";
 import AppErrorBoundary from "./src/components/AppErrorBoundary";
 import {
+  ensureMainRouteIfOnboardingDone,
   navigateFromNotification,
   navigateToBugunTab,
   navigationRef,
 } from "./src/navigation/navigationRef";
 import {
-  setupNotifications,
   initNotificationSystem,
   handleNotificationResponseData,
 } from "./src/utils/notifications";
+import { requestNotificationSetup } from "./src/utils/notificationScheduler";
 import { trackEvent } from "./src/utils/analytics";
 import { useIAPStore } from "./src/store/iapStore";
 import { format } from "date-fns";
 import ExactAlarmPermissionModal from "./src/components/ExactAlarmPermissionModal";
+import AppSplashOverlay from "./src/components/AppSplashOverlay";
+import { SPLASH_BACKGROUND } from "./src/constants/splash";
 import { Colors, FontSizes, Radii } from "./src/constants/theme";
 import type { AppColors } from "./src/constants/theme";
 
@@ -64,16 +64,23 @@ export default function App() {
 
 function AppBootstrap() {
   const [dataReady, setDataReady] = useState(false);
+  const [profileReady, setProfileReady] = useState(false);
   const [i18nReady, setI18nReady] = useState(false);
   const sessionTrackedDayRef = useRef<string | null>(null);
 
-  const [fontsLoaded, fontError] = useFonts({
+  const [coreFontsLoaded, coreFontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Inter_800ExtraBold,
   });
+
+  useEffect(() => {
+    if (!coreFontsLoaded) return;
+    void Font.loadAsync({
+      Inter_600SemiBold,
+      Inter_700Bold,
+      Inter_800ExtraBold,
+    });
+  }, [coreFontsLoaded]);
 
   const loadProfile = useUserStore((s) => s.loadProfile);
   const loadedProfile = useUserStore((s) => s.profile);
@@ -88,6 +95,19 @@ function AppBootstrap() {
   const rollHabitDay = useHabitStore((s) => s.rollDayIfNeeded);
 
   const onboardingDone = loadedProfile?.startDate != null;
+
+  /** Profil kaydedildi ama Auth ekranında kalındıysa (nav gecikmesi) Main’e al. */
+  useEffect(() => {
+    if (!onboardingDone) return;
+    let attempts = 0;
+    const tick = () => {
+      const needsRetry = ensureMainRouteIfOnboardingDone(true);
+      if (!needsRetry || ++attempts >= 50) clearInterval(id);
+    };
+    tick();
+    const id = setInterval(tick, 200);
+    return () => clearInterval(id);
+  }, [onboardingDone]);
 
   useQuickActionCallback(
     useCallback((action) => {
@@ -138,7 +158,22 @@ function AppBootstrap() {
   useEffect(() => {
     let cancelled = false;
     async function boot() {
-      await loadProfile();
+      try {
+        await Promise.race([
+          loadProfile(),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("loadProfile timeout")), 12_000)
+          ),
+        ]);
+      } catch (e) {
+        if (__DEV__) console.warn("[App] loadProfile boot failed", e);
+        useUserStore.setState({
+          isLoading: false,
+          profileLoadFailed: useUserStore.getState().profile == null,
+        });
+      } finally {
+        if (!cancelled) setProfileReady(true);
+      }
       const results = await Promise.allSettled([
         loadCheckins(),
         loadMindDump(),
@@ -153,38 +188,45 @@ function AppBootstrap() {
       }
       if (!cancelled) setDataReady(true);
     }
-    boot();
+    void boot();
     return () => {
       cancelled = true;
     };
   }, []);
 
   useEffect(() => {
+    if (!dataReady) return;
     void initNotificationSystem(() => {
       const p = useUserStore.getState().profile;
       if (!p) return;
-      const todayDone = useCheckinsStore.getState().getTodayCheckin()?.completed ?? false;
-      const listsByDate = useTomorrowPlanStore.getState().listsByDate;
-      const checkins = useCheckinsStore.getState().checkins;
-      return setupNotifications(p, todayDone, listsByDate, checkins);
+      requestNotificationSetup({
+        profile: p,
+        todayDone: useCheckinsStore.getState().getTodayCheckin()?.completed ?? false,
+        listsByDate: useTomorrowPlanStore.getState().listsByDate,
+        checkins: useCheckinsStore.getState().checkins,
+        immediate: true,
+      });
     });
-  }, []);
+  }, [dataReady]);
 
   useEffect(() => {
     if (!loadedProfile) return;
 
-    const sync = () => {
-      const todayDone = useCheckinsStore.getState().getTodayCheckin()?.completed ?? false;
-      const listsByDate = useTomorrowPlanStore.getState().listsByDate;
-      const checkins = useCheckinsStore.getState().checkins;
-      setupNotifications(loadedProfile, todayDone, listsByDate, checkins).catch(console.warn);
+    const sync = (immediate = false) => {
+      requestNotificationSetup({
+        profile: loadedProfile,
+        todayDone: useCheckinsStore.getState().getTodayCheckin()?.completed ?? false,
+        listsByDate: useTomorrowPlanStore.getState().listsByDate,
+        checkins: useCheckinsStore.getState().checkins,
+        immediate,
+      });
     };
 
-    sync();
+    sync(true);
     const sub = AppState.addEventListener("change", (next) => {
       if (next === "active") {
         void rollHabitDay();
-        sync();
+        sync(false);
       }
     });
     return () => sub.remove();
@@ -217,11 +259,13 @@ function AppBootstrap() {
     void useIAPStore.getState().syncSubscriptionStatus();
   }, [dataReady, loadedProfile?.id, loadedProfile?.startDate]);
 
+  const appReady =
+    (coreFontsLoaded || coreFontError) && profileReady && i18nReady && !isUserLoading;
+
+  // Native splash React çizimini bloke eder; JS yüklenir yüklenmez kapat → tam ekran overlay
   useEffect(() => {
-    if ((fontsLoaded || fontError) && dataReady && !isUserLoading) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded, fontError, dataReady, isUserLoading]);
+    void SplashScreen.hideAsync();
+  }, []);
 
   const navTheme = useMemo((): NavigationTheme => {
     return {
@@ -238,27 +282,11 @@ function AppBootstrap() {
     };
   }, []);
 
-  const loadingStyles = useMemo(
-    () =>
-      StyleSheet.create({
-        loading: {
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: Colors.bg,
-          paddingHorizontal: 28,
-        },
-      }),
-    []
-  );
-
-  if ((!fontsLoaded && !fontError) || !dataReady || !i18nReady || isUserLoading) {
+  if (!appReady) {
     return (
       <>
-        <StatusBar style="dark" />
-        <View style={loadingStyles.loading}>
-          <ActivityIndicator color={Colors.primary} size="large" />
-        </View>
+        <StatusBar style="dark" backgroundColor={SPLASH_BACKGROUND} />
+        <AppSplashOverlay />
       </>
     );
   }
@@ -277,13 +305,16 @@ function AppBootstrap() {
       <StatusBar style="dark" />
       <AppErrorBoundary>
         <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.bg }}>
-          <SafeAreaProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <LanguageProvider>
             <ExactAlarmPermissionModal />
             <NavigationContainer
               theme={navTheme}
               ref={navigationRef}
               onReady={() => {
+                ensureMainRouteIfOnboardingDone(
+                  useUserStore.getState().profile?.startDate != null
+                );
                 Notifications.getLastNotificationResponseAsync().then((r) => {
                   if (!r?.notification) return;
                   const p = useUserStore.getState().profile;

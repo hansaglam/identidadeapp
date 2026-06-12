@@ -22,6 +22,7 @@ import {
   Star,
   Gamepad2,
 } from "lucide-react-native";
+import { useTranslation } from "react-i18next";
 import { useUserStore } from "../store/userStore";
 import { Colors, Spacing, FontSizes, Radii } from "../constants/theme";
 
@@ -49,37 +50,11 @@ export interface FiveSecondTrainerProps {
   onSkip: () => void;
 }
 
-const MUSCLE_LABEL: Record<FiveSecondScenario["disciplineMuscle"], string> = {
-  karar: "Karar anlığı",
-  direnc: "Direnç",
-  baglam: "Bağlam",
-  energi: "Enerji",
-  sosyal: "Sosyal baskı",
-};
-
-const MUSCLE_FLAVOR: Record<FiveSecondScenario["disciplineMuscle"], string> = {
-  karar: "Tek bir net hareket — düşünme süresini kısalt.",
-  direnc: "Ertelemeyi değil, başlatmayı oyna.",
-  baglam: "Ortam değişse de tetik aynı kalabilir.",
-  energi: "Enerji düşükken minimum doz bile sayılır.",
-  sosyal: "Dış onay beklemeden kendi başlat düğmene bas.",
-};
-
-/** Kısa, abartısız davranış bilimi çerçevesi (başlatma / tetik / tekrar). */
-const SCIENCE_KICKER =
-  "Net tetik + kısa süre, hedefi fiile taşımayı kolaylaştırır — her tur sinir yolunu bir kez daha işler.";
-
 type Phase = "ready" | "counting" | "action" | "result";
 
 const PHASE_ORDER: Phase[] = ["ready", "counting", "action", "result"];
 
 type SpeedTier = 0 | 1 | 2;
-
-const TIER_LABEL: Record<SpeedTier, string> = {
-  0: "Çılgın refleks",
-  1: "Hızlı tepki",
-  2: "Tamamlandı",
-};
 
 function shortVibrate(hapticsEnabled: boolean) {
   if (!hapticsEnabled) return;
@@ -102,10 +77,10 @@ function tierBonus(base: number, tier: SpeedTier): number {
   return 0;
 }
 
-function DifficultyDots({ level }: { level: number }) {
+function DifficultyDots({ level, a11yLabel }: { level: number; a11yLabel: string }) {
   const n = Math.min(5, Math.max(1, Math.round(level)));
   return (
-    <View style={styles.diffRow} accessibilityLabel={`Zorluk ${n} üzerinden 5`}>
+    <View style={styles.diffRow} accessibilityLabel={a11yLabel}>
       {Array.from({ length: 5 }, (_, i) => (
         <View key={i} style={[styles.diffDot, i < n && styles.diffDotOn]} />
       ))}
@@ -114,9 +89,8 @@ function DifficultyDots({ level }: { level: number }) {
   );
 }
 
-function PhaseStepper({ phase }: { phase: Phase }) {
+function PhaseStepper({ phase, labels }: { phase: Phase; labels: readonly string[] }) {
   const idx = PHASE_ORDER.indexOf(phase);
-  const labels = ["Hazır", "Sayım", "GO!", "Sonuç"] as const;
   return (
     <View style={styles.stepper}>
       {labels.map((label, i) => {
@@ -183,6 +157,7 @@ export default function FiveSecondTrainer({
   onComplete,
   onSkip,
 }: FiveSecondTrainerProps) {
+  const { t } = useTranslation();
   const hapticsEnabled = useUserStore((s) => s.profile?.hapticsEnabled ?? true);
 
   const [phase, setPhase] = useState<Phase>("ready");
@@ -319,8 +294,15 @@ export default function FiveSecondTrainer({
 
   const handleDone = () => onSkip();
 
-  const muscle = MUSCLE_LABEL[scenario.disciplineMuscle];
-  const flavor = MUSCLE_FLAVOR[scenario.disciplineMuscle];
+  const muscle = t(`fiveSecondTrainer.muscle.${scenario.disciplineMuscle}`);
+  const flavor = t(`fiveSecondTrainer.flavor.${scenario.disciplineMuscle}`);
+  const phaseLabels = [
+    t("fiveSecondTrainer.phase.ready"),
+    t("fiveSecondTrainer.phase.counting"),
+    t("fiveSecondTrainer.phase.action"),
+    t("fiveSecondTrainer.phase.result"),
+  ] as const;
+  const tierLabel = (tier: SpeedTier) => t(`fiveSecondTrainer.tier.${tier}`);
 
   const resultScale = resultPop.interpolate({
     inputRange: [0, 1],
@@ -353,48 +335,53 @@ export default function FiveSecondTrainer({
           <View style={styles.hudRow}>
             <View style={styles.badge}>
               <Gamepad2 size={15} color={Colors.primary} strokeWidth={2.2} />
-              <Text style={styles.badgeText}>Mini görev</Text>
+              <Text style={styles.badgeText}>{t("fiveSecondTrainer.badge")}</Text>
               <Text style={styles.sessionTag}>{sessionTag}</Text>
             </View>
             <View style={styles.roundPill}>
               <Text style={styles.roundPillText}>
-                {scenario.countdownDuration} sn
+                {t("fiveSecondTrainer.secondsShort", { count: scenario.countdownDuration })}
               </Text>
             </View>
           </View>
 
           <View style={styles.scienceStrip}>
             <Brain size={16} color="rgba(255,255,255,0.55)" strokeWidth={1.8} />
-            <Text style={styles.scienceText}>{SCIENCE_KICKER}</Text>
+            <Text style={styles.scienceText}>{t("fiveSecondTrainer.scienceKicker")}</Text>
           </View>
 
           <Text style={styles.headline}>{muscle}</Text>
           <Text style={styles.flavor}>{flavor}</Text>
-          <DifficultyDots level={scenario.difficulty} />
-          <PhaseStepper phase={phase} />
+          <DifficultyDots
+            level={scenario.difficulty}
+            a11yLabel={t("fiveSecondTrainer.difficultyA11y", {
+              n: Math.min(5, Math.max(1, Math.round(scenario.difficulty))),
+            })}
+          />
+          <PhaseStepper phase={phase} labels={phaseLabels} />
         </View>
 
         {phase === "ready" && (
           <View style={styles.card}>
             <View style={styles.cardIconRow}>
               <Wind size={22} color={Colors.primary} strokeWidth={1.8} />
-              <Text style={styles.cardKicker}>Görev metni</Text>
+              <Text style={styles.cardKicker}>{t("fiveSecondTrainer.taskKicker")}</Text>
             </View>
             <Text style={styles.trigger}>{scenario.trigger}</Text>
 
             <View style={styles.rulesBox}>
-              <Text style={styles.rulesTitle}>Nasıl oynanır</Text>
+              <Text style={styles.rulesTitle}>{t("fiveSecondTrainer.rulesTitle")}</Text>
               <View style={styles.ruleLine}>
                 <Text style={styles.ruleNum}>1</Text>
-                <Text style={styles.ruleTxt}>Başla → geri sayım bitene kadar hazır ol</Text>
+                <Text style={styles.ruleTxt}>{t("fiveSecondTrainer.rule1")}</Text>
               </View>
               <View style={styles.ruleLine}>
                 <Text style={styles.ruleNum}>2</Text>
-                <Text style={styles.ruleTxt}>GO! çıkınca alışkanlığı gerçekten yap</Text>
+                <Text style={styles.ruleTxt}>{t("fiveSecondTrainer.rule2")}</Text>
               </View>
               <View style={styles.ruleLine}>
                 <Text style={styles.ruleNum}>3</Text>
-                <Text style={styles.ruleTxt}>Bitince “Yaptım”a bas — hızın bonus XP kazandırır</Text>
+                <Text style={styles.ruleTxt}>{t("fiveSecondTrainer.rule3")}</Text>
               </View>
             </View>
 
@@ -404,7 +391,7 @@ export default function FiveSecondTrainer({
               activeOpacity={0.88}
             >
               <Zap size={21} color="#fff" fill="#fff" strokeWidth={2} />
-              <Text style={styles.btnPrimaryText}>Oyuna başla</Text>
+              <Text style={styles.btnPrimaryText}>{t("fiveSecondTrainer.startGame")}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -414,7 +401,7 @@ export default function FiveSecondTrainer({
             <View style={styles.countIconWrap}>
               <Timer size={30} color={Colors.primary} strokeWidth={1.8} />
             </View>
-            <Text style={styles.countLabel}>Geri sayım</Text>
+            <Text style={styles.countLabel}>{t("fiveSecondTrainer.countdown")}</Text>
             <CountdownSegments
               total={scenario.countdownDuration}
               remaining={count}
@@ -428,7 +415,7 @@ export default function FiveSecondTrainer({
             >
               {count}
             </Animated.Text>
-            <Text style={styles.countSub}>saniye</Text>
+            <Text style={styles.countSub}>{t("fiveSecondTrainer.seconds")}</Text>
           </View>
         )}
 
@@ -439,16 +426,14 @@ export default function FiveSecondTrainer({
               <Text style={styles.goTitle}>GO!</Text>
               <Sparkles size={22} color={Colors.gold} strokeWidth={2} />
             </View>
-            <Text style={styles.actionHint}>
-              Şimdi tek net hareketi yap. Bitince aşağıya dokun — ne kadar çabuk, o kadar çok yıldız.
-            </Text>
+            <Text style={styles.actionHint}>{t("fiveSecondTrainer.actionHint")}</Text>
             <TouchableOpacity
               style={styles.btnSuccess}
               onPress={handleYaptim}
               activeOpacity={0.9}
             >
               <CheckCircle2 size={24} color="#fff" strokeWidth={2} />
-              <Text style={styles.btnSuccessText}>Yaptım</Text>
+              <Text style={styles.btnSuccessText}>{t("fiveSecondTrainer.done")}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -464,40 +449,40 @@ export default function FiveSecondTrainer({
             <View style={styles.trophyCircle}>
               <Trophy size={36} color={Colors.gold} strokeWidth={1.8} />
             </View>
-            <Text style={styles.resultKicker}>Tur tamam</Text>
-            <Text style={styles.resultTitle}>{TIER_LABEL[resultDetail.tier]}</Text>
+            <Text style={styles.resultKicker}>{t("fiveSecondTrainer.roundDone")}</Text>
+            <Text style={styles.resultTitle}>{tierLabel(resultDetail.tier)}</Text>
             <ResultStars tier={resultDetail.tier} />
             <Text style={styles.reactionMeta}>
-              Tepki süresi: {(resultDetail.ms / 1000).toFixed(1)} sn
+              {t("fiveSecondTrainer.reactionTime", {
+                sec: (resultDetail.ms / 1000).toFixed(1),
+              })}
             </Text>
 
             <View style={styles.xpBreak}>
               <View style={styles.xpLine}>
-                <Text style={styles.xpLineLbl}>Temel XP</Text>
+                <Text style={styles.xpLineLbl}>{t("fiveSecondTrainer.baseXp")}</Text>
                 <Text style={styles.xpLineVal}>+{resultDetail.base}</Text>
               </View>
               {resultDetail.bonus > 0 && (
                 <View style={styles.xpLine}>
-                  <Text style={styles.xpLineLbl}>Hız bonusu</Text>
+                  <Text style={styles.xpLineLbl}>{t("fiveSecondTrainer.speedBonus")}</Text>
                   <Text style={[styles.xpLineVal, styles.xpBonus]}>+{resultDetail.bonus}</Text>
                 </View>
               )}
               <View style={[styles.xpLine, styles.xpTotalRow]}>
-                <Text style={styles.xpTotalLbl}>Toplam</Text>
+                <Text style={styles.xpTotalLbl}>{t("fiveSecondTrainer.total")}</Text>
                 <Text style={styles.xpTotalVal}>+{xpTotal} XP</Text>
               </View>
             </View>
 
-            <Text style={styles.growthText}>
-              Tekrarlar bağlantıyı güçlendirir — oyun gibi düşün: her tur bir antrenman seti.
-            </Text>
+            <Text style={styles.growthText}>{t("fiveSecondTrainer.growthText")}</Text>
 
             <TouchableOpacity
               style={styles.btnPrimary}
               onPress={handleDone}
               activeOpacity={0.88}
             >
-              <Text style={styles.btnPrimaryText}>Devam</Text>
+              <Text style={styles.btnPrimaryText}>{t("fiveSecondTrainer.continue")}</Text>
             </TouchableOpacity>
           </Animated.View>
         )}
@@ -505,8 +490,12 @@ export default function FiveSecondTrainer({
 
       {phase !== "result" && (
         <View style={styles.skipWrap}>
-          <TouchableOpacity onPress={onSkip} hitSlop={16} accessibilityLabel="Mini görevi atla">
-            <Text style={styles.skipText}>Şimdi oynamak istemiyorum</Text>
+          <TouchableOpacity
+            onPress={onSkip}
+            hitSlop={16}
+            accessibilityLabel={t("fiveSecondTrainer.skipA11y")}
+          >
+            <Text style={styles.skipText}>{t("fiveSecondTrainer.skip")}</Text>
           </TouchableOpacity>
         </View>
       )}

@@ -4,9 +4,10 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AppState, Linking, Platform } from "react-native";
 
+import { ANDROID_PACKAGE } from "../constants/brand";
+
 const EXACT_ALARM_STATUS_KEY = "notifications:exact_alarm:status:v1";
 const EXACT_ALARM_MODAL_DISMISSED_KEY = "notifications:exact_alarm:modal_dismissed:v1";
-const ANDROID_PACKAGE = "com.kimlik.app";
 
 export type ExactAlarmStatus = "granted" | "denied" | "unknown";
 

@@ -26,14 +26,13 @@ export default function TomorrowPlanSection({
   const { t } = useTranslation();
   return (
     <View style={styles.planStack}>
-      {showJourneyBridge ? (
-        <View style={styles.bridgeCard}>
-          <Text style={styles.bridgeTitle}>{t("journey.tomorrowPlan.bridgeTitle")}</Text>
-          <Text style={styles.bridgeBody}>{t("journey.tomorrowPlan.bridgeBody")}</Text>
-        </View>
-      ) : null}
-      <View style={styles.sectionLabelRow}>
+      <View style={styles.sectionHeader}>
         <Text style={styles.sectionLabel}>{t("journey.tomorrowPlan.sectionLabel")}</Text>
+        {showJourneyBridge ? (
+          <Text style={styles.sectionHint} numberOfLines={2}>
+            {t("journey.tomorrowPlan.bridgeTitle")} — {t("journey.tomorrowPlan.bridgeBody")}
+          </Text>
+        ) : null}
       </View>
       <View style={styles.tomorrowPlanCard}>
         {primaryTodo ? (
@@ -41,11 +40,13 @@ export default function TomorrowPlanSection({
             <View style={styles.planCardHeader}>
               <View style={styles.planCardHeaderLeft}>
                 <View style={styles.planIconWrap}>
-                  <ClipboardList size={16} color={Colors.primary} strokeWidth={2} />
+                  <ClipboardList size={14} color={Colors.primary} strokeWidth={2} />
                 </View>
-                <View style={{ flex: 1 }}>
+                <View style={styles.planHeaderText}>
                   <Text style={styles.planKicker}>{t("journey.tomorrowPlan.kicker")}</Text>
-                  <Text style={styles.planAction}>{t("journey.tomorrowPlan.action")}</Text>
+                  <Text style={styles.planAction} numberOfLines={1}>
+                    {t("journey.tomorrowPlan.action")}
+                  </Text>
                 </View>
               </View>
               <View style={styles.planStatusPill}>
@@ -61,7 +62,9 @@ export default function TomorrowPlanSection({
               >
                 <View style={styles.todoCheckPlanned} />
                 <View style={styles.todoTextWrap}>
-                  <Text style={styles.primaryTodoText}>{primaryTodo.text}</Text>
+                  <Text style={styles.primaryTodoText} numberOfLines={2}>
+                    {primaryTodo.text}
+                  </Text>
                   <View style={styles.todoMetaRow}>
                     {primaryTodo.time ? (
                       <View style={styles.todoMetaChip}>
@@ -72,7 +75,9 @@ export default function TomorrowPlanSection({
                     {primaryTodo.context ? (
                       <View style={styles.todoMetaChip}>
                         <MapPin size={10} color={Colors.textTertiary} strokeWidth={2} />
-                        <Text style={styles.todoMetaChipText}>{primaryTodo.context}</Text>
+                        <Text style={styles.todoMetaChipText} numberOfLines={1}>
+                          {primaryTodo.context}
+                        </Text>
                       </View>
                     ) : null}
                     {!primaryTodo.time && !primaryTodo.context ? (
@@ -91,7 +96,9 @@ export default function TomorrowPlanSection({
                 >
                   <View style={styles.todoCheckSmallPlanned} />
                   <View style={styles.todoTextWrap}>
-                    <Text style={styles.supportTodoText}>{item.text}</Text>
+                    <Text style={styles.supportTodoText} numberOfLines={2}>
+                      {item.text}
+                    </Text>
                     {item.time || item.context ? (
                       <Text style={styles.todoMeta} numberOfLines={1}>
                         {[item.time, item.context].filter(Boolean).join(" · ")}
@@ -109,7 +116,7 @@ export default function TomorrowPlanSection({
                   onPress={() => onOpenEditor()}
                   activeOpacity={0.85}
                 >
-                  <Plus size={14} color={Colors.primaryDark} strokeWidth={2.5} />
+                  <Plus size={13} color={Colors.primaryDark} strokeWidth={2.5} />
                   <Text style={styles.planAddSmallText}>{t("journey.tomorrowPlan.addSupport")}</Text>
                 </TouchableOpacity>
               ) : (
@@ -127,10 +134,12 @@ export default function TomorrowPlanSection({
         ) : (
           <View style={styles.emptyWrap}>
             <View style={styles.emptyIconWrap}>
-              <ClipboardList size={24} color={Colors.primary} strokeWidth={1.8} />
+              <ClipboardList size={20} color={Colors.primary} strokeWidth={1.8} />
             </View>
             <Text style={styles.planEmptyTitle}>{t("journey.tomorrowPlan.emptyTitle")}</Text>
-            <Text style={styles.planEmptySub}>{t("journey.tomorrowPlan.emptySub")}</Text>
+            <Text style={styles.planEmptySub} numberOfLines={3}>
+              {t("journey.tomorrowPlan.emptySub")}
+            </Text>
             <TouchableOpacity style={styles.planAddBtn} onPress={() => onOpenEditor()} activeOpacity={0.85}>
               <Text style={styles.planAddText}>{t("journey.tomorrowPlan.addFirst")}</Text>
             </TouchableOpacity>
@@ -142,152 +151,138 @@ export default function TomorrowPlanSection({
 }
 
 const styles = StyleSheet.create({
-  planStack: { gap: 12 },
-  bridgeCard: {
-    backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.card,
-    padding: Spacing.md,
-    borderWidth: 1,
-    borderColor: "rgba(47, 156, 134, 0.2)",
-  },
-  bridgeTitle: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
-    color: Colors.primaryDark,
-    marginBottom: 4,
-  },
-  bridgeBody: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-  sectionLabelRow: { marginTop: 24, marginBottom: 10 },
+  planStack: { gap: 8 },
+  sectionHeader: { gap: 3, marginBottom: 2 },
   sectionLabel: {
-    fontSize: 11,
+    fontSize: 10,
     fontFamily: "Inter_700Bold",
     fontWeight: "700",
-    letterSpacing: 1.5,
+    letterSpacing: 1.2,
     color: "#94A3B8",
     textTransform: "uppercase",
+  },
+  sectionHint: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 16,
   },
   tomorrowPlanCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
-    padding: 16,
+    padding: 12,
     borderWidth: 1,
     borderColor: "rgba(16, 185, 129, 0.14)",
-    ...Shadows.card,
+    ...Shadows.soft,
   },
   planCardHeader: {
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
+    gap: 8,
   },
   planCardHeaderLeft: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 10,
+    alignItems: "center",
+    gap: 8,
     flex: 1,
+    minWidth: 0,
   },
+  planHeaderText: { flex: 1, minWidth: 0 },
   planIconWrap: {
-    width: 36,
-    height: 36,
-    borderRadius: Radii.button,
+    width: 30,
+    height: 30,
+    borderRadius: 8,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 2,
   },
   planKicker: {
-    fontSize: FontSizes.xs,
+    fontSize: 9,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: Colors.primary,
-    letterSpacing: 0.6,
+    letterSpacing: 0.5,
     textTransform: "uppercase",
-    marginBottom: 4,
   },
   planAction: {
-    fontSize: FontSizes.lg,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_600SemiBold",
-    fontWeight: "700",
+    fontWeight: "600",
     color: Colors.textPrimary,
-    lineHeight: 24,
+    lineHeight: 18,
   },
   planStatusPill: {
     backgroundColor: "#ECFDF5",
     borderRadius: Radii.pill,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
     borderWidth: 1,
     borderColor: "#A7F3D0",
   },
   planStatusText: {
-    fontSize: FontSizes.xs,
+    fontSize: 9,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: "#059669",
   },
-  todoList: { marginTop: 14, gap: 8 },
+  todoList: { marginTop: 10, gap: 6 },
   primaryTodoRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F8FAFC",
-    borderRadius: Radii.button,
-    padding: 12,
+    borderRadius: 10,
+    padding: 10,
     borderWidth: 1,
     borderColor: "rgba(16, 185, 129, 0.18)",
-    gap: 10,
+    gap: 8,
   },
   supportTodoRow: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: Colors.surface,
-    borderRadius: Radii.button,
-    paddingVertical: 10,
+    borderRadius: 10,
+    paddingVertical: 8,
     paddingHorizontal: 10,
     borderWidth: 1,
     borderColor: Colors.border,
-    gap: 10,
+    gap: 8,
   },
   todoCheckPlanned: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
     borderColor: "#A7F3D0",
     backgroundColor: Colors.surface,
   },
   todoCheckSmallPlanned: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
     borderWidth: 2,
     borderColor: "#CBD5E1",
     backgroundColor: Colors.surface,
   },
   todoTextWrap: { flex: 1, minWidth: 0 },
   primaryTodoText: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: Colors.textPrimary,
-    lineHeight: 21,
+    lineHeight: 19,
   },
   supportTodoText: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_500Medium",
     color: Colors.textPrimary,
-    lineHeight: 19,
+    lineHeight: 17,
   },
   todoMetaRow: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 6,
-    marginTop: 4,
+    gap: 4,
+    marginTop: 3,
   },
   todoMetaChip: {
     flexDirection: "row",
@@ -295,33 +290,33 @@ const styles = StyleSheet.create({
     gap: 3,
     backgroundColor: "#F1F5F9",
     borderRadius: Radii.pill,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
   },
   todoMetaChipText: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
   },
   todoMeta: {
     marginTop: 2,
-    fontSize: FontSizes.xs,
+    fontSize: 10,
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
-    lineHeight: 17,
+    lineHeight: 14,
   },
-  todoFooter: { gap: 8, marginTop: 14 },
+  todoFooter: { gap: 6, marginTop: 10 },
   planAddSmallBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
+    gap: 5,
     backgroundColor: Colors.primaryLight,
-    borderRadius: Radii.button,
-    paddingVertical: 11,
+    borderRadius: 10,
+    paddingVertical: 9,
   },
   planAddSmallText: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: Colors.primaryDark,
@@ -331,56 +326,56 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
     textAlign: "center",
-    paddingVertical: 4,
+    paddingVertical: 2,
   },
   planDeleteBtn: {
     alignItems: "center",
-    paddingVertical: 10,
+    paddingVertical: 6,
   },
   planDeleteText: {
-    fontSize: FontSizes.xs,
+    fontSize: 10,
     fontFamily: "Inter_500Medium",
     fontWeight: "500",
     color: "#DC2626",
   },
   emptyWrap: {
     alignItems: "center",
-    paddingVertical: Spacing.sm,
-    gap: Spacing.sm,
+    paddingVertical: 4,
+    gap: 6,
   },
   emptyIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: Radii.card,
+    width: 40,
+    height: 40,
+    borderRadius: 10,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
   },
   planEmptyTitle: {
-    fontSize: FontSizes.lg,
+    fontSize: FontSizes.md,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: Colors.textPrimary,
     textAlign: "center",
   },
   planEmptySub: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    lineHeight: 20,
+    lineHeight: 17,
     textAlign: "center",
-    paddingHorizontal: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
   },
   planAddBtn: {
-    marginTop: 4,
+    marginTop: 2,
     backgroundColor: Colors.primary,
-    borderRadius: Radii.button,
-    paddingVertical: 13,
+    borderRadius: 10,
+    paddingVertical: 11,
     alignItems: "center",
     alignSelf: "stretch",
   },
   planAddText: {
-    fontSize: FontSizes.md,
+    fontSize: FontSizes.sm,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: "#FFFFFF",

@@ -1,4 +1,5 @@
 import { parseISO, startOfDay, differenceInCalendarDays } from "date-fns";
+import i18n from "../i18n/config";
 import { analyzeMindDump } from "../engine/mindDumpAnalyzer";
 import type { MindDumpEntry } from "../types";
 import type { CheckinRecord } from "../types";
@@ -12,6 +13,13 @@ const STRUGGLE_HINTS = [
   "tüken",
   "bitkin",
   "çaresiz",
+  "don't want",
+  "tired",
+  "hard",
+  "give up",
+  "exhausted",
+  "cansado",
+  "desistir",
 ];
 
 function entryDayNumber(startDate: string, createdAt: string): number {
@@ -21,7 +29,7 @@ function entryDayNumber(startDate: string, createdAt: string): number {
 }
 
 function looksLikeStruggle(text: string): boolean {
-  const low = text.toLocaleLowerCase("tr-TR");
+  const low = text.toLocaleLowerCase();
   return STRUGGLE_HINTS.some((w) => low.includes(w));
 }
 
@@ -32,9 +40,6 @@ export type MindDumpReflectionState = {
   quote: string | null;
 };
 
-/**
- * Kayıt sonrası: direnç / yük (recovery) sinyali + geçmişten güçlü alıntı.
- */
 export function buildMindDumpReflection(
   savedText: string,
   entries: MindDumpEntry[],
@@ -79,14 +84,14 @@ export function buildMindDumpReflection(
   }
 
   const kw = analysis.matchedKeyword;
-  const bannerTitle = "Notunu burada okuduk";
+  const bannerTitle = i18n.t("mindDumpReflection.bannerTitle");
   let bannerBody: string;
   if (muscle === "resistance") {
-    bannerBody = `Bugün "${kw}" geçiyor; bu, direnç kası antrenmanında olabileceğin anlamına gelebilir.`;
+    bannerBody = i18n.t("mindDumpReflection.bannerBodyKeyword", { keyword: kw });
   } else if (muscle === "recovery") {
-    bannerBody = `Bugün "${kw}" geçiyor; yükünü fark etmen önemli. Küçük bir adım yine ilerlemedir.`;
+    bannerBody = i18n.t("mindDumpReflection.bannerBodyRecovery", { keyword: kw });
   } else {
-    bannerBody = `Bugün "${kw}" geçiyor; enerji düşük hissi genelde geçicidir — bugünkü adımı küçük tutmak yeter.`;
+    bannerBody = i18n.t("mindDumpReflection.bannerBodyActivation", { keyword: kw });
   }
 
   const quote = pickEncouragementQuote(
@@ -94,7 +99,7 @@ export function buildMindDumpReflection(
     checkins,
     trimmed,
     startDate,
-    habitName.trim() || "Bugünkü adımın"
+    habitName.trim() || i18n.t("mindDumpReflection.defaultHabit")
   );
 
   return { showBanner: true, bannerTitle, bannerBody, quote };
@@ -120,5 +125,9 @@ function pickEncouragementQuote(
   const dn = entryDayNumber(startDate, pick.createdAt);
   const words = pick.content.trim().split(/\s+/).slice(0, 8).join(" ");
   const tail = words.length > 50 ? `${words.slice(0, 47)}…` : words;
-  return `Gün ${dn}'de "${tail}" demiştin; o gün kutuyu kapattın. ${habitLabel} için bugün de en küçük versiyon yeter.`;
+  return i18n.t("mindDumpReflection.quote", {
+    day: dn,
+    snippet: tail,
+    habit: habitLabel,
+  });
 }

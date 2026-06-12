@@ -33,7 +33,8 @@ import { useCheckinsStore } from "../store/checkinsStore";
 import { useBehaviorStore } from "../store/useBehaviorStore";
 import { getActionById } from "../engine/actions";
 import { useHabitStore, type JourneyReflection } from "../store/habitStore";
-import { analyzeMindDump, analyzeRecentMindDumps, MUSCLE_LABELS, type MindDumpAnalysis } from "../engine";
+import { analyzeMindDump, analyzeRecentMindDumps, type MindDumpAnalysis } from "../engine";
+import { localizeActionTitle } from "../i18n/localizeContent";
 import {
   Colors,
   Spacing,
@@ -41,10 +42,6 @@ import {
   FontSizes,
   Shadows,
 } from "../constants/theme";
-import {
-  MIND_DUMP_FREE_LIMIT_EXPLAIN,
-  MIND_DUMP_APPROACHING_LIMIT,
-} from "../constants/purposeCopy";
 import { MainTabParamList, MindDumpEntry } from "../types";
 import PremiumGateModal from "../components/PremiumGateModal";
 import ConfirmDialog from "../components/ConfirmDialog";
@@ -52,6 +49,11 @@ import { isJourneyMindContent, stripJourneyMindPrefix } from "../constants/mindD
 import { buildMindDumpReflection, type MindDumpReflectionState } from "../utils/mindDumpReflection";
 import FiveSecondTrainer, { type FiveSecondScenario } from "../components/FiveSecondTrainer";
 import { getDailyMindPrompt, getMindModalStartPhrases } from "../constants/mindDumpPrompts";
+import { useTabBarMetrics } from "../utils/tabBarInsets";
+import {
+  getKeyboardAvoidingBehavior,
+  useKeyboardModalScrollPadding,
+} from "../utils/keyboardInsets";
 
 type Props = BottomTabScreenProps<MainTabParamList, "MindDump">;
 
@@ -175,6 +177,7 @@ function ReflectionHistoryRow({
 
 export default function MindDumpScreen(_: Props) {
   const { t } = useTranslation();
+  const { scrollPadding: tabBarScrollPad } = useTabBarMetrics();
   const weekDayLabels = [t("mind.weekdays.mon"), t("mind.weekdays.tue"), t("mind.weekdays.wed"), t("mind.weekdays.thu"), t("mind.weekdays.fri"), t("mind.weekdays.sat"), t("mind.weekdays.sun")];
   const currentDay = useUserStore((s) => s.dayNumber());
   const todayPromptPlaceholder = useMemo(
@@ -245,7 +248,10 @@ export default function MindDumpScreen(_: Props) {
       <ScrollView
         ref={journalScrollRef}
         style={styles.journalScroll}
-        contentContainerStyle={styles.journalScrollContent}
+        contentContainerStyle={[
+          styles.journalScrollContent,
+          { paddingBottom: tabBarScrollPad },
+        ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
@@ -280,7 +286,7 @@ export default function MindDumpScreen(_: Props) {
             <View style={styles.moodPill}>
               <Sparkles size={13} color={Colors.primary} strokeWidth={2} />
               <Text style={styles.moodPillText}>
-                {t("mind.moodPill", { muscle: MUSCLE_LABELS[moodAnalysis.detectedMuscle] })}
+                {t("mind.moodPill", { muscle: t(`home.muscle.${moodAnalysis.detectedMuscle}`) })}
               </Text>
             </View>
           ) : null}
@@ -357,7 +363,7 @@ export default function MindDumpScreen(_: Props) {
                     !canSaveToday && styles.saveTodayBtnTextDisabled,
                   ]}
                 >
-                  Kaydet
+                  {t("mind.today.save")}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -435,7 +441,9 @@ export default function MindDumpScreen(_: Props) {
         <View style={{ height: 32 }} />
       </ScrollView>
 
-      <MindDumpLegacyModal visible={mindModalOpen} onClose={() => setMindModalOpen(false)} />
+      {mindModalOpen ? (
+        <MindDumpLegacyModal visible onClose={() => setMindModalOpen(false)} />
+      ) : null}
     </SafeAreaView>
   );
 }
@@ -448,7 +456,11 @@ function MindDumpLegacyModal({
   visible: boolean;
   onClose: () => void;
 }) {
-  const { entries, load, createEntry, updateEntry, deleteEntry } = useMindDumpStore();
+  const entries = useMindDumpStore((s) => s.entries);
+  const load = useMindDumpStore((s) => s.load);
+  const createEntry = useMindDumpStore((s) => s.createEntry);
+  const updateEntry = useMindDumpStore((s) => s.updateEntry);
+  const deleteEntry = useMindDumpStore((s) => s.deleteEntry);
   const profile = useUserStore((s) => s.profile);
   const isPremium = profile?.isPremium ?? false;
   const currentDay = useUserStore((s) => s.dayNumber());
@@ -457,6 +469,7 @@ function MindDumpLegacyModal({
     () => getMindModalStartPhrases(currentDay),
     [currentDay, i18n.language]
   );
+  const { paddingBottom: modalScrollPad } = useKeyboardModalScrollPadding();
   const fiveScenario = useMemo<FiveSecondScenario>(
     () => ({
       id: "mind-dump-nudge",
@@ -538,18 +551,22 @@ function MindDumpLegacyModal({
   );
 
   const [liveMood, setLiveMood] = useState<MindDumpAnalysis | null>(null);
+  const moodTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTextChange = (value: string) => {
     const next = value.slice(0, MODAL_MAX_CHARS);
     setText(next);
     setSelectedPromptIdx(null);
     triggerAutoSave(next, currentId);
-    if (next.trim().length >= 12) {
+    if (moodTimerRef.current) clearTimeout(moodTimerRef.current);
+    if (next.trim().length < 12) {
+      setLiveMood(null);
+      return;
+    }
+    moodTimerRef.current = setTimeout(() => {
       const analysis = analyzeMindDump(next);
       setLiveMood(analysis.matchedKeyword ? analysis : null);
-    } else {
-      setLiveMood(null);
-    }
+    }, 220);
   };
 
   const applyStartPhrase = (phrase: string, idx: number) => {
@@ -592,7 +609,7 @@ function MindDumpLegacyModal({
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView
         style={mindModalStyles.kbRoot}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={getKeyboardAvoidingBehavior()}
       >
         <View style={mindModalStyles.overlay}>
           <Pressable style={mindModalStyles.backdrop} onPress={onClose} />
@@ -610,8 +627,12 @@ function MindDumpLegacyModal({
               <ScrollView
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
-                contentContainerStyle={mindModalStyles.scrollContent}
+                contentContainerStyle={[
+                  mindModalStyles.scrollContent,
+                  { paddingBottom: modalScrollPad },
+                ]}
                 bounces={false}
+                keyboardDismissMode="on-drag"
               >
                 <View style={mindModalStyles.handleWrap}>
                   <View style={mindModalStyles.handle} />
@@ -623,7 +644,7 @@ function MindDumpLegacyModal({
 
                 {!isPremium && entries.length >= 8 && entries.length < 10 ? (
                   <View style={[legacyStyles.approachingBanner, mindModalStyles.bannerMargin]}>
-                    <Text style={legacyStyles.approachingText}>{MIND_DUMP_APPROACHING_LIMIT}</Text>
+                    <Text style={legacyStyles.approachingText}>{t("mind.limits.approaching")}</Text>
                   </View>
                 ) : null}
 
@@ -669,7 +690,13 @@ function MindDumpLegacyModal({
                   <View style={mindModalStyles.liveMoodRow}>
                     <Sparkles size={14} color={Colors.primary} strokeWidth={2} />
                     <Text style={mindModalStyles.liveMoodText}>
-                      {t("mind.modal.moodAction", { muscle: MUSCLE_LABELS[liveMood.detectedMuscle], action: liveMood.suggestedAction.title })}
+                      {t("mind.modal.moodAction", {
+                        muscle: t(`home.muscle.${liveMood.detectedMuscle}`),
+                        action: localizeActionTitle(
+                          liveMood.suggestedAction.id,
+                          liveMood.suggestedAction.title
+                        ),
+                      })}
                     </Text>
                   </View>
                 ) : null}
@@ -771,7 +798,7 @@ function MindDumpLegacyModal({
                     onPress={() => setShowGate(true)}
                   >
                     <Lock size={18} color={Colors.coral} strokeWidth={1.5} />
-                    <Text style={legacyStyles.limitText}>{MIND_DUMP_FREE_LIMIT_EXPLAIN}</Text>
+                    <Text style={legacyStyles.limitText}>{t("mind.limits.freeLimit")}</Text>
                   </TouchableOpacity>
                 ) : null}
 
@@ -847,6 +874,7 @@ interface LegacyEntryRowProps {
 }
 
 function LegacyEntryRow({ entry, active, onSelect, onDelete }: LegacyEntryRowProps) {
+  const { t } = useTranslation();
   const translateX = useRef(new Animated.Value(0)).current;
   const [swiped, setSwiped] = useState(false);
   const fromJourney = isJourneyMindContent(entry.content);
@@ -883,12 +911,12 @@ function LegacyEntryRow({ entry, active, onSelect, onDelete }: LegacyEntryRowPro
             {fromJourney ? (
               <View style={entryS.jBadge}>
                 <Footprints size={11} color={Colors.primaryDark} strokeWidth={2} />
-                <Text style={entryS.jBadgeText}>Yolculuk</Text>
+                <Text style={entryS.jBadgeText}>{t("mind.journeyBadge")}</Text>
               </View>
             ) : null}
           </View>
           <Text style={entryS.rowPreview} numberOfLines={2}>
-            {preview || "Boş not"}
+            {preview || t("mind.emptyNote")}
           </Text>
         </TouchableOpacity>
       </Animated.View>
@@ -1315,9 +1343,7 @@ const mindModalStyles = StyleSheet.create({
     right: 16,
     zIndex: 10,
   },
-  scrollContent: {
-    paddingBottom: 24,
-  },
+  scrollContent: {},
   handleWrap: {
     alignItems: "center",
     marginTop: 8,

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -10,10 +10,18 @@ import {
   Linking,
   Platform,
   Alert,
+  ScrollView,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
-import { X, Sparkles } from "lucide-react-native";
+import {
+  X,
+  Sparkles,
+  Map,
+  ScanFace,
+  BarChart3,
+  PenLine,
+} from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { useUserStore } from "../store/userStore";
 import { useIAPStore, IAP_PRODUCTS } from "../store/iapStore";
@@ -24,7 +32,6 @@ import {
   FontSizes,
 } from "../constants/theme";
 import ConfirmDialog from "./ConfirmDialog";
-import { MIND_DUMP_FREE_LIMIT_EXPLAIN } from "../constants/purposeCopy";
 import { trackEvent } from "../utils/analytics";
 import { PRIVACY_POLICY_URL, TERMS_URL } from "../constants/appLinks";
 
@@ -34,8 +41,12 @@ interface Props {
   trigger: "journey" | "minddump" | "day7" | "day22" | "profile";
 }
 
+const BENEFIT_ICONS = [Map, Sparkles, ScanFace, BarChart3, PenLine] as const;
+
+type BenefitItem = { title: string; desc: string };
+
 export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const profilePremium = useUserStore((s) => s.profile?.isPremium ?? false);
   const hapticsEnabled = useUserStore((s) => s.profile?.hapticsEnabled ?? true);
@@ -56,6 +67,27 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
   const ctaScale = useRef(new Animated.Value(1)).current;
 
   const purchaseStartedRef = useRef(false);
+
+  const benefitItems = useMemo(() => {
+    const raw = t("premium.benefitItems", { returnObjects: true });
+    if (Array.isArray(raw) && raw.length > 0) {
+      return raw as BenefitItem[];
+    }
+    const lines = t("premium.benefits", { returnObjects: true });
+    if (Array.isArray(lines)) {
+      return (lines as string[]).map((line) => {
+        const [title, ...rest] = line.split(" — ");
+        return { title: title ?? line, desc: rest.join(" — ") || "" };
+      });
+    }
+    return [];
+  }, [t, i18n.language]);
+
+  const triggerText = useMemo(() => {
+    const key = `premium.triggers.${trigger}`;
+    const v = t(key);
+    return v !== key ? v : null;
+  }, [trigger, t, i18n.language]);
 
   useEffect(() => {
     if (visible && profilePremium) {
@@ -170,11 +202,12 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
   };
 
   const product = products.find(
-    (p: any) => p.id === IAP_PRODUCTS.PRO_MONTHLY
+    (p: { id?: string }) => p.id === IAP_PRODUCTS.PRO_MONTHLY
   );
   const priceStr =
-    product?.displayPrice ??
-    product?.localizedPrice ??
+    (product as { displayPrice?: string; localizedPrice?: string } | undefined)
+      ?.displayPrice ??
+    (product as { localizedPrice?: string } | undefined)?.localizedPrice ??
     "—";
 
   const ctaPressIn = () => {
@@ -195,7 +228,7 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
     }).start();
   };
 
-  const sheetPadBottom = Math.max(Spacing.md, insets.bottom + 6);
+  const sheetPadBottom = Math.max(Spacing.sm, insets.bottom + 4);
 
   return (
     <>
@@ -220,51 +253,66 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
             ]}
           >
             <View style={[styles.sheet, { paddingBottom: sheetPadBottom }]}>
-              <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8}>
+              <TouchableOpacity
+                style={styles.closeBtn}
+                onPress={onClose}
+                hitSlop={8}
+                accessibilityLabel={t("common.close")}
+              >
                 <X size={18} color={Colors.textTertiary} strokeWidth={1.5} />
               </TouchableOpacity>
 
               <View style={styles.handle} />
 
-              <View style={styles.iconWrap}>
-                <Sparkles size={22} color={Colors.primary} strokeWidth={1.5} />
-              </View>
-
-              <Text style={styles.headline}>{t("premium.headline")}</Text>
-
-              <View style={styles.narrative}>
-                <Text style={styles.narrativeLine}>{t("premium.narrative1")}</Text>
-                <Text style={styles.narrativeEmphasis}>{t("premium.narrativeEmphasis")}</Text>
-                <Text style={styles.narrativeLine}>{t("premium.narrative2")}</Text>
-              </View>
-
-              <Text style={styles.optOutLine}>{t("premium.optOut")}</Text>
-
-              {trigger === "minddump" ? (
-                <Text style={styles.triggerMicro}>{MIND_DUMP_FREE_LIMIT_EXPLAIN}</Text>
-              ) : (t(`premium.triggers.${trigger}`) !== `premium.triggers.${trigger}` ? (
-                <Text style={styles.triggerMicro}>{t(`premium.triggers.${trigger}`)}</Text>
-              ) : null)}
-
-              <View style={styles.panel}>
-                <Text style={styles.panelLabel}>{t("premium.panelLabel")}</Text>
-                {(t("premium.benefits", { returnObjects: true }) as string[]).map((line: string, i: number) => (
-                  <View key={i} style={styles.bulletRow}>
-                    <Text style={styles.bulletMark}>·</Text>
-                    <Text style={styles.bulletText}>{line}</Text>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+                contentContainerStyle={styles.scrollContent}
+              >
+                <View style={styles.headerRow}>
+                  <View style={styles.iconWrap}>
+                    <Sparkles size={20} color={Colors.primary} strokeWidth={1.8} />
                   </View>
-                ))}
-                <Text style={styles.panelFoot}>{t("premium.commitmentEffect")}</Text>
-                <Text style={styles.panelFootMuted}>{t("premium.extensionNote")}</Text>
-              </View>
+                  <View style={styles.headerText}>
+                    <Text style={styles.headline}>{t("premium.headline")}</Text>
+                    <Text style={styles.tagline}>{t("premium.tagline")}</Text>
+                  </View>
+                </View>
 
-              <View style={styles.ctaSection}>
-                <Text style={styles.ctaLabel}>{t("premium.ctaLabel")}</Text>
+                {triggerText ? (
+                  <View style={styles.triggerChip}>
+                    <Text style={styles.triggerChipText}>{triggerText}</Text>
+                  </View>
+                ) : null}
+
+                <Text style={styles.panelLabel}>{t("premium.panelLabel")}</Text>
+                <View style={styles.benefitsGrid}>
+                  {benefitItems.map((item, i) => {
+                    const Icon = BENEFIT_ICONS[i] ?? Sparkles;
+                    return (
+                      <View key={`${item.title}-${i}`} style={styles.benefitCard}>
+                        <View style={styles.benefitIconWrap}>
+                          <Icon size={14} color={Colors.primary} strokeWidth={2} />
+                        </View>
+                        <Text style={styles.benefitTitle} numberOfLines={1}>
+                          {item.title}
+                        </Text>
+                        <Text style={styles.benefitDesc} numberOfLines={2}>
+                          {item.desc}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
+                <Text style={styles.commitmentLine}>{t("premium.commitmentEffect")}</Text>
+
+                <View style={styles.footnoteBox}>
+                  <Text style={styles.footnoteText}>{t("premium.investmentFootnote")}</Text>
+                </View>
+
                 <Animated.View
-                  style={[
-                    styles.ctaScaleWrap,
-                    { transform: [{ scale: ctaScale }] },
-                  ]}
+                  style={[styles.ctaScaleWrap, { transform: [{ scale: ctaScale }] }]}
                 >
                   <TouchableOpacity
                     style={styles.ctaBtn}
@@ -273,7 +321,7 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                     onPressOut={ctaPressOut}
                     disabled={purchasing || isLoading}
                     activeOpacity={1}
-                    accessibilityLabel="Premium'a abone ol"
+                    accessibilityLabel={t("premium.ctaButton")}
                     accessibilityRole="button"
                   >
                     <Text style={styles.ctaText}>
@@ -286,10 +334,16 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                   </TouchableOpacity>
                 </Animated.View>
 
-                <TouchableOpacity style={styles.dismissBtn} onPress={onClose} accessibilityLabel={t("premium.dismiss")}>
+                <TouchableOpacity
+                  style={styles.dismissBtn}
+                  onPress={onClose}
+                  accessibilityLabel={t("premium.dismiss")}
+                >
                   <Text style={styles.dismissText}>{t("premium.dismiss")}</Text>
                   <Text style={styles.dismissSub}>{t("premium.dismissSub")}</Text>
                 </TouchableOpacity>
+
+                <Text style={styles.freeNote}>{t("premium.freeNote")}</Text>
 
                 <TouchableOpacity
                   style={styles.restoreWrap}
@@ -304,11 +358,11 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                 <Text style={styles.disclaimer}>{t("premium.subscriptionNote")}</Text>
                 <View style={styles.legalLinks}>
                   <TouchableOpacity onPress={() => void Linking.openURL(PRIVACY_POLICY_URL)}>
-                    <Text style={styles.legalLinkText}>Gizlilik</Text>
+                    <Text style={styles.legalLinkText}>{t("premium.legalPrivacy")}</Text>
                   </TouchableOpacity>
                   <Text style={styles.legalDot}>·</Text>
                   <TouchableOpacity onPress={() => void Linking.openURL(TERMS_URL)}>
-                    <Text style={styles.legalLinkText}>Koşullar</Text>
+                    <Text style={styles.legalLinkText}>{t("premium.legalTerms")}</Text>
                   </TouchableOpacity>
                   {Platform.OS === "android" || Platform.OS === "ios" ? (
                     <>
@@ -327,7 +381,8 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                     </>
                   ) : null}
                 </View>
-              </View>
+                <Text style={styles.extensionNote}>{t("premium.extensionNote")}</Text>
+              </ScrollView>
             </View>
           </Animated.View>
         </View>
@@ -364,20 +419,24 @@ const styles = StyleSheet.create({
     width: "100%",
     maxWidth: 480,
     alignSelf: "center",
+    maxHeight: "88%",
   },
   sheet: {
     backgroundColor: Colors.surface,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.sm,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: Spacing.md,
+    paddingTop: Spacing.xs,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.border,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: -8 },
+    shadowOffset: { width: 0, height: -6 },
     shadowOpacity: 0.1,
-    shadowRadius: 28,
-    elevation: 20,
+    shadowRadius: 20,
+    elevation: 16,
+  },
+  scrollContent: {
+    paddingBottom: Spacing.xs,
   },
   handle: {
     alignSelf: "center",
@@ -389,11 +448,11 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     position: "absolute",
-    top: Spacing.sm + 4,
-    right: Spacing.md,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    top: Spacing.sm,
+    right: Spacing.sm,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: Colors.bg,
     alignItems: "center",
     justifyContent: "center",
@@ -401,162 +460,164 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+    paddingRight: 36,
+  },
   iconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: Colors.primaryLight,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.md,
+    marginTop: 2,
+  },
+  headerText: {
+    flex: 1,
+    gap: 4,
   },
   headline: {
-    fontSize: FontSizes.xl + 1,
-    fontFamily: "Inter_500Medium",
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: Colors.textPrimary,
-    textAlign: "center",
-    letterSpacing: -0.35,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.xs,
-  },
-  narrative: {
-    width: "100%",
-    gap: 6,
-    marginBottom: Spacing.md,
-  },
-  narrativeLine: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-  },
-  narrativeEmphasis: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_500Medium",
-    color: Colors.textPrimary,
-    textAlign: "center",
+    letterSpacing: -0.3,
     lineHeight: 22,
   },
-  optOutLine: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    textAlign: "center",
-    lineHeight: 19,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.sm,
-  },
-  triggerMicro: {
+  tagline: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 20,
-    marginBottom: Spacing.md,
-    paddingHorizontal: Spacing.sm,
+    lineHeight: 19,
   },
-  panel: {
-    width: "100%",
-    backgroundColor: Colors.bg,
-    borderRadius: Radii.card + 4,
+  triggerChip: {
+    alignSelf: "stretch",
+    backgroundColor: Colors.primaryLight,
+    borderRadius: Radii.button,
+    paddingVertical: 8,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.sm,
     borderWidth: 1,
-    borderColor: Colors.border,
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.md,
-    marginBottom: Spacing.md,
+    borderColor: "rgba(47, 156, 134, 0.15)",
+  },
+  triggerChipText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    lineHeight: 17,
+    textAlign: "center",
   },
   panelLabel: {
     fontSize: 10,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: Colors.textTertiary,
-    marginBottom: Spacing.sm,
-    letterSpacing: 0.5,
+    marginBottom: 8,
+    letterSpacing: 0.6,
     textTransform: "uppercase",
   },
-  bulletRow: {
+  benefitsGrid: {
     flexDirection: "row",
-    alignItems: "flex-start",
-    gap: 6,
-    marginBottom: 5,
+    flexWrap: "wrap",
+    gap: 8,
+    marginBottom: Spacing.sm,
   },
-  bulletMark: {
-    fontSize: FontSizes.md,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    lineHeight: 18,
-    marginTop: -1,
-    width: 10,
-    textAlign: "center",
+  benefitCard: {
+    width: "48%",
+    flexGrow: 1,
+    flexBasis: "46%",
+    backgroundColor: Colors.bg,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    minHeight: 72,
   },
-  bulletText: {
-    flex: 1,
-    fontSize: FontSizes.xs + 1,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 18,
-  },
-  panelFoot: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 17,
-    marginTop: Spacing.sm,
-  },
-  panelFootMuted: {
-    fontSize: FontSizes.xs,
-    fontFamily: "Inter_400Regular",
-    color: Colors.textTertiary,
-    lineHeight: 17,
-    marginTop: 6,
-  },
-  ctaSection: {
-    width: "100%",
+  benefitIconWrap: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.primaryLight,
     alignItems: "center",
-    gap: Spacing.sm,
-    paddingTop: Spacing.xs,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: Colors.border,
+    justifyContent: "center",
+    marginBottom: 6,
   },
-  ctaLabel: {
-    fontSize: FontSizes.sm,
-    fontFamily: "Inter_500Medium",
+  benefitTitle: {
+    fontSize: FontSizes.xs + 1,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+    lineHeight: 16,
+    marginBottom: 2,
+  },
+  benefitDesc: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    lineHeight: 14,
+  },
+  commitmentLine: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    textAlign: "center",
+    lineHeight: 14,
+    marginBottom: Spacing.xs,
+    paddingHorizontal: Spacing.xs,
+  },
+  footnoteBox: {
+    borderLeftWidth: 2,
+    borderLeftColor: Colors.primary,
+    backgroundColor: Colors.bg,
+    borderRadius: Radii.button,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  footnoteText: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    fontStyle: "italic",
     color: Colors.textSecondary,
-    letterSpacing: 0.15,
-    marginTop: Spacing.sm,
+    lineHeight: 17,
   },
   ctaScaleWrap: {
     width: "100%",
+    marginBottom: 4,
   },
   ctaBtn: {
     width: "100%",
     backgroundColor: Colors.primary,
-    borderRadius: Radii.button + 4,
-    paddingVertical: 15,
+    borderRadius: Radii.button + 2,
+    paddingVertical: 14,
     alignItems: "center",
     shadowColor: Colors.primaryDark,
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.28,
-    shadowRadius: 10,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.22,
+    shadowRadius: 8,
+    elevation: 5,
   },
   ctaText: {
     fontSize: FontSizes.sm + 1,
-    fontFamily: "Inter_500Medium",
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
     color: "#fff",
-    letterSpacing: 0.15,
+    letterSpacing: 0.1,
     textAlign: "center",
   },
   dismissBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: Spacing.lg,
+    paddingVertical: 6,
     alignItems: "center",
   },
   dismissText: {
     fontSize: FontSizes.sm,
-    fontFamily: "Inter_400Regular",
+    fontFamily: "Inter_500Medium",
     color: Colors.textTertiary,
     textAlign: "center",
   },
@@ -565,17 +626,24 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
     textAlign: "center",
-    opacity: 0.85,
-    marginTop: 4,
-    lineHeight: 16,
+    marginTop: 2,
+  },
+  freeNote: {
+    fontSize: 10,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    textAlign: "center",
+    lineHeight: 14,
+    marginBottom: 4,
     paddingHorizontal: Spacing.sm,
   },
   restoreWrap: {
-    paddingVertical: Spacing.sm,
+    paddingVertical: 6,
     paddingHorizontal: Spacing.md,
+    alignSelf: "center",
   },
   restoreText: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_500Medium",
     color: Colors.primary,
     textAlign: "center",
@@ -586,9 +654,8 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textTertiary,
     textAlign: "center",
-    lineHeight: 15,
-    paddingHorizontal: Spacing.xs,
-    marginBottom: Spacing.xs,
+    lineHeight: 14,
+    marginTop: 4,
   },
   legalLinks: {
     flexDirection: "row",
@@ -596,7 +663,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     gap: 4,
-    marginTop: 4,
+    marginTop: 6,
   },
   legalLinkText: {
     fontSize: 10,
@@ -606,5 +673,15 @@ const styles = StyleSheet.create({
   legalDot: {
     fontSize: 10,
     color: Colors.textTertiary,
+  },
+  extensionNote: {
+    fontSize: 9,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textTertiary,
+    textAlign: "center",
+    lineHeight: 13,
+    marginTop: 8,
+    opacity: 0.85,
+    paddingHorizontal: Spacing.xs,
   },
 });

@@ -1,26 +1,31 @@
 {
   "expo": {
-    "name": "Kimlik",
-    "slug": "kimlik-app",
+    "name": "Rito: Habit & Identity Journey",
+    "slug": "rito-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAFAF9"
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#E0EDFB"
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.kimlik.app"
+      "bundleIdentifier": "com.rito.app",
+      "infoPlist": {
+        "CFBundleDisplayName": "Rito: Habit & Identity Journey"
+      }
     },
     "android": {
+      "versionCode": 4,
+      "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1D9E75"
+        "backgroundColor": "#12121A"
       },
       "package": "com.kimlik.app",
       "permissions": [
@@ -35,6 +40,26 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#E0EDFB",
+          "image": "./assets/splash.png",
+          "resizeMode": "cover",
+          "ios": {
+            "backgroundColor": "#E0EDFB",
+            "image": "./assets/splash.png",
+            "resizeMode": "cover",
+            "enableFullScreenImage_legacy": true
+          },
+          "android": {
+            "backgroundColor": "#E0EDFB",
+            "resizeMode": "cover"
+          }
+        }
+      ],
+      "./plugins/withAndroidSplashFullscreen.js",
+      "./plugins/withAndroidReleaseSigning.js",
       "./plugins/withAsyncStorageLocalMaven.js",
       "react-native-iap",
       "expo-secure-store",
@@ -42,7 +67,7 @@
         "expo-notifications",
         {
           "icon": "./assets/icon.png",
-          "color": "#1D9E75"
+          "color": "#2EC4CF"
         }
       ],
       "expo-quick-actions",

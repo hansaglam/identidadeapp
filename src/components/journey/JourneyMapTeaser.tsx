@@ -103,27 +103,28 @@ export default function JourneyMapTeaser({
 
 const styles = StyleSheet.create({
   wrap: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.sm,
   },
   sectionLabel: {
-    fontSize: 11,
-    fontFamily: "Inter_600SemiBold",
-    fontWeight: "600",
+    fontSize: 10,
+    fontFamily: "Inter_700Bold",
+    fontWeight: "700",
     letterSpacing: 1.2,
     color: Colors.textTertiary,
-    marginBottom: 6,
+    marginBottom: 4,
+    textTransform: "uppercase",
   },
   hint: {
-    fontSize: FontSizes.sm,
+    fontSize: FontSizes.xs,
     fontFamily: "Inter_400Regular",
-    color: Colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: Spacing.sm,
+    color: Colors.textTertiary,
+    lineHeight: 16,
+    marginBottom: 8,
   },
   phaseCard: {
     backgroundColor: Colors.surface,
     borderRadius: Radii.card,
-    padding: Spacing.md,
+    padding: 12,
     borderWidth: 1.5,
     ...Shadows.soft,
   },
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   phaseTitle: {
-    fontSize: FontSizes.lg,
+    fontSize: FontSizes.md,
     fontFamily: "Inter_600SemiBold",
     fontWeight: "600",
     color: Colors.textPrimary,
@@ -196,8 +197,8 @@ const styles = StyleSheet.create({
     gap: 6,
     backgroundColor: Colors.primary,
     borderRadius: Radii.button,
-    paddingVertical: 12,
-    paddingHorizontal: Spacing.lg,
+    paddingVertical: 10,
+    paddingHorizontal: Spacing.md,
   },
   ctaText: {
     fontSize: FontSizes.sm,

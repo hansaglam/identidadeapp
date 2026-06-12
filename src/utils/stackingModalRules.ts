@@ -2,6 +2,8 @@
  * 66. gün sonrası "habit stacking" modalının ne zaman otomatik açılacağı ve hangi metin tonunun kullanılacağı.
  */
 
+import i18n from "../i18n/config";
+
 export type StackingModalCopyVariant =
   | "celebrate"
   | "resume"
@@ -10,7 +12,6 @@ export type StackingModalCopyVariant =
 
 const STRONG_NUDGE_DAY = 73;
 
-/** Ana ekrana her dönüşte: teklif bekliyorsa ve koşullar uyuyorsa modal açılır. */
 export function shouldOpenStackingModalOnFocus(
   dayNumber: number,
   todayDone: boolean,
@@ -48,60 +49,38 @@ export function getStackingModalStrings(
   evolutionIntro: string | null;
   evolutionClosing: string | null;
 } {
-  const h = habitName.trim() || "bu alışkanlık";
+  const h = habitName.trim() || i18n.t("stackingModal.defaultHabit");
   const hLower = h.charAt(0).toLowerCase() + h.slice(1);
+  const prefix = `stackingModal.variant.${variant}`;
 
-  const titles: Record<StackingModalCopyVariant, string> = {
-    celebrate: "66. gün — Sen bunu inşa ettin",
-    resume: "66. günün arkanda — sıradaki katman",
-    late: "Bir nefes al — hâlâ tam zamanındasın",
-    strong_nudge: "Burada olman iyi bir işaret",
-  };
-
-  const leads: Record<StackingModalCopyVariant, string> = {
-    celebrate:
-      `“${h}” artık sadece yaptığın bir şey değil; zihninin “böyle biriyim” dediği bir katman.\n\n` +
-      `66 günde beyin bu yolu tekrar tekrar kullandı — görünmeyen bir inşaat. Bugün o yapı fiilen teslim: bu yol senin için hatırı sayılır ölçüde hazır.`,
-    resume:
-      `66. gününü tamamladın; bir sonraki 66 günlük tur için seçimini erteleyebilirsin — bu da sürecin parçası.\n\n` +
-      `Hazır olduğunda aynı kimlik çizgisinde yeni bir katman seç: küçük olsun, net olsun, “${hLower}” ile uyumlu olsun.`,
-    late:
-      `Arada zaman geçmiş olabilir; yine de yeni bir tur için geç kalmış sayılmazsın. “${h}” hâlâ kimliğinde duruyor.\n\n` +
-      `İstersen şimdi taze bir 66’ya adım at — küçük bir üzerine ekleme bile büyük fark yaratır.`,
-    strong_nudge:
-      `Bir süredir seçimi ertelemiş olabilirsin; bu, çoğu insanın düştüğü ara değil, bekleme salonu.\n\n` +
-      `Henüz bir şey kaybetmedin. “${h}” için kazandığın katman duruyor — bir sonraki adımı küçük seç, yeniden başla.`,
-  };
+  const title = i18n.t(`${prefix}.title`);
+  const lead = i18n.t(`${prefix}.lead`, { habit: h, habitLower: hLower });
+  const chartTitle = i18n.t(`${prefix}.chartTitle`);
+  const chartSubtitle = i18n.t(`${prefix}.chartSubtitle`);
 
   let evolutionIntro: string | null = null;
   let evolutionClosing: string | null = null;
   if (evo && evo.count > 0) {
-    evolutionIntro =
-      `Zihin notlarında ${evo.count} iz bıraktın — kelimelerin tonu da yavaş yavaş kaymış olabilir. ` +
-      `Bazen fark etmeden “zorlanıyorum” ile “oluyor” arasındaki mesafe kapanır.`;
+    evolutionIntro = i18n.t("stackingModal.evolutionIntro", { count: evo.count });
     evolutionClosing =
       variant === "celebrate"
-        ? `İlk satırlarında şunu hissettiren bir şey vardı: “${evo.firstSnippet}” Son notlarında ise daha çok şuna yaklaşıyorsun: “${evo.lastSnippet}” Bu süre sadece kutucuklar değil, iç söylemin de değişti.`
-        : `İlk notundan bir kesit: “${evo.firstSnippet}” Son notundan: “${evo.lastSnippet}” Aynı sen; farklı bir iç mesafe.`;
-  } else {
-    evolutionClosing =
-      variant === "celebrate"
-        ? `Bir zamanlar "epey bilinçli yapıyorum" dediğin şey, bugün çoğu zaman düşünmeden gelen bir yön olmaya yaklaştı. Bu dönüş, disiplinin en sessiz zaferi.`
-        : null;
+        ? i18n.t("stackingModal.evolutionCelebrate", {
+            first: evo.firstSnippet,
+            last: evo.lastSnippet,
+          })
+        : i18n.t("stackingModal.evolutionOther", {
+            first: evo.firstSnippet,
+            last: evo.lastSnippet,
+          });
+  } else if (variant === "celebrate") {
+    evolutionClosing = i18n.t("stackingModal.evolutionClosingCelebrate");
   }
 
-  const chartTitle =
-    variant === "celebrate" ? "66 gün · otomatiklik izi" : "Bu tur · otomatiklik izi";
-  const chartSubtitle =
-    variant === "celebrate"
-      ? "Değerlendirme verdiğin günler — her nokta küçük bir oy"
-      : "Değerlendirme yaptığın günler bu eğride";
-
   return {
-    title: titles[variant],
-    lead: leads[variant],
-    chartTitle,
-    chartSubtitle,
+    title: title === `${prefix}.title` ? "" : title,
+    lead: lead === `${prefix}.lead` ? "" : lead,
+    chartTitle: chartTitle === `${prefix}.chartTitle` ? "" : chartTitle,
+    chartSubtitle: chartSubtitle === `${prefix}.chartSubtitle` ? "" : chartSubtitle,
     evolutionIntro,
     evolutionClosing,
   };

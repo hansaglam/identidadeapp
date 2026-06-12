@@ -58,7 +58,7 @@ export default function BehaviorActionCard({
   compact = false,
   surface = false,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const tint = STATUS_TINT[state.status];
   const a = state.suggestedAction;
   const anchorUi = useMemo(
@@ -70,7 +70,7 @@ export default function BehaviorActionCard({
         actionTitle: a.title,
         duration: a.duration,
       }),
-    [habitAnchor, habitName, a.id, a.title, a.duration]
+    [habitAnchor, habitName, a.id, a.title, a.duration, i18n.language]
   );
   const muscleLabel = t(`home.muscle.${a.type as MuscleType}`);
   const metaLine =

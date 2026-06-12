@@ -27,7 +27,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import { X, Check, Zap } from "lucide-react-native";
-import { Action, MUSCLE_LABELS } from "../engine";
+import { useTranslation } from "react-i18next";
+import { Action, MUSCLE_LABELS, type MuscleType } from "../engine";
 import { Colors, FontSizes, Radii, Spacing } from "../constants/theme";
 
 interface Props {
@@ -41,12 +42,6 @@ interface Props {
 
 type Phase = "countdown" | "action" | "done";
 
-const FLASH_MESSAGES = [
-  "İyi, devam.",
-  "Kas çalıştı.",
-  "Bir adım attın.",
-];
-
 export default function InterruptModal({
   visible,
   action,
@@ -54,12 +49,25 @@ export default function InterruptModal({
   onDone,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const [phase, setPhase] = useState<Phase>("countdown");
   const [count, setCount] = useState(3);
   const [actionLeft, setActionLeft] = useState(0);
+
+  const flashPool = (() => {
+    const raw = t("interrupt.flash", { returnObjects: true });
+    if (Array.isArray(raw) && raw.length > 0) return raw as string[];
+    return ["İyi, devam.", "Kas çalıştı.", "Bir adım attın."];
+  })();
   const [flashMsg] = useState(
-    () => FLASH_MESSAGES[Math.floor(Math.random() * FLASH_MESSAGES.length)]!
+    () => flashPool[Math.floor(Math.random() * flashPool.length)]!
   );
+
+  const muscleLabel = (type: MuscleType) => {
+    const key = `home.muscle.${type}`;
+    const localized = t(key);
+    return localized === key ? MUSCLE_LABELS[type] : localized;
+  };
 
   // Animations
   const pulseScale = useRef(new Animated.Value(1)).current;
@@ -245,7 +253,7 @@ export default function InterruptModal({
         {forced && (
           <View style={styles.forcedBadge}>
             <Zap size={12} color={Colors.coral} strokeWidth={2.5} />
-            <Text style={styles.forcedText}>Zorunlu adım</Text>
+            <Text style={styles.forcedText}>{t("interrupt.forcedBadge")}</Text>
           </View>
         )}
 
@@ -255,7 +263,7 @@ export default function InterruptModal({
             <Animated.View
               style={[styles.pulseWrap, { transform: [{ scale: pulseScale }] }]}
             >
-              <Text style={styles.label}>Hazırlan</Text>
+              <Text style={styles.label}>{t("interrupt.prepare")}</Text>
               <Animated.Text
                 style={[
                   styles.countdown,
@@ -274,20 +282,24 @@ export default function InterruptModal({
               style={[styles.pulseWrap, { transform: [{ scale: pulseScale }] }]}
             >
               <Text style={styles.label}>
-                {MUSCLE_LABELS[action.type].toUpperCase()} · ŞİMDİ
+                {t("interrupt.nowLabel", {
+                  muscle: muscleLabel(action.type).toUpperCase(),
+                })}
               </Text>
               <Text style={styles.actionTitle}>{action.title}</Text>
-              <Text style={styles.duration}>{actionLeft} sn</Text>
+              <Text style={styles.duration}>
+                {t("interrupt.secondsLeft", { count: actionLeft })}
+              </Text>
 
               {/* Manuel erken tamamlama — forced değilse */}
               {!forced && (
                 <Pressable
                   style={styles.earlyDoneBtn}
                   onPress={onDone}
-                  accessibilityLabel="Aksiyonu tamamladım"
+                  accessibilityLabel={t("interrupt.doneEarlyA11y")}
                   accessibilityRole="button"
                 >
-                  <Text style={styles.earlyDoneText}>Yaptım</Text>
+                  <Text style={styles.earlyDoneText}>{t("interrupt.doneEarly")}</Text>
                 </Pressable>
               )}
             </Animated.View>
@@ -313,7 +325,7 @@ export default function InterruptModal({
               </Animated.Text>
 
               <Text style={styles.muscleNote}>
-                {MUSCLE_LABELS[action.type]} kasın çalıştı.
+                {t("interrupt.muscleWorked", { muscle: muscleLabel(action.type) })}
               </Text>
             </View>
           )}

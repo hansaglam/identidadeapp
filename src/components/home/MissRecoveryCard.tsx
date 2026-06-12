@@ -8,6 +8,8 @@ import { getMissedDayMessage } from "../../utils/missProtocol";
 interface Props {
   consecutiveMiss: number;
   suggestedActionTitle: string | null;
+  /** measured dayanıklılık: daha önceki geri dönüş sayısı */
+  priorComebacks?: number;
   onStartSmallestStep: () => void;
   onOpenCheckIn: () => void;
 }
@@ -15,6 +17,7 @@ interface Props {
 export default function MissRecoveryCard({
   consecutiveMiss,
   suggestedActionTitle,
+  priorComebacks,
   onStartSmallestStep,
   onOpenCheckIn,
 }: Props) {
@@ -33,6 +36,10 @@ export default function MissRecoveryCard({
         </View>
       </View>
       <Text style={styles.body}>{msg.body}</Text>
+
+      {priorComebacks != null && priorComebacks > 0 ? (
+        <Text style={styles.priorComeback}>{t("home.miss.priorComebacks", { count: priorComebacks })}</Text>
+      ) : null}
 
       <TouchableOpacity
         style={styles.primaryBtn}
@@ -101,6 +108,13 @@ const styles = StyleSheet.create({
     fontFamily: "Inter_400Regular",
     color: Colors.textSecondary,
     lineHeight: 20,
+    marginBottom: Spacing.sm,
+  },
+  priorComeback: {
+    fontSize: FontSizes.sm,
+    fontFamily: "Inter_500Medium",
+    fontWeight: "500",
+    color: Colors.primary,
     marginBottom: Spacing.md,
   },
   primaryBtn: {

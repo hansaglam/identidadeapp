@@ -10,8 +10,8 @@ import {
   ScrollView,
   TouchableOpacity,
   KeyboardAvoidingView,
-  Platform,
 } from "react-native";
+import { getKeyboardAvoidingBehavior, useKeyboardModalScrollPadding } from "../utils/keyboardInsets";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as Haptics from "expo-haptics";
 import {
@@ -35,8 +35,9 @@ export default function CheckInConfirmationSheet({
   onSave,
 }: CheckInConfirmationSheetProps) {
   const { t, i18n } = useTranslation();
+  const { paddingBottom: scrollPad } = useKeyboardModalScrollPadding();
   const otherLabel = useMemo(() => getCheckInConfirmationOtherLabel(), [i18n.language]);
-  const { title, options } = useMemo(
+  const { title, subtitle, options } = useMemo(
     () => getCheckInConfirmationCopy(identitySlug),
     [identitySlug, i18n.language]
   );
@@ -85,7 +86,7 @@ export default function CheckInConfirmationSheet({
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onRequestClose}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={getKeyboardAvoidingBehavior()}
         style={styles.sheetRoot}
       >
         <Pressable style={styles.backdrop} onPress={onRequestClose} />
@@ -93,12 +94,13 @@ export default function CheckInConfirmationSheet({
           <ScrollView
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.sheetScroll}
+            contentContainerStyle={[styles.sheetScroll, { paddingBottom: scrollPad }]}
+            keyboardDismissMode="on-drag"
           >
             <View style={styles.handle} />
 
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{t("checkInConfirmation.subtitle")}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
 
             <View style={styles.grid}>
               {options.map((label) => {
@@ -110,7 +112,9 @@ export default function CheckInConfirmationSheet({
                     onPress={() => handleSelect(label)}
                     activeOpacity={0.85}
                   >
-                    <Text style={styles.optionText}>{label}</Text>
+                    <Text style={styles.optionText} numberOfLines={3}>
+                      {label}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}

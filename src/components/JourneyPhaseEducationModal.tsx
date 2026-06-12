@@ -13,8 +13,10 @@ import {
 } from "react-native";
 import { X } from "lucide-react-native";
 import * as Haptics from "expo-haptics";
+import { useTranslation } from "react-i18next";
 import { Colors, Spacing, Radii, FontSizes, JOURNEY_PHASES } from "../constants/theme";
 import type { JourneyPhaseEducationCard } from "../constants/journeyPhaseEducation";
+import { localizeJourneyPhaseLabel } from "../i18n/localizeContent";
 import {
   loadJourneyEducationPrefs,
   setSwipeHintShown,
@@ -38,6 +40,7 @@ export default function JourneyPhaseEducationModal({
   cards,
   hapticsEnabled = true,
 }: Props) {
+  const { t } = useTranslation();
   const { width: winW } = useWindowDimensions();
   const gutter = Spacing.lg * 2;
   const sheetW = Math.min(winW - gutter, 400);
@@ -47,8 +50,10 @@ export default function JourneyPhaseEducationModal({
   const [showSwipeCue, setShowSwipeCue] = useState(false);
 
   const phase = JOURNEY_PHASES[phaseId - 1];
+  const phaseLabel = localizeJourneyPhaseLabel(phaseId);
   const lastIndex = cards.length - 1;
-  const footLabel = page >= lastIndex ? "Tamam, faz özeti tamamlandı" : "Tamam";
+  const footLabel =
+    page >= lastIndex ? t("journey.phaseEdu.doneComplete") : t("journey.phaseEdu.done");
 
   useEffect(() => {
     if (!visible) {
@@ -93,12 +98,12 @@ export default function JourneyPhaseEducationModal({
       if (hapticsEnabled) {
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       }
-      AccessibilityInfo.announceForAccessibility("Bu faz özeti tamamlandı.");
+      AccessibilityInfo.announceForAccessibility(t("journey.phaseEdu.a11yCompleted"));
     } catch {
       /* storage best-effort */
     }
     onClose();
-  }, [page, lastIndex, phaseId, hapticsEnabled, onClose]);
+  }, [page, lastIndex, phaseId, hapticsEnabled, onClose, t]);
 
   const handleCloseX = useCallback(() => {
     void dismissSwipeCue();
@@ -113,28 +118,33 @@ export default function JourneyPhaseEducationModal({
       onRequestClose={handleCloseX}
       accessibilityViewIsModal
     >
-      <View style={styles.overlay} accessibilityLabel="Bu faz için kısa beyin özeti">
+      <View style={styles.overlay} accessibilityLabel={t("journey.phaseEdu.a11yOverlay")}>
         <View style={[styles.sheet, { width: sheetW }]}>
           <View style={styles.headRow}>
             <View style={styles.headTextCol}>
-              <Text style={styles.kicker}>Bu fazda beyin</Text>
+              <Text style={styles.kicker}>{t("journey.phaseEdu.kicker")}</Text>
               <Text style={styles.title} accessibilityRole="header">
-                Faz {phaseId} · {phase.label}
+                {t("journey.phaseEdu.title", { id: phaseId, label: phaseLabel })}
               </Text>
             </View>
             <TouchableOpacity onPress={handleCloseX} style={styles.closeBtn} hitSlop={12}>
-              <X size={22} color={Colors.textTertiary} strokeWidth={1.8} accessibilityLabel="Kapat" />
+              <X
+                size={22}
+                color={Colors.textTertiary}
+                strokeWidth={1.8}
+                accessibilityLabel={t("common.close")}
+              />
             </TouchableOpacity>
           </View>
-          <Text style={styles.hint}>Yaklaşık 30 sn · {cards.length} kısa kart</Text>
+          <Text style={styles.hint}>
+            {t("journey.phaseEdu.hint", { count: cards.length })}
+          </Text>
 
           {showSwipeCue ? (
             <View style={styles.swipeCueBox}>
-              <Text style={styles.swipeCueText}>
-                Kartları yana kaydırarak devam et — her sayfa fazın küçük bir parçası.
-              </Text>
+              <Text style={styles.swipeCueText}>{t("journey.phaseEdu.swipe")}</Text>
               <TouchableOpacity onPress={() => void dismissSwipeCue()} hitSlop={8}>
-                <Text style={styles.swipeCueDismiss}>Tamam</Text>
+                <Text style={styles.swipeCueDismiss}>{t("journey.phaseEdu.done")}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
@@ -146,7 +156,7 @@ export default function JourneyPhaseEducationModal({
             style={{ width: pageW }}
             decelerationRate="fast"
             onMomentumScrollEnd={onScrollEnd}
-            accessibilityLabel={`Faz ${phaseId} özeti kartları. Yana kaydırarak oku.`}
+            accessibilityLabel={t("journey.phaseEdu.a11yCards", { id: phaseId })}
           >
             {cards.map((c) => (
               <View key={c.id} style={[styles.cardPage, { width: pageW }]}>
@@ -183,7 +193,9 @@ export default function JourneyPhaseEducationModal({
             onPress={() => void handleFootPress()}
             activeOpacity={0.85}
             accessibilityHint={
-              page >= lastIndex ? "Tamamladığında bu faz özeti kaydedilir" : "Modalı kapatır"
+              page >= lastIndex
+                ? t("journey.phaseEdu.a11yHintComplete")
+                : t("journey.phaseEdu.a11yHintClose")
             }
           >
             <Text style={styles.doneFootText}>{footLabel}</Text>

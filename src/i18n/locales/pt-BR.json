@@ -59,25 +59,26 @@
     },
     "step1": {
       "title": "Quem você quer\nser em 66 dias?",
-      "sub": "Escolha uma identidade ou escreva a sua. Você vai conectá-la a uma âncora e horário no próximo passo.",
-      "infoTitle": "Mesmo motor, sua direção",
-      "infoBody": "Pode não ter uma correspondência exata na lista — escolha a mais próxima. Você vai refinar com sua âncora e nome do hábito.",
+      "sub": "Escolha uma direção — âncora e horário vêm no próximo passo.",
+      "infoTitle": "Mesmo sistema, sua direção",
+      "infoBody": "Não precisa ser exato. Escolha o cartão mais próximo; refine com âncora e nome do hábito.",
       "customLabel": "Vou escrever a minha",
-      "customBlurb": "Escreva uma declaração personalizada; você vai definir a âncora e o horário no próximo passo.",
-      "customPlaceholder": "Ex: Alguém que bebe água todo dia e cuida de si…",
+      "customBlurb": "Escreva sua frase; defina âncora e horário no próximo passo.",
+      "customPlaceholder": "Ex: Alguém que se move todo dia e cuida de si…",
       "previewIdentity": "Declaração de identidade",
       "previewMicro": "Primeiro micro-passo",
       "footerHint": "Escolha uma identidade para continuar"
     },
     "step2": {
-      "title": "Onde você vai\nâncora essa identidade?",
-      "sub": "Uma âncora é o que conecta suas sugestões diárias à vida real. Adicione a uma rotina que você já faz.",
+      "title": "Onde você vai\nancorar essa identidade?",
+      "sub": "Comece depois de algo que você já faz — o cérebro ama um gatilho «depois disso».",
       "commitmentLabel": "SEU COMPROMISSO",
-      "commitmentPlaceholder": "Sua frase de compromisso aparecerá aqui quando você escolher uma âncora…",
-      "infoText": "O modelo dá apenas a primeira sugestão; você pode mudar a âncora e o horário a qualquer momento.",
-      "anchorLabel": "O que você faz primeiro?",
-      "timeLabel": "Que hora do dia?",
-      "templateHint": "âncora pré-selecionada, mude se quiser."
+      "commitmentPlaceholder": "Sua frase aparece quando você escolher uma âncora…",
+      "infoText": "O modelo sugere a primeira âncora; você pode mudar âncora e horário quando quiser.",
+      "anchorLabel": "Depois de qual rotina?",
+      "timeLabel": "Qual horário do dia?",
+      "templateHint": "âncora sugerida — mude se quiser.",
+      "customCommitment": "Vou dar um pequeno passo por {{habit}}"
     },
     "step3": {
       "title": "Por que você queria\nessa identidade?",
@@ -92,23 +93,29 @@
       "notifTitle": "Permissão de notificação",
       "notifBody": "Usado para orientação matinal e lembretes noturnos. Você pode desligar nas configurações.",
       "skipNotif": "Pular por agora",
-      "startCta": "Começar"
+      "startCta": "Começar",
+      "saveErrorTitle": "Não foi possível salvar",
+      "saveErrorBody": "Os dados não puderam ser gravados neste dispositivo. Verifique o armazenamento e tente de novo.",
+      "readyHint": "Ótimo",
+      "charsMore": "mais {{count}} caracteres",
+      "writeFree": "Escreva livremente",
+      "wordCount": "{{count}} palavras",
+      "privacyNote": "Este motivo é só para você. Ninguém mais verá.",
+      "tabsTitle": "Depois de começar",
+      "tabsBody": "4 abas: Hoje · Mente · Jornada · Perfil. Faça primeiro a ação do cartão, depois o check-in.",
+      "summaryLabel": "Suas escolhas"
     }
   },
   "premium": {
-    "headline": "Programa Pessoal de Disciplina",
-    "narrative1": "Você não está pagando por um app.",
-    "narrativeEmphasis": "Você está tomando uma decisão por si mesmo.",
-    "narrative2": "Você está iniciando um processo que levará a sério.",
-    "optOut": "Premium não é obrigatório — continuar de graça é totalmente certo; você pode escolher quando quiser.",
-    "panelLabel": "O que tem no programa",
-    "commitmentEffect": "Pessoas que investem geralmente têm 2–3× mais chance de continuar (efeito de compromisso).",
-    "extensionNote": "Se a automatização esperada não se formar, você pode solicitar uma extensão via suporte.",
-    "ctaLabel": "Estou decidindo",
-    "ctaButton": "Iniciar Programa de Disciplina",
-    "ctaButtonWithPrice": "Iniciar Programa de Disciplina — {{price}}",
+    "headline": "Programa de Disciplina Pessoal",
+    "panelLabel": "Com Premium",
+    "commitmentEffect": "Um compromisso pago pode ajudar você a aparecer nos dias em que a motivação cai.",
+    "investmentFootnote": "Premium é uma ferramenta — o trabalho real acontece nos seus micro-passos diários.",
+    "extensionNote": "Cada jornada tem seu ritmo. Seu mapa de 66 dias fica disponível enquanto a assinatura estiver ativa.",
+    "ctaButton": "Iniciar programa",
+    "ctaButtonWithPrice": "Iniciar — {{price}}/mês",
     "dismiss": "Agora não",
-    "dismissSub": "Continuar usando o app gratuitamente",
+    "dismissSub": "Continuar grátis",
     "restore": "Restaurar compras",
     "subscriptionNote": "Assinatura mensal · Renovação automática · Cancele quando quiser",
     "purchaseError": "A compra não pôde ser concluída. Tente novamente ou restaure.",
@@ -118,18 +125,46 @@
     "restoreError": "Falha na restauração. Verifique sua internet e conta da loja.",
     "legalManage": "Gerenciar assinatura",
     "benefits": [
-      "Mapa de jornada de 66 dias — toque em cada dia para resumo completo",
-      "Pacote de coach diário: princípio · ciência · agir agora",
-      "Espelho de Identidade — reflete você a partir das suas notas mentais",
-      "Pesquisa SDT semanal + treinamento de fase (4 cartões · ~30 seg)",
-      "Notas mentais ilimitadas · plano de amanhã sempre grátis"
+      "Mudança de comportamento — Veja como evolui em 66 dias",
+      "Relatório de identidade — Reflexo das suas notas",
+      "Rastreio de retorno — Conte quantas vezes voltou",
+      "Crescimento semanal — Pontuação e músculos",
+      "Mente ilimitada — Plano de amanhã sempre grátis"
     ],
     "triggers": {
-      "journey": "Plano de amanhã sempre grátis. Com Premium: mapa de jornada de 66 dias, toque em cada dia para resumo completo, Espelho de Identidade, pesquisa SDT semanal, treinamento de fase e pacote de coach de hoje (princípio + ciência + ação).",
-      "day7": "Dia 7: o mapa da jornada se abre totalmente. Com Premium você pode ver todos os 66 dias, tocar em cada dia para o check-in, plano e resumo do coach. Treinamento de fase e Espelho de Identidade estão esperando por você.",
-      "day22": "Você está no meio do dia 22 — o hábito está começando a se solidificar. Mapa completo da jornada, histórico de 3 fases, resumo completo do dia ao toque e Espelho de Identidade para conduzir isso conscientemente.",
-      "profile": "Premium: aprofunde sua jornada com o mapa de 66 dias, Espelho de Identidade, pesquisa SDT semanal, treinamento de fase e pacote de coach diário (princípio + ciência + ação)."
-    }
+      "journey": "Prova de quem você está se tornando — jornada completa no Premium.",
+      "day7": "Dia 7: resumos que tornam sua mudança visível.",
+      "day22": "Dia 22: acompanhe seu crescimento na consolidação.",
+      "profile": "Veja a prova de quem você está se tornando.",
+      "minddump": "Plano grátis tem cota diária de Mente. Premium é ilimitado."
+    },
+    "tagline": "Não só sinta a mudança — veja.",
+    "freeNote": "Premium não é obrigatório. Você pode continuar grátis.",
+    "legalPrivacy": "Privacidade",
+    "legalTerms": "Termos",
+    "benefitItems": [
+      {
+        "title": "Mudança de comportamento",
+        "desc": "Veja como evolui em 66 dias"
+      },
+      {
+        "title": "Relatório de identidade",
+        "desc": "Reflexo das suas notas"
+      },
+      {
+        "title": "Rastreio de retorno",
+        "desc": "Conte retornos — não quedas"
+      },
+      {
+        "title": "Crescimento semanal",
+        "desc": "Pontuação de disciplina e músculos"
+      },
+      {
+        "title": "Mente ilimitada",
+        "desc": "Plano de amanhã sempre grátis"
+      }
+    ],
+    "foot": "Compras Premium são cobradas pela loja (Apple/Google); detalhes de pagamento não ficam no Rito."
   },
   "home": {
     "greeting": {
@@ -169,14 +204,15 @@
       },
       "modal": {
         "prepare": "Prepare-se",
-        "afterMove": "Depois um movimento claro",
+        "afterMove": "Um movimento claro na âncora",
         "close": "Fechar",
         "breath": "{{seconds}}s · mantenha a respiração",
         "breathVisualize": "{{seconds}}s · só visualize, sem forçar",
         "recoveryHint": "No seu ritmo. Um passo pequeno basta.",
         "recoveryDone": "Fiz isso",
         "continue": "Continuar",
-        "done": "Concluído"
+        "done": "Concluído",
+        "prepareSub": "Respire — começa em 3 segundos"
       },
       "muscleHeadline": {
         "activation": "Entrar em ação",
@@ -197,7 +233,21 @@
           "lead": "{{contextLabel}}: «{{anchor}}» — depois {{title}}.",
           "lead_default": "{{title}} · um passo claro para {{habit}}.",
           "step1": "Repita a frase da âncora uma vez",
-          "step2": "Dê o menor passo físico para {{habit}}"
+          "step2": "Dê o menor passo físico para {{habit}}",
+          "lead_after_wake": "«{{anchor}}» — ao acordar, {{title}}; primeiro sinal para {{habit}}.",
+          "lead_after_brush": "«{{anchor}}» — após escovar, {{title}}; no caminho de {{habit}}.",
+          "lead_after_morning_drink": "«{{anchor}}» — após o gole, {{title}}; passo claro para {{habit}}.",
+          "lead_after_lunch": "«{{anchor}}» — após almoço, {{title}}; mantenha ritmo de {{habit}}.",
+          "lead_after_phone_down": "«{{anchor}}» — celular largado, {{title}}; reset de {{habit}}.",
+          "lead_after_start_work": "«{{anchor}}» — ao começar trabalho, {{title}}; abertura de foco para {{habit}}.",
+          "lead_before_bed": "«{{anchor}}» — antes de dormir, {{title}}; fechamento calmo de {{habit}}.",
+          "lead_after_arrive_home": "«{{anchor}}» — ao chegar em casa, {{title}}; ritmo doméstico de {{habit}}.",
+          "step1_after_wake": "Repita a âncora na cama ou em pé",
+          "step1_after_start_work": "Ao abrir a tela, diga a âncora em silêncio",
+          "step1_before_bed": "Sussurre a âncora antes de deitar",
+          "step2_after_wake": "{{title}} — primeiro sinal físico do dia",
+          "step2_after_start_work": "{{title}} — na mesa, um movimento, sem pensar",
+          "tip": "Movimento pequeno, corrente grande — não busque perfeição, repita."
         },
         "anchor-visualize": {
           "lead": "Visualize «{{anchor}}» por 5s — depois {{habit}}.",
@@ -205,8 +255,10 @@
           "lead_morning_routine": "Rotina da manhã: «{{anchor}}» — 5s na mente.",
           "lead_sleep_winddown": "Antes de dormir: «{{anchor}}» — imagine o primeiro passo de amanhã.",
           "lead_phone_away": "Ao largar o celular: «{{anchor}}» — visualize 5s.",
-          "step1": "Repita a âncora em voz alta ou baixinho",
-          "step2": "Termine o primeiro movimento de {{habit}} na mente"
+          "step1": "Feche ou suavize olhos, repita âncora",
+          "step2": "Complete primeiro movimento de {{habit}} na mente",
+          "lead_after_wake": "Mente matinal dispersa. Visualize «{{anchor}}» 5s — depois {{habit}}.",
+          "lead_before_bed": "Planeje amanhã antes de dormir: «{{anchor}}» — 5s de visualização de {{habit}}."
         },
         "anchor-touch": {
           "lead": "Em «{{anchor}}» — toque a âncora fisicamente.",
@@ -226,8 +278,8 @@
         },
         "micro-anchor-say": {
           "lead": "Diga «{{anchor}}» em voz alta.",
-          "step1": "Repita a frase completa da âncora",
-          "step2": "Uma repetição ou 2s de {{habit}}"
+          "step1": "Diga a frase da âncora em voz alta e clara",
+          "step2": "{{title}} — logo após dizer"
         },
         "habit-whisper": {
           "lead": "Depois de «{{anchor}}», {{habit}} — em sussurro.",
@@ -246,8 +298,379 @@
         },
         "tiny-rep": {
           "lead": "«{{anchor}}» — uma repetição, {{habit}}.",
-          "step1": "Lembre a âncora",
-          "step2": "Complete a menor repetição física"
+          "step1": "Lembre âncora, escolha menor versão",
+          "step2": "Complete uma rep — duração não importa",
+          "lead_after_wake": "Uma rep inicia a corrente. «{{anchor}}» — uma repetição de {{habit}}."
+        },
+        "micro-posture": {
+          "lead_after_start_work": "Tela ligada — ombros podem estar para frente. Em «{{anchor}}», {{title}}; acorde o corpo para {{habit}}.",
+          "lead_after_wake": "Acordou, corpo ainda sonolento. Após «{{anchor}}», {{title}} abre a coluna — inicia o dia de {{habit}}.",
+          "lead_after_phone_down": "Celular largado — pescoço pode estar tenso. Com «{{anchor}}», {{title}} — reset postural para {{habit}}.",
+          "lead_before_bed": "Dia acabou, ombros podem pesar. Antes de «{{anchor}}», {{title}} — fechamento suave.",
+          "step1": "Puxe ombros para trás devagar, aproxime omoplatas",
+          "step2": "Abra o peito 2s, respire — deixe {{habit}} ganhar vida na mente",
+          "tip_after_start_work": "2s de postura preparam horas sentado."
+        },
+        "stand-tall": {
+          "lead_after_start_work": "Sentar fecha o peito. Em «{{anchor}}», fique ereto — {{title}} para {{habit}}.",
+          "step1": "Pressione pés no chão, ombros para trás",
+          "step2": "Abra peito 3s, alinhe cabeça — depois movimento de {{habit}}"
+        },
+        "stand-up": {
+          "lead_after_lunch": "Peso pós-almoço é normal. Após «{{anchor}}», levante — circulação para {{habit}}.",
+          "lead_after_start_work": "Muito tempo sentado desacelera a mente. Em «{{anchor}}», levante — inicie ritmo de {{habit}}.",
+          "step1": "Repita a âncora antes de sair da cadeira",
+          "step2": "Levante, pause 3s — pronto para {{habit}}"
+        },
+        "shake-shoulders": {
+          "lead_after_wake": "Rigidez do sono é normal. Após «{{anchor}}», {{title}} — acorde o corpo para {{habit}}.",
+          "lead_after_start_work": "Tensão na mesa acumula. Em «{{anchor}}», sacuda ombros, abra caminho de {{habit}}.",
+          "step1": "Eleve ombros em direção às orelhas",
+          "step2": "Solte e gire 3 vezes — com a respiração"
+        },
+        "drink-water": {
+          "lead_after_wake": "Desidratação noturna é comum. Após «{{anchor}}», um gole — corpo e {{habit}} juntos.",
+          "lead_after_morning_drink": "Âncora da bebida definida; após «{{anchor}}», {{title}} reforça ritmo de {{habit}}.",
+          "step1": "Pegue o copo ou coloque na mesa",
+          "step2": "Um gole, repita âncora — {{habit}} vem depois"
+        },
+        "open-window": {
+          "lead_after_wake": "Ar fresco acelera o despertar. Após «{{anchor}}», {{title}} — abertura mental para {{habit}}.",
+          "lead_after_arrive_home": "Ar parado em casa? Em «{{anchor}}», janela ou porta — reset de {{habit}}.",
+          "step1": "Abra janela ou cortina",
+          "step2": "5s de ar fresco, lembre intenção de {{habit}}"
+        },
+        "screen-blank": {
+          "lead_after_start_work": "Abas dividem atenção. Em «{{anchor}}», tire a cabeça da tela — reset antes de {{habit}}.",
+          "lead_after_phone_down": "Após rolar feed, mente confusa. Em «{{anchor}}», afaste-se da tela, volte ao foco de {{habit}}.",
+          "step1": "Desvie o olhar, olhe ao longe",
+          "step2": "10s em um ponto — depois {{habit}}"
+        },
+        "phone-down": {
+          "lead_after_phone_down": "Âncora e movimento juntos: vire o celular, diga «{{anchor}}» — interrupção para {{habit}}.",
+          "step1": "Celular virado ou um braço de distância",
+          "step2": "Repita âncora, inicie primeiro movimento de {{habit}}"
+        },
+        "tpl-focus-tab": {
+          "lead_after_start_work": "Muitas abas = mente dispersa. Em «{{anchor}}», deixe uma aba — abra foco para {{habit}}.",
+          "step1": "Feche abas extras, deixe uma de trabalho",
+          "step2": "Diga âncora, inicie movimento de {{habit}} nessa aba"
+        },
+        "tpl-focus-task": {
+          "lead_after_start_work": "Dia de trabalho começou. Após «{{anchor}}», diga tarefa única — clareza de {{habit}}.",
+          "step1": "Diga prioridade do dia em uma frase",
+          "step2": "Trave nela, faça mini versão de {{habit}}"
+        },
+        "deep-breath": {
+          "lead_before_bed": "Tensão do dia fica no corpo. Antes de «{{anchor}}», respire fundo — fechamento calmo de {{habit}}.",
+          "lead_after_lunch": "Desaceleração pós-almoço. Em «{{anchor}}», respire, volte ao ritmo de {{habit}}.",
+          "step1": "Inspire 4s pelo nariz",
+          "step2": "Expire 4s pela boca — depois micro movimento de {{habit}}"
+        },
+        "micro-habit-start": {
+          "lead_after_start_work": "Modo trabalho ligado. Após «{{anchor}}», menor parte de {{habit}} — começar basta.",
+          "step1": "Diga âncora, escolha menor versão",
+          "step2": "Faça só o início — terminar não é obrigatório"
+        },
+        "tpl-clear-mind-write": {
+          "step1": "Pegue papel e caneta ou abra o app de notas",
+          "step2": "Despeje 3 linhas — depois um movimento para {{habit}}",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-clear-mind-open": {
+          "step1": "Abra a ferramenta ou arquivo",
+          "step2": "{{title}} — um movimento; terminar não é obrigatório",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-clear-breath-box": {
+          "step1": "4 seg inspira, 4 seg segura, 4 seg solta — uma rodada",
+          "step2": "{{title}} — corpo calmo, mente clara",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}."
+        },
+        "tpl-clear-list-one": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-clear-worry-out": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-move-bounce-30": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}."
+        },
+        "tpl-move-pushup-1": {
+          "step1": "Libere espaço no chão, mãos na largura dos ombros",
+          "step2": "Uma flexão — conte e levante; ritmo de {{habit}} começou",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-move-shoes": {
+          "step1": "Deixe os tênis onde você vai ver",
+          "step2": "Calce e caminhe até a porta — {{title}} feito",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-move-squat-1": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}."
+        },
+        "tpl-move-stretch-arms": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-move-stairs-3": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa.",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}."
+        },
+        "tpl-learn-first-line": {
+          "step1": "Abra o livro ou aula no marcador",
+          "step2": "Leia a primeira linha em voz alta — {{title}}",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-learn-name": {
+          "step1": "Abra a ferramenta ou arquivo",
+          "step2": "{{title}} — um movimento; terminar não é obrigatório",
+          "lead_after_morning_drink": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-learn-page-turn": {
+          "step1": "Abra a ferramenta ou arquivo",
+          "step2": "{{title}} — um movimento; terminar não é obrigatório",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-learn-one-fact": {
+          "step1": "Abra a ferramenta ou arquivo",
+          "step2": "{{title}} — um movimento; terminar não é obrigatório",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-learn-bookmark": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-self-water": {
+          "step1": "Encha um copo e deixe na mesa",
+          "step2": "Beba metade — depois {{habit}}",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_morning_drink": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-self-glass": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-self-wash-face": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_brush": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}."
+        },
+        "tpl-self-lotion-hand": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_brush": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-self-posture": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-creator-open": {
+          "step1": "Abra a ferramenta ou arquivo",
+          "step2": "{{title}} — um movimento; terminar não é obrigatório",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}."
+        },
+        "tpl-creator-word": {
+          "step1": "Abra página ou arquivo em branco",
+          "step2": "Escreva uma palavra — sem editar; {{title}}",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-creator-idea": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-creator-title-only": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-creator-rough-line": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-focus-timer": {
+          "step1": "Programe 5 min, silencie notificações",
+          "step2": "{{title}} — uma tarefa até o timer acabar",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-focus-notify-off": {
+          "step1": "Simplifique o ambiente (uma ferramenta / uma aba)",
+          "step2": "{{title}} — depois o movimento de {{habit}}",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-focus-desk-one": {
+          "step1": "Simplifique o ambiente (uma ferramenta / uma aba)",
+          "step2": "{{title}} — depois o movimento de {{habit}}",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-focus-5min": {
+          "step1": "Simplifique o ambiente (uma ferramenta / uma aba)",
+          "step2": "{{title}} — depois o movimento de {{habit}}",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}."
+        },
+        "tpl-sleep-screen": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-sleep-phone": {
+          "step1": "Deixe o celular no carregador, tela desligada",
+          "step2": "{{title}} — sem tela na zona de sono",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-sleep-breath": {
+          "step1": "Prepare o corpo — respiração ou postura",
+          "step2": "{{title}} — versão mínima basta",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-sleep-dim-light": {
+          "step1": "Simplifique o ambiente (uma ferramenta / uma aba)",
+          "step2": "{{title}} — depois o movimento de {{habit}}",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-sleep-alarm-set": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-sleep-gratitude": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_before_bed": "Dia fechando. Antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}."
+        },
+        "tpl-social-name": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-social-msg": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}.",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}."
+        },
+        "tpl-social-smile": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa.",
+          "lead_after_wake": "Mente da manhã dispersa. Após «{{anchor}}», {{title}} — início claro para {{habit}}."
+        },
+        "tpl-social-wave-plan": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        },
+        "tpl-social-send-hi": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_lunch": "Queda pós-almoço é normal. Após «{{anchor}}», {{title}} — ritmo de {{habit}}.",
+          "lead_after_phone_down": "Tela desligada. Com «{{anchor}}», {{title}} — reset para {{habit}}."
+        },
+        "tpl-social-voice-draft": {
+          "step1": "Repita a âncora uma vez",
+          "step2": "{{title}} — agora, sem pensar demais",
+          "lead_after_start_work": "Modo trabalho ligado. Em «{{anchor}}», {{title}} — foco para {{habit}}.",
+          "lead_after_arrive_home": "Chegou em casa. Após «{{anchor}}», {{title}} — ritmo de {{habit}} em casa."
+        }
+      },
+      "anchorGuides": {
+        "after_wake": {
+          "lead": "Primeiro momento do dia: «{{anchor}}». Corpo acordou, mente pode estar dispersa — {{title}} é um passo claro no caminho de {{habit}}.",
+          "step1": "Abra os olhos, repita a frase da âncora uma vez",
+          "step2": "{{title}} — na cama ou logo ao levantar",
+          "tip": "Energia baixa de manhã? A menor versão conta — aparecer vence perfeição."
+        },
+        "after_brush": {
+          "lead": "Começo fresco: após «{{anchor}}», {{title}} para {{habit}} — ritmo do banheiro é âncora forte.",
+          "step1": "No espelho ou pia, diga a âncora uma vez",
+          "step2": "Logo após escovar, vá para {{title}}",
+          "tip": "Mesmo ponto todo dia — o cérebro aprende rápido."
+        },
+        "after_morning_drink": {
+          "lead": "Após o primeiro gole, a mente abre: em «{{anchor}}», {{title}} — movimento pequeno e claro para {{habit}}.",
+          "step1": "Ponha o copo, repita a âncora",
+          "step2": "{{title}} — na cozinha ou na mesa, na hora",
+          "tip": "Pausa da bebida = corpo + hábito; mantenha curto."
+        },
+        "after_lunch": {
+          "lead": "Energia pós-almoço oscila: após «{{anchor}}», {{title}} mantém o ritmo de {{habit}}.",
+          "step1": "Afaste o prato, lembre a âncora uma vez",
+          "step2": "{{title}} — 5s bastam, volte ao dia",
+          "tip": "Sonolência da tarde? Escolha a mini versão — presença conta."
+        },
+        "after_phone_down": {
+          "lead": "Tela apagada — mente ainda acelerada: em «{{anchor}}», {{title}} reinicia você para {{habit}}.",
+          "step1": "Olhe onde pôs o celular, diga a âncora",
+          "step2": "{{title}} — um movimento antes de voltar à tela",
+          "tip": "Âncoras de celular são poderosas; mesmo micro-movimento ao largar."
+        },
+        "before_bed": {
+          "lead": "Dia fechando: antes de «{{anchor}}», {{title}} — fechamento calmo para {{habit}}.",
+          "step1": "Sussurre a âncora antes de deitar",
+          "step2": "{{title}} — lento e curto, sem forçar",
+          "tip": "Versão noturna sempre menor; proteja o sono."
+        },
+        "after_start_work": {
+          "lead": "Mesa ou tela pronta: «{{anchor}}» é o início mais claro para {{habit}}. Próximo: {{title}}.",
+          "step1": "Ao ver o momento da âncora, repita em silêncio",
+          "step2": "{{title}} — uma vez, sem pensar demais",
+          "tip": "5s de movimento corporal ao entrar no trabalho abre o circuito de foco."
+        },
+        "after_arrive_home": {
+          "lead": "Chegou em casa, modo muda: após «{{anchor}}», {{title}} — transição de {{habit}} para ritmo doméstico.",
+          "step1": "Após tirar os sapatos, diga a âncora",
+          "step2": "{{title}} — na porta ou sala, na hora",
+          "tip": "Âncora de casa liga trabalho e vida — repita no mesmo ponto."
         }
       }
     },
@@ -283,6 +706,7 @@
       "smallestStep": "Menor passo: {{title}}",
       "startSmallest": "Começar menor passo",
       "goToCheckIn": "Ir para confirmação do dia",
+      "priorComebacks": "Você já voltou {{count}} vezes antes.",
       "day1": {
         "title": "O processo continua",
         "body": "Perder 1 dia é cerca de 1,5% do caminho de 66 dias. A via neural está aberta — uma pequena repetição na mesma direção com o cartão de hoje é suficiente.",
@@ -383,7 +807,42 @@
       "prediction": "Estimado ~{{days}} dias para automaticidade — cada passo te aproxima."
     },
     "coachPulse": {
-      "title": "Pulso semanal"
+      "title": "Pulso semanal",
+      "defaultHabit": "seu hábito",
+      "headline": {
+        "strong": "Semana forte",
+        "balanced": "Semana equilibrada",
+        "recovery": "Semana de retomada"
+      },
+      "line": {
+        "completedDays": "Últimos 7 dias: {{done}}/7 concluídos.",
+        "autoAvg": "Média de automaticidade em torno de {{pct}}%.",
+        "streak": "Sequência de {{count}} dias — o momentum segue.",
+        "missed": "{{count}} dias perdidos; reduza o hábito e fixe uma âncora esta semana.",
+        "sdtLow": "SDT: {{dims}} baixo — enquadre como escolha, não obrigação.",
+        "sdtStrong": "SDT: autonomia e competência fortes — mantenha o mesmo ritmo.",
+        "muscle": "Micro-passos recentes trabalharam sobretudo o músculo {{muscle}}."
+      },
+      "suggestion": {
+        "default": "Escolha um micro-passo claro para {{habit}} hoje; 30 seg antes do check-in bastam.",
+        "missed": "Escreva só a versão de 2 min no plano de amanhã; comece com o lembrete da manhã.",
+        "slipDay": "Deixe a âncora visível em {{day}} — lembrete ou nota ajuda.",
+        "phase1": "Você está na Fundação: repetição vence perfeição. Mantenha o passo de hoje pequeno."
+      },
+      "dim": {
+        "autonomy": "autonomia",
+        "competence": "competência",
+        "relatedness": "conexão"
+      }
+    },
+    "checkInToast": {
+      "streakReset": "Ontem acabou. Hoje existe. Continue.",
+      "complete": [
+        "Hoje você agiu como quem domina {{habit}}. Dia {{day}}.",
+        "Há {{day}} dias você promete a si mesmo — e cumpre.",
+        "Isso já não é só hábito. Está virando você.",
+        "Dia {{day}}. Menos esforço a cada vez, mais você."
+      ]
     },
     "muscle": {
       "activation": "Ativação",
@@ -431,18 +890,105 @@
     },
     "coach": {
       "brainTitle": "Como o cérebro funciona nesta fase?",
+      "brainShort": "Cartões da fase",
       "brainDone": "Você já completou este resumo de fase antes — abra para atualizar.",
       "brainCards": "4 cartões curtos · ~30 seg · adaptados à sua fase",
       "sentenceTitle": "Uma frase da Jornada",
-      "sentenceSub": "Uma linha na Mente em ordem de escrita · quer ir para a Mente completa",
+      "sentenceShort": "Uma frase",
+      "sentenceSub": "Uma linha cronometrada na Mente · abra a aba Mente completa quando quiser",
       "lastSentence": "Sua última linha: \"{{snippet}}\""
+    },
+    "identityMirror": {
+      "title": "Espelho de Identidade",
+      "empty": "Nenhuma reflexão salva ainda. Escreva a linha de hoje ou uma nota em Mente — o resumo aparecerá aqui.",
+      "foot": "Resumo baseado em regras das suas notas — texto pessoal não sai do dispositivo.",
+      "signals": "{{count}} sinais",
+      "fallbackOne": "Nota do dia {{day}} salva: \"{{snippet}}\". Escreva sobre resistência, hábito ou orgulho para aprofundar o espelho.",
+      "fallbackMany": "{{count}} notas salvas. Última no dia {{day}}: \"{{snippet}}\". Correspondências de palavras-chave geram o resumo pessoal.",
+      "fallbackHint": "Ex.: difícil, estou pegando o jeito, orgulhoso, já é natural…",
+      "ctaMind": "Ir para Mente e escrever",
+      "report": {
+        "defaultHabit": "este comportamento",
+        "context": {
+          "direnç": "você está na fase de resistência — isso é totalmente normal; o cérebro ainda está construindo o novo caminho.",
+          "geçiş": "você está na fase de transição — o hábito começa a se fixar; consistência é tudo aqui.",
+          "kimlik": "você está na fase de identidade — o comportamento já é seu. Essa mudança é duradoura.",
+          "gurur": "você está vivendo um momento positivo. Lembre dessa sensação — você voltará a ela nos dias difíceis.",
+          "şüphe": "a dúvida também faz parte da jornada. No dia 66, os resultados falam por si."
+        },
+        "phase": {
+          "direnç": "resistência",
+          "geçiş": "transição",
+          "kimlik": "identidade",
+          "gurur": "orgulho",
+          "şüphe": "dúvida"
+        },
+        "single": "No dia {{day}} você disse \"{{keyword}}\". Para {{habit}}, {{context}}",
+        "samePhase": "Do dia {{firstDay}} ao {{lastDay}} você deixou notas na fase de {{phase}}. A transformação de \"{{habit}}\" continua — um pouco a cada dia.",
+        "progress": "No dia {{firstDay}} você disse \"{{firstKeyword}}\". No dia {{lastDay}} você disse \"{{lastKeyword}}\". \"{{habit}}\" agora vem de dentro, não de fora.",
+        "pair": {
+          "direnç-geçiş": "Em \"{{habit}}\" você passou da resistência à transição. A dificuldade do dia {{firstDay}} já ficou para trás.",
+          "direnç-kimlik": "\"{{habit}}\" um dia parecia difícil. Agora está ficando natural. Essa é a essência da jornada de 66 dias.",
+          "direnç-gurur": "Depois da dificuldade no dia {{firstDay}}, o orgulho chega. Essa transição era inevitável.",
+          "geçiş-kimlik": "\"{{habit}}\" está se fixando. No dia {{firstDay}} você estava se adaptando; no dia {{lastDay}} já vem de dentro.",
+          "şüphe-geçiş": "Você continuou apesar da dúvida — e essa persistência é exatamente o que faz a diferença.",
+          "şüphe-gurur": "Você seguiu apesar da dúvida e agora sente orgulho. A escolha foi certa."
+        }
+      }
     },
     "sdt": {
       "title": "Pulso de motivação (SDT)",
       "sub": "Autonomia, competência, pertencimento — mini medição semanal",
       "trend": "Tendência das últimas {{count}} semanas",
       "fillFirst": "Preencher primeira pesquisa",
-      "update": "Atualizar esta semana"
+      "update": "Atualizar esta semana",
+      "questions": {
+        "autonomy": {
+          "label": "Autonomia",
+          "question": "Esta semana, você fez o hábito porque quis?",
+          "low": "Por obrigação",
+          "high": "Totalmente por vontade"
+        },
+        "competence": {
+          "label": "Competência",
+          "question": "Esta semana, você se sentiu capaz com o hábito?",
+          "low": "Nada capaz",
+          "high": "Muito capaz"
+        },
+        "relatedness": {
+          "label": "Conexão",
+          "question": "Esse hábito te fez sentir conexão com outras pessoas?",
+          "low": "Nada",
+          "high": "Muita conexão"
+        }
+      },
+      "insight": {
+        "defaultHabit": "seu hábito",
+        "highAvg": {
+          "summary": "{{habit}} parece alinhado à motivação intrínseca esta semana. Autonomia, competência e conexão estão fortes.",
+          "tip": "Mantenha o ritmo; proteja a frequência antes de aumentar a meta."
+        },
+        "lowAutonomy": {
+          "summary": "Autonomia baixa: {{habit}} pode ter parecido algo que você tinha que fazer.",
+          "tip": "Abra um pequeno espaço de escolha — quando, onde e qual versão de 2 min você escolhe."
+        },
+        "lowCompetence": {
+          "summary": "Competência baixa: {{habit}} pode ter parecido difícil ou vago.",
+          "tip": "Reduza um nível; capture a sensação de “fiz” em 10 segundos."
+        },
+        "lowRelatedness": {
+          "summary": "Conexão baixa: {{habit}} pode parecer um esforço solitário.",
+          "tip": "Conte a uma pessoa em uma frase, ou tente um ritmo compartilhado silencioso (mesmo horário, mesmo lugar)."
+        },
+        "highAutonomyLowCompetence": {
+          "summary": "Vontade há, mas a sensação de habilidade é fraca — esclareça o como para {{habit}}.",
+          "tip": "Escreva a âncora e o primeiro passo de 2 min; o app sugere um movimento pequeno."
+        },
+        "midBand": {
+          "summary": "{{habit}} está na faixa média esta semana — pequenos ajustes aumentam a sustentabilidade.",
+          "tip": "Complete o passo único de hoje no card; revise na próxima semana."
+        }
+      }
     },
     "regression": {
       "title": "Curva de automaticidade",
@@ -451,7 +997,11 @@
     },
     "share": {
       "button": "Compartilhar progresso",
-      "closeLabel": "Fechar"
+      "closeLabel": "Fechar",
+      "dayLine": "Dia {{day}}/66.",
+      "autoLine": "Automaticidade ~{{auto}}%.",
+      "completionLine": "Conclusão {{completion}}%.",
+      "hashtag": "#RitoApp"
     },
     "survey": {
       "title": "Pesquisa semanal",
@@ -486,20 +1036,89 @@
     },
     "phases": {
       "1": {
-        "label": "Foundation",
-        "days": "Day 1–22",
-        "subtitle": "Tiny Habits kick in. Set your anchor, stay small."
+        "label": "Fundação",
+        "days": "Dia 1–22",
+        "subtitle": "Tiny Habits entram em ação. Defina sua âncora, mantenha pequeno."
       },
       "2": {
-        "label": "Consolidation",
-        "days": "Day 23–44",
-        "subtitle": "Identity shift begins. From 'someone who does' to 'someone who is'."
+        "label": "Consolidação",
+        "days": "Dia 23–44",
+        "subtitle": "A mudança de identidade começa. De 'quem faz' para 'quem é'."
       },
       "3": {
-        "label": "Automaticity",
-        "days": "Day 45–66",
-        "subtitle": "The neural path completes. You do it without spending willpower."
+        "label": "Automaticidade",
+        "days": "Dia 45–66",
+        "subtitle": "O caminho neural se completa. Você faz sem gastar força de vontade."
       }
+    },
+    "phaseEdu": {
+      "kicker": "Cérebro nesta fase",
+      "title": "Fase {{id}} · {{label}}",
+      "hint": "Aprox. 30 seg · {{count}} cartões curtos",
+      "swipe": "Deslize para o lado para continuar — cada página é um pedaço da fase.",
+      "done": "OK",
+      "doneComplete": "OK — resumo da fase concluído",
+      "a11yOverlay": "Resumo curto do cérebro para esta fase",
+      "a11yCards": "Cartões do resumo da fase {{id}}. Deslize para ler.",
+      "a11yCompleted": "Este resumo de fase foi concluído.",
+      "a11yHintComplete": "Ao concluir, este resumo de fase é salvo",
+      "a11yHintClose": "Fecha o modal"
+    },
+    "mindSentence": {
+      "title": "Uma frase da Jornada",
+      "sub": "Saída rápida para Mente; fique na aba para textos longos.",
+      "timerActive": "Tempo de escrita: {{seconds}}s",
+      "timerEnded": "Tempo esgotado — ainda pode salvar ou continuar escrevendo.",
+      "a11yTimerEnded": "Tempo de escrita esgotado. Você pode continuar escrevendo e salvando se quiser.",
+      "placeholderActive": "Deixe uma frase agora (medo, cansaço, gratidão…)…",
+      "placeholderEnded": "O que quiser agora…",
+      "charHint": "{{current}}/{{max}} caracteres · pelo menos {{min}}",
+      "save": "Salvar na Mente",
+      "openMind": "Abrir aba Mente em tela cheia",
+      "notNow": "Agora não",
+      "alertTitle": "Mente",
+      "alertMinChars": "Pelo menos {{min}} caracteres; uma frase clara basta.",
+      "alertQuotaTitle": "Cota da Mente",
+      "alertQuota": "No plano grátis a escrita é limitada para evitar o limite diário. Solução: Premium ou simplifique notas antigas na Mente.",
+      "alertSavedTitle": "Salvo",
+      "alertSaved": "Sua linha está na lista da Mente. Abra a aba para expandir se quiser.",
+      "alertFailed": "Não foi possível salvar. Tente de novo em instantes."
+    },
+    "dayDetail": {
+      "dayTitle": "Dia {{day}}",
+      "previewHint": "Com Premium: resumo completo daquele dia — itens do plano, nota do check-in e automaticidade.",
+      "unlockCta": "Abrir painel completo",
+      "status": {
+        "done": "Concluído",
+        "missed": "Perdido",
+        "future": "Futuro",
+        "today": "Hoje",
+        "before_start": "—"
+      }
+    },
+    "complete66": {
+      "title": "66 dias concluídos",
+      "lead": "Você terminou a jornada que construiu para {{habit}}. Isso não é um distintivo — o comportamento pode já fazer parte de você.",
+      "defaultHabit": "seu hábito",
+      "completion": "Conclusão (período)",
+      "automaticity": "Automaticidade média",
+      "checkins": "Total de check-ins",
+      "nextHint": "Você pode continuar o mesmo hábito ou adicionar uma nova camada de identidade.",
+      "continue": "Próximo passo",
+      "share": "Compartilhar",
+      "shareMessage": "Concluí minha jornada de identidade de 66 dias.\n{{habit}} agora faz parte de quem eu sou.\n#RitoApp"
+    },
+    "tomorrowModal": {
+      "editTitle": "Editar item",
+      "addTitle": "Adicionar item pequeno",
+      "meta": "Mantenha claro e curto para amanhã",
+      "fieldWhat": "O que você vai fazer?",
+      "fieldWhatHint": "Curto e claro — uma ação só.",
+      "fieldWhen": "Quando?",
+      "fieldContext": "Em qual contexto?",
+      "fieldContextHint": "Um gatilho ajuda: \"Depois de X, faço Y.\"",
+      "addToList": "Adicionar à lista",
+      "deleteItem": "Excluir item"
     }
   },
   "mind": {
@@ -508,6 +1127,8 @@
     "dayLine": "Agora · Dia {{day}}/66",
     "newNote": "+ Nova nota",
     "moodPill": "Das notas recentes: no modo {{muscle}}",
+    "journeyBadge": "Jornada",
+    "emptyNote": "Nota vazia",
     "week": {
       "section": "ESTA SEMANA",
       "days": "{{done}}/7 dias",
@@ -561,6 +1182,62 @@
       "deleteMessage": "Esta nota será excluída permanentemente. Esta ação não pode ser desfeita.",
       "deleteCancel": "Cancelar",
       "deleteConfirm": "Excluir"
+    },
+    "limits": {
+      "freeLimit": "Plano grátis: até 10 notas Mente ativas. Apague uma antiga ou Premium ilimitado.",
+      "approaching": "Perto do limite de 10 notas. Apague uma ou continue ilimitado com Premium."
+    }
+  },
+  "growth": {
+    "sectionTitle": "Evolução",
+    "discipline": {
+      "title": "Pontuação de Disciplina",
+      "deltaUp": "↑ +{{count}} esta semana",
+      "deltaDown": "↓ −{{count}} esta semana",
+      "deltaFlat": "Sem mudança esta semana",
+      "milestoneRemaining": "Faltam {{remaining}} pontos para {{milestone}}",
+      "atMax": "Você atingiu o nível máximo"
+    },
+    "resilience": {
+      "title": "Resiliência",
+      "rateValue": "{{pct}}%",
+      "untestedHeadline": "Ainda não testada",
+      "untestedSub": "Aguardando sua primeira volta",
+      "comebacks": "Voltou {{count}} vezes",
+      "fallsCaption": "{{count}} séries de queda vividas"
+    },
+    "comeback": {
+      "nth": "{{count}}ª volta. Você é alguém que não desiste."
+    },
+    "firstComeback": {
+      "title": "Sua primeira volta",
+      "body": "Disciplina não é ser perfeito.\nÉ conseguir voltar.",
+      "restart": "Você recomeçou hoje.",
+      "continue": "Continuar"
+    },
+    "muscles": {
+      "title": "Músculos de disciplina",
+      "level": "Nv. {{level}}",
+      "weakestTip": "💡 {{muscle}} é seu músculo mais fraco. Próximos treinos podem focar aqui.",
+      "karar": "Decisão Instantânea",
+      "direnc": "Gestão de Resistência",
+      "baglam": "Mudança de Contexto",
+      "energi": "Baixa Energia",
+      "sosyal": "Pressão Social"
+    },
+    "weeklyReport": {
+      "title": "Esta semana",
+      "disciplineUp": "↑ +{{count}} disciplina",
+      "disciplineDown": "↓ −{{count}} disciplina",
+      "disciplineFlat": "Pontuação de disciplina sem mudança esta semana",
+      "consistency": "Consistência: {{done}}/{{total}}",
+      "comebacks": "{{count}} retorno(s)",
+      "improvedMuscle": "Músculo que cresceu esta semana",
+      "declinedMuscle": "Músculo que recuou esta semana",
+      "muscleDeltaPositive": "+{{delta}} {{muscle}}",
+      "muscleDeltaNegative": "−{{delta}} {{muscle}}",
+      "noMuscleChange": "Sem movimento nos músculos esta semana — pequenos passos somam.",
+      "noBaseline": "Mudança nos músculos aparece na próxima semana. Baseline salvo hoje."
     }
   },
   "profile": {
@@ -673,15 +1350,17 @@
       "backup": "Fazer backup dos dados",
       "backupSub": "Exportar como JSON",
       "delete": "Excluir dados",
-      "deleteSub": "Todo histórico e notas"
+      "deleteSub": "Todo histórico e notas",
+      "shareFooter": "— Rito: Jornada de Hábitos e Identidade (dados locais)",
+      "backupShareTitle": "Compartilhar backup do Rito: Jornada de Hábitos e Identidade"
     },
     "footer": {
       "notifCheck": "Verificar permissão de notificação",
       "quote": "Motivação não é um sentimento, é uma ação.",
-      "versionDay": "{{version}} · Kimlik · Dia {{day}}",
-      "about": "Sobre · v{{version}}",
-      "aboutAlertTitle": "Kimlik",
-      "aboutAlertMsg": "Um coach de hábitos que funciona com princípios locais."
+      "versionDay": "{{appName}}\n{{version}} · Dia {{day}}",
+      "about": "{{appName}} · v{{version}}",
+      "aboutAlertTitle": "Rito: Jornada de Hábitos e Identidade",
+      "aboutAlertMsg": "Coach de hábitos local de 66 dias. Seus dados ficam neste dispositivo."
     },
     "modal": {
       "notifTitle": "Notificações",
@@ -781,7 +1460,8 @@
       "phase3": "Automatização",
       "daysLeft": "{{count}} dias restantes",
       "target": "Meta: {{date}}",
-      "completed": "🎯 66 dias completos. Isso agora faz parte de quem você é."
+      "completed": "🎯 66 dias completos. Isso agora faz parte de quem você é.",
+      "dayMarker": "D{{day}}"
     },
     "weeklySummary": {
       "title": "Resumo semanal",
@@ -795,7 +1475,7 @@
       "shareCompleted": "Dias concluídos: {{done}}/7",
       "shareMissed": "Dias perdidos (janela): {{count}}",
       "shareSlip": "Atenção: falhas recentes perto de {{day}}.",
-      "shareFooter": "— Kimlik (dados locais)",
+      "shareFooter": "— Rito: Jornada de Hábitos e Identidade (dados locais)",
       "habitFallback": "hábito",
       "weekdays": [
         "Dom",
@@ -835,7 +1515,7 @@
         "Excluir dados remove tudo deste dispositivo; irreversível.",
         "Sugestões «fazer agora»: sem IA que lê texto; sinais por regras e padrões de palavras."
       ],
-      "foot": "Compras Premium são cobradas pela loja (Apple/Google); detalhes de pagamento não ficam no kimlik-app.",
+      "foot": "Compras Premium são cobradas pela loja (Apple/Google); detalhes de pagamento não ficam no Rito.",
       "privacyLink": "Política de privacidade (web)",
       "termsLink": "Termos de uso",
       "ok": "OK"
@@ -876,373 +1556,373 @@
       "title": "Dê 5 passos"
     },
     "shake-shoulders": {
-      "title": "Roll your shoulders"
+      "title": "Role os ombros"
     },
     "open-window": {
-      "title": "Open a window, breathe fresh air for 5 sec"
+      "title": "Abra uma janela, respire ar fresco por 5 seg"
     },
     "drink-water": {
       "title": "Tome um gole de água"
     },
     "stand-tall": {
-      "title": "Stand tall, open your chest for 3 sec"
+      "title": "Fique ereto, abra o peito por 3 seg"
     },
     "jump-once": {
-      "title": "Do one jump in place"
+      "title": "Dê um pulo no lugar"
     },
     "march-10": {
-      "title": "March in place, count to 10"
+      "title": "Marche no lugar, conte até 10"
     },
     "tap-desk": {
-      "title": "Tap the desk twice, then move"
+      "title": "Bata na mesa duas vezes e se mova"
     },
     "wake-wrists": {
-      "title": "Circle your wrists for 5 sec"
+      "title": "Gire os pulsos em círculos por 5 seg"
     },
     "calf-raise-3": {
-      "title": "Rise on your toes 3 times"
+      "title": "Suba na ponta dos pés 3 vezes"
     },
     "light-on": {
-      "title": "Turn on a light or open the curtain"
+      "title": "Acenda uma luz ou abra a cortina"
     },
     "door-threshold": {
-      "title": "Go to the doorway, step inside"
+      "title": "Vá até a porta e dê um passo para dentro"
     },
     "interrupt-stand": {
       "title": "Levante agora"
     },
     "anchor-touch": {
-      "title": "Touch your anchor"
+      "title": "Toque sua âncora"
     },
     "say-identity": {
-      "title": "Say who you are out loud"
+      "title": "Diga em voz alta quem você é"
     },
     "two-minute": {
-      "title": "Do the 2-minute version"
+      "title": "Faça a versão de 2 minutos"
     },
     "tiny-rep": {
-      "title": "Do one rep"
+      "title": "Faça uma repetição"
     },
     "habit-whisper": {
-      "title": "Whisper your habit again"
+      "title": "Sussurre seu hábito de novo"
     },
     "anchor-visualize": {
-      "title": "Picture your anchor for 5 sec"
+      "title": "Visualize sua âncora por 5 seg"
     },
     "one-line-plan": {
-      "title": "Write today's one step in a line"
+      "title": "Escreva o passo de hoje em uma linha"
     },
     "tool-ready": {
-      "title": "Put the tool on the desk (book, mat, water…)"
+      "title": "Coloque a ferramenta na mesa (livro, tapete, água…)"
     },
     "smallest-version-say": {
-      "title": "Say the smallest version out loud"
+      "title": "Diga em voz alta a menor versão"
     },
     "repeat-anchor-twice": {
-      "title": "Say your anchor phrase twice"
+      "title": "Repita sua frase-âncora duas vezes"
     },
     "identity-nod": {
-      "title": "Say “I'm someone who does this” and nod"
+      "title": "Diga “sou alguém que faz isso” e acene com a cabeça"
     },
     "habit-object-touch": {
-      "title": "Touch your habit object once"
+      "title": "Toque seu objeto do hábito uma vez"
     },
     "mark-done-intent": {
-      "title": "Say “I'm doing it now” and go to your anchor"
+      "title": "Diga “estou fazendo agora” e vá à sua âncora"
     },
     "deep-breath": {
       "title": "Respire fundo"
     },
     "count-three": {
-      "title": "Count to 3 and start"
+      "title": "Conte até 3 e comece"
     },
     "phone-down": {
-      "title": "Turn your phone face down"
+      "title": "Vire o celular com a tela para baixo"
     },
     "no-explain": {
-      "title": "Start without explaining"
+      "title": "Comece sem explicar"
     },
     "five-countdown": {
-      "title": "Count 5-4-3-2-1 and make the first move"
+      "title": "Conte 5-4-3-2-1 e dê o primeiro movimento"
     },
     "shoulders-drop": {
-      "title": "Drop your shoulders consciously for 5 sec"
+      "title": "Solte os ombros de propósito por 5 seg"
     },
     "unclench-jaw": {
-      "title": "Relax your jaw, tongue on the palate"
+      "title": "Relaxe a mandíbula, língua no céu da boca"
     },
     "stop-scroll-thumb": {
-      "title": "Lift your thumb off the screen for 3 sec"
+      "title": "Tire o polegar da tela por 3 seg"
     },
     "say-start-now": {
-      "title": "Say “I'm starting now” — no delay"
+      "title": "Diga “estou começando agora” — sem adiar"
     },
     "box-breath-4": {
-      "title": "In 4 sec, hold 4, out 4"
+      "title": "Inspire 4 seg, segure 4, solte 4"
     },
     "feet-flat-press": {
-      "title": "Press feet into the floor for 5 sec"
+      "title": "Pressione os pés no chão por 5 seg"
     },
     "timer-3-start": {
-      "title": "Count down 3 and move"
+      "title": "Conte regressivamente 3 e se mova"
     },
     "close-eyes": {
-      "title": "Close your eyes for 10 seconds"
+      "title": "Feche os olhos por 10 segundos"
     },
     "one-thing": {
-      "title": "Look at only one thing"
+      "title": "Olhe para apenas uma coisa"
     },
     "screen-blank": {
-      "title": "Lift your head from the screen"
+      "title": "Levante a cabeça da tela"
     },
     "blink-reset": {
-      "title": "Blink 10 times, then focus on one point"
+      "title": "Pisque 10 vezes, depois foque em um ponto"
     },
     "mute-notifications": {
-      "title": "Mute notifications for 1 hour"
+      "title": "Silencie notificações por 1 hora"
     },
     "desk-clear-one": {
-      "title": "Remove one thing from the desk"
+      "title": "Tire uma coisa da mesa"
     },
     "read-one-word": {
-      "title": "Read the first word of your task"
+      "title": "Leia a primeira palavra da sua tarefa"
     },
     "stare-one-point": {
-      "title": "Stare at a wall/point for 10 sec"
+      "title": "Olhe para um ponto na parede por 10 seg"
     },
     "headphones-on": {
-      "title": "Put on headphones or go silent"
+      "title": "Coloque fones ou ative modo silencioso"
     },
     "pen-cap-off": {
-      "title": "Uncap your pen, ready to write"
+      "title": "Tire a tampa da caneta, pronto para escrever"
     },
     "single-task-say": {
-      "title": "Say your single task out loud"
+      "title": "Diga em voz alta sua única tarefa"
     },
     "soft-restart": {
-      "title": "Stand up and take 1 step"
+      "title": "Levante-se e dê 1 passo"
     },
     "smile": {
-      "title": "Smile at yourself in the mirror"
+      "title": "Sorria para si no espelho"
     },
     "stretch": {
-      "title": "Raise arms, open shoulders (once)"
+      "title": "Levante os braços, abra os ombros (uma vez)"
     },
     "comeback": {
-      "title": "Spread fingertips, move elbows lightly"
+      "title": "Abra os dedos, mova os cotovelos levemente"
     },
     "thank-self": {
-      "title": "Say “I tried today”"
+      "title": "Diga “tentei hoje”"
     },
     "slow-exhale-3": {
-      "title": "Exhale slowly 3 times"
+      "title": "Expire devagar 3 vezes"
     },
     "gentle-neck-roll": {
-      "title": "Tilt your neck gently to one side"
+      "title": "Incline o pescoço suavemente para um lado"
     },
     "forgive-yesterday": {
-      "title": "Say “Yesterday is done, today is here”"
+      "title": "Diga “ontem acabou, hoje existe”"
     },
     "hand-on-heart": {
-      "title": "Hand on chest, breathe for 5 sec"
+      "title": "Mão no peito, respire por 5 seg"
     },
     "step-outside": {
-      "title": "Go to the door, look outside 5 sec"
+      "title": "Vá à porta, olhe lá fora por 5 seg"
     },
     "tpl-clear-mind-write": {
-      "title": "Reduce your mind to one sentence"
+      "title": "Reduza sua mente a uma frase"
     },
     "tpl-clear-mind-open": {
-      "title": "Open Mind tab, let the cursor blink"
+      "title": "Abra a aba Mente, deixe o cursor piscar"
     },
     "tpl-clear-breath-box": {
-      "title": "4-4-4 breath, then write one thought"
+      "title": "Respiração 4-4-4, depois escreva um pensamento"
     },
     "tpl-clear-list-one": {
-      "title": "Pick one of 3 things in your head, write it"
+      "title": "Escolha 1 de 3 coisas na cabeça e escreva"
     },
     "tpl-clear-worry-out": {
-      "title": "Dump the worry on paper/note, close it"
+      "title": "Jogue a preocupação no papel/nota e feche"
     },
     "tpl-move-bounce-30": {
-      "title": "Bounce in place for 30 sec"
+      "title": "Pule no lugar por 30 seg"
     },
     "tpl-move-pushup-1": {
-      "title": "Do 1 push-up"
+      "title": "Faça 1 flexão"
     },
     "tpl-move-shoes": {
-      "title": "Pick up your workout shoes"
+      "title": "Pegue seu tênis de treino"
     },
     "tpl-move-squat-1": {
-      "title": "Do 1 squat"
+      "title": "Faça 1 agachamento"
     },
     "tpl-move-stretch-arms": {
-      "title": "Reach arms up, hold 5 sec"
+      "title": "Estique os braços para cima, segure 5 seg"
     },
     "tpl-move-stairs-3": {
-      "title": "Go up or down 3 steps"
+      "title": "Suba ou desça 3 degraus"
     },
     "tpl-learn-first-line": {
-      "title": "Open the source, look at the first line"
+      "title": "Abra a fonte, olhe a primeira linha"
     },
     "tpl-learn-name": {
-      "title": "See the source name and close"
+      "title": "Veja o nome da fonte e feche"
     },
     "tpl-learn-page-turn": {
-      "title": "Turn a page or scroll forward"
+      "title": "Vire uma página ou role para frente"
     },
     "tpl-learn-one-fact": {
-      "title": "Read one sentence of info"
+      "title": "Leia uma frase de informação"
     },
     "tpl-learn-bookmark": {
-      "title": "Bookmark where you left off"
+      "title": "Marque onde parou"
     },
     "tpl-self-water": {
-      "title": "Put a glass of water on the desk, take a sip"
+      "title": "Coloque um copo d'água na mesa, tome um gole"
     },
     "tpl-self-glass": {
-      "title": "Just put the glass on the desk"
+      "title": "Apenas coloque o copo na mesa"
     },
     "tpl-self-wash-face": {
-      "title": "Splash face with cold water 5 sec"
+      "title": "Lave o rosto com água fria por 5 seg"
     },
     "tpl-self-lotion-hand": {
-      "title": "Apply lotion to one hand"
+      "title": "Passe hidratante em uma mão"
     },
     "tpl-self-posture": {
-      "title": "Straighten shoulders, stand tall 5 sec"
+      "title": "Endireite os ombros, fique ereto 5 seg"
     },
     "tpl-creator-open": {
-      "title": "Open the file, move cursor to first line"
+      "title": "Abra o arquivo, leve o cursor à primeira linha"
     },
     "tpl-creator-word": {
-      "title": "Write or draw just one word"
+      "title": "Escreva ou desenhe só uma palavra"
     },
     "tpl-creator-idea": {
-      "title": "Write the one idea in your head as a sentence"
+      "title": "Escreva a ideia na cabeça em uma frase"
     },
     "tpl-creator-title-only": {
-      "title": "Write only the title line"
+      "title": "Escreva só a linha do título"
     },
     "tpl-creator-rough-line": {
-      "title": "Write one draft line, no editing"
+      "title": "Escreva uma linha rascunho, sem editar"
     },
     "tpl-focus-tab": {
-      "title": "Close all tabs, leave one"
+      "title": "Feche todas as abas, deixe uma"
     },
     "tpl-focus-task": {
-      "title": "Say your one current task out loud"
+      "title": "Diga em voz alta sua tarefa atual"
     },
     "tpl-focus-timer": {
-      "title": "Start 25-min timer, turn phone over"
+      "title": "Inicie timer de 25 min, vire o celular"
     },
     "tpl-focus-notify-off": {
-      "title": "Turn off notifications or focus mode"
+      "title": "Desligue notificações ou modo foco"
     },
     "tpl-focus-desk-one": {
-      "title": "Leave only one work tool on the desk"
+      "title": "Deixe só uma ferramenta de trabalho na mesa"
     },
     "tpl-focus-5min": {
-      "title": "Start a 5-minute focus timer"
+      "title": "Inicie um timer de foco de 5 minutos"
     },
     "tpl-sleep-screen": {
-      "title": "Turn off screen, close eyes 10 sec"
+      "title": "Desligue a tela, feche os olhos 10 seg"
     },
     "tpl-sleep-phone": {
-      "title": "Put phone away, turn your face"
+      "title": "Afaste o celular, vire o rosto"
     },
     "tpl-sleep-breath": {
-      "title": "In 4, hold 4, out 4"
+      "title": "Inspire 4, segure 4, solte 4"
     },
     "tpl-sleep-dim-light": {
-      "title": "Dim or turn off the light"
+      "title": "Diminua ou apague a luz"
     },
     "tpl-sleep-alarm-set": {
-      "title": "Check tomorrow's alarm"
+      "title": "Confira o alarme de amanhã"
     },
     "tpl-sleep-gratitude": {
-      "title": "Whisper one good thing from today"
+      "title": "Sussurre uma coisa boa de hoje"
     },
     "tpl-social-name": {
-      "title": "Write the name of someone on your mind"
+      "title": "Escreva o nome de alguém em mente"
     },
     "tpl-social-msg": {
-      "title": "Draft a one-line message"
+      "title": "Rascunhe uma mensagem de uma linha"
     },
     "tpl-social-smile": {
-      "title": "Pause with intent to smile at next person"
+      "title": "Pause com intenção de sorrir na próxima pessoa"
     },
     "tpl-social-wave-plan": {
-      "title": "Think who you'll wave to"
+      "title": "Pense em quem vai cumprimentar"
     },
     "tpl-social-send-hi": {
-      "title": "Type “hi” or “how are you”, sending optional"
+      "title": "Digite “oi” ou “tudo bem”, enviar é opcional"
     },
     "tpl-social-voice-draft": {
-      "title": "Record one sentence voice note"
+      "title": "Grave uma frase em nota de voz"
     },
     "micro-clap": {
-      "title": "Clap once"
+      "title": "Bata palmas uma vez"
     },
     "micro-stretch-neck": {
-      "title": "Turn neck slowly left-right (once)"
+      "title": "Gire o pescoço devagar esquerda-direita (uma vez)"
     },
     "micro-feet": {
-      "title": "Press feet into floor, hold 3 sec"
+      "title": "Pressione os pés no chão, segure 3 seg"
     },
     "micro-posture": {
-      "title": "Pull shoulders back, open chest 2 sec"
+      "title": "Puxe os ombros para trás, abra o peito 2 seg"
     },
     "micro-sip": {
-      "title": "Take a sip if you have water"
+      "title": "Tome um gole se tiver água"
     },
     "micro-window": {
-      "title": "Look out a window or into the distance 5 sec"
+      "title": "Olhe pela janela ou ao longe por 5 seg"
     },
     "micro-name-habit": {
-      "title": "Say your habit name out loud"
+      "title": "Diga o nome do hábito em voz alta"
     },
     "micro-timer-10": {
-      "title": "Start a 10-second timer"
+      "title": "Inicie um timer de 10 segundos"
     },
     "micro-pen-paper": {
-      "title": "Open pen or phone notes"
+      "title": "Abra caneta ou notas do celular"
     },
     "micro-one-word": {
-      "title": "Write today's intent in one word"
+      "title": "Escreva a intenção de hoje em uma palavra"
     },
     "micro-shoes-on": {
-      "title": "Put on or pick up your shoes"
+      "title": "Calce ou pegue seus sapatos"
     },
     "micro-door": {
-      "title": "Walk to the door, step on the threshold"
+      "title": "Vá até a porta, pise no limiar"
     },
     "micro-smile-mirror": {
-      "title": "Look at camera or mirror 2 sec"
+      "title": "Olhe para a câmera ou espelho por 2 seg"
     },
     "micro-inhale": {
-      "title": "Breathe in 4 sec, out 4 sec"
+      "title": "Inspire 4 seg, solte 4 seg"
     },
     "micro-stand-stretch": {
-      "title": "Stand up, stretch arms once"
+      "title": "Levante-se, estique os braços uma vez"
     },
     "micro-phone-away": {
-      "title": "Put phone one arm's length away"
+      "title": "Coloque o celular a um braço de distância"
     },
     "micro-anchor-say": {
-      "title": "Say your anchor out loud"
+      "title": "Diga sua âncora em voz alta"
     },
     "micro-tiny-rep-2": {
-      "title": "Do the smallest rep twice"
+      "title": "Faça a menor repetição duas vezes"
     },
     "micro-commit": {
-      "title": "Say “I'm starting now” and move"
+      "title": "Diga “estou começando agora” e se mova"
     },
     "micro-habit-start": {
-      "title": "Do the smallest part of your habit"
+      "title": "Faça a menor parte do seu hábito"
     },
     "micro-reset-breath": {
-      "title": "Breathe in nose, out mouth (3 times)"
+      "title": "Inspire pelo nariz, solte pela boca (3 vezes)"
     }
   },
   "behavior": {
@@ -1265,508 +1945,693 @@
   },
   "identityTemplates": {
     "clear_mind": {
-      "title": "Alguém com mente clara",
+      "title": "Mente clara",
       "identityStatement": "Sou alguém com mente clara que conhece suas prioridades.",
       "mirror": {
-        "lowEnergy": "Como alguém com mente clara, abrir a aba Mente hoje já basta. O sistema te protege.",
-        "resistance": "Quem tem mente clara transforma resistência em escrita. 10 segundos, uma frase.",
-        "identity": "Do caos à clareza. Sua mente agora reconhece espaço."
+        "lowEnergy": "Como alguém de mente clara, abrir a Mente hoje já basta. O sistema te cobre.",
+        "resistance": "Mente clara transforma resistência em palavras. Dez segundos, uma frase.",
+        "identity": "Do caos à clareza. Sua mente já reconhece o espaço."
       },
       "phases": {
         "phase_1": "Fundação — Escreva o que está na cabeça.",
-        "phase_2": "Consolidação — Separe prioridades.",
+        "phase_2": "Consolidação — Separe por prioridade.",
         "phase_3": "Automaticidade — Mente mais calma."
-      }
+      },
+      "blurb": "Esvazie a cabeça com uma linha.",
+      "shortHabitLabel": "vou anotar minha maior preocupação em dez segundos",
+      "microActionInitial": "Escreva uma frase em Mente: o que mais ocupa sua cabeça agora.",
+      "whyPlaceholder": "Percebo que minha mente está cheia porque…",
+      "anchorPreview": {
+        "after_morning_drink": "vou anotar minha maior preocupação em dez segundos",
+        "after_brush": "vou anotar o único pensamento na cabeça",
+        "after_phone_down": "vou capturar esse pensamento em uma frase",
+        "before_bed": "vou escrever a preocupação que não levo para amanhã",
+        "after_lunch": "vou anotar o que ocupa minha cabeça à tarde",
+        "after_wake": "nos primeiros dois minutos vou anotar o ruído mental",
+        "after_start_work": "antes do trabalho vou escrever minha prioridade em uma linha"
+      },
+      "recoveryAction": "Abra a aba Mente; deixe o cursor piscar — já basta."
     },
     "moving_person": {
-      "title": "Someone who moves",
-      "identityStatement": "I am someone who respects their body and moves every day.",
+      "title": "Quem se move",
+      "identityStatement": "Sou alguém que respeita o corpo e se move todo dia.",
       "mirror": {
-        "lowEnergy": "As someone who moves, put on your shoes or take 10 steps today.",
-        "resistance": "When resistance hits, someone who moves scales down — 1 rep is enough.",
-        "identity": "Movement is part of who you are. Your body is waiting."
+        "lowEnergy": "Como quem se move, um olhar no tênis hoje já basta.",
+        "resistance": "Momento de resistência — 30 seg de pulo vence a resistência. Agora.",
+        "identity": "Você não está forçando. O corpo já sabe a vez."
       },
       "phases": {
-        "phase_1": "Foundation — Get moving.",
-        "phase_2": "Consolidation — Find your rhythm.",
-        "phase_3": "Automaticity — The body remembers."
-      }
+        "phase_1": "Fundação — Comece a se mover.",
+        "phase_2": "Consolidação — Aumente a duração.",
+        "phase_3": "Automaticidade — O corpo pede o movimento."
+      },
+      "blurb": "Movimento pequeno todo dia — momentum, não perfeição.",
+      "shortHabitLabel": "vou fazer um movimento pequeno",
+      "microActionInitial": "30 segundos pulando no lugar ou 1 flexão.",
+      "whyPlaceholder": "Adio o movimento porque…",
+      "anchorPreview": {
+        "after_arrive_home": "ao chegar em casa farei um movimento curto",
+        "after_morning_drink": "depois da bebida da manhã me movo por 30 segundos",
+        "after_brush": "depois de escovar tento 5 agachamentos ou flexões",
+        "after_phone_down": "ao largar o celular alongo e me movo",
+        "before_bed": "antes de dormir faço um alongamento leve",
+        "after_lunch": "depois do almoço caminho ou pulo brevemente",
+        "after_wake": "ao acordar alongo por um minuto",
+        "after_start_work": "antes do trabalho me movo por 30 segundos"
+      },
+      "recoveryAction": "Pegue o tênis de treino e olhe por 5 segundos."
     },
     "learner": {
-      "title": "Lifelong learner",
-      "identityStatement": "I am someone who learns a little every day.",
+      "title": "Aprendiz contínuo",
+      "identityStatement": "Sou alguém que aprende um pouco todo dia.",
       "phases": {
-        "phase_1": "Foundation — Open the source.",
-        "phase_2": "Consolidation — One page at a time.",
-        "phase_3": "Automaticity — Learning is default."
+        "phase_1": "Fundação — Só abrir.",
+        "phase_2": "Consolidação — Cinco minutos de estudo.",
+        "phase_3": "Automaticidade — O conhecimento se acumula."
+      },
+      "blurb": "Uma linha basta — começar já é vitória.",
+      "shortHabitLabel": "vou abrir a fonte e ler só a primeira linha",
+      "microActionInitial": "Abra a fonte e olhe só a primeira linha (15 seg).",
+      "whyPlaceholder": "Adio aprender porque aumento demais a meta…",
+      "anchorPreview": {
+        "after_phone_down": "vou abrir a fonte e ler a primeira linha",
+        "after_morning_drink": "depois da bebida leio a primeira linha",
+        "after_brush": "depois de escovar abro minha janela de estudo",
+        "before_bed": "escrevo o único alvo de aprendizado de amanhã",
+        "after_lunch": "no almoço leio a primeira linha",
+        "after_wake": "ao acordar abro a fonte por uma linha",
+        "after_start_work": "ao começar o trabalho abro uma fonte de estudo"
+      },
+      "recoveryAction": "Veja só o nome da fonte, diga 'isso é meu' e feche.",
+      "mirror": {
+        "lowEnergy": "Como aprendiz, ver a fonte na pasta hoje já basta. A linha pode esperar.",
+        "resistance": "A resistência infla a meta — abrir interrompe isso. Abra agora.",
+        "identity": "Cada tijolo encaixa. Você não está 'aprendendo' — você é aprendiz."
       }
     },
     "self_care": {
-      "title": "Someone who takes care of themselves",
-      "identityStatement": "I am someone who takes small care of themselves every day.",
+      "title": "Quem cuida de si",
+      "identityStatement": "Sou alguém que cuida de si em pequenas doses todo dia.",
       "phases": {
-        "phase_1": "Foundation — Water + breath.",
-        "phase_2": "Consolidation — Gentle routine.",
-        "phase_3": "Automaticity — Care is automatic."
+        "phase_1": "Fundação — Água + respiração.",
+        "phase_2": "Consolidação — Ritual se instala.",
+        "phase_3": "Automaticidade — Autocuidado."
+      },
+      "blurb": "Água, respiração, cuidado mínimo — você primeiro.",
+      "shortHabitLabel": "vou servir água e tomar pelo menos um gole",
+      "microActionInitial": "Coloque um copo de água na mesa e tome um gole.",
+      "whyPlaceholder": "Me coloco por último porque…",
+      "anchorPreview": {
+        "after_brush": "vou servir água e tomar um gole",
+        "after_morning_drink": "antes da bebida tomo um gole de água",
+        "after_phone_down": "antes da tela tomo um gole de água",
+        "before_bed": "antes de dormir tomo um último gole",
+        "after_lunch": "no almoço lembro da água e tomo um gole",
+        "after_wake": "primeiro coloco água e tomo um gole",
+        "after_start_work": "ao começar o trabalho coloco água na mesa"
+      },
+      "recoveryAction": "Só coloque o copo na mesa. O gole pode esperar.",
+      "mirror": {
+        "lowEnergy": "Quem cuida de si, ver o copo hoje já basta.",
+        "resistance": "Um gole é mais curto que a frase de adiamento. Agora.",
+        "identity": "A mão que volta para você não é hábito — é caráter."
       }
     },
     "creator": {
-      "title": "Creator",
-      "identityStatement": "I am someone who creates, even in small doses.",
+      "title": "Criador",
+      "identityStatement": "Sou alguém que cria, mesmo em doses pequenas.",
       "phases": {
-        "phase_1": "Foundation — Open the file.",
-        "phase_2": "Consolidation — Ship small.",
-        "phase_3": "Automaticity — Create without friction."
+        "phase_1": "Fundação — Só abrir.",
+        "phase_2": "Consolidação — Um pedaço por dia.",
+        "phase_3": "Automaticidade — Criatividade é identidade."
+      },
+      "blurb": "Sem perfeição; abrir o arquivo já é criar.",
+      "shortHabitLabel": "vou tocar meu trabalho criativo brevemente",
+      "microActionInitial": "Abra o arquivo e leve o cursor à primeira linha — escrever é opcional.",
+      "whyPlaceholder": "Adio criar porque…",
+      "anchorPreview": {
+        "after_morning_drink": "abro o arquivo e coloco o cursor na primeira linha",
+        "after_brush": "depois da rotina toco o trabalho criativo",
+        "after_phone_down": "dou um toque pequeno no projeto",
+        "before_bed": "anoto a linha criativa de amanhã",
+        "after_lunch": "no almoço toco o trabalho criativo",
+        "after_wake": "começo o dia abrindo o arquivo criativo",
+        "after_start_work": "ao trabalhar abro o arquivo do projeto"
+      },
+      "recoveryAction": "Anote a ideia na cabeça em uma palavra e feche.",
+      "mirror": {
+        "lowEnergy": "Como criador, abrir o arquivo hoje já basta.",
+        "resistance": "Resistência faz parte de criar. Uma palavra vence a resistência.",
+        "identity": "Pequenas saídas somam. Você não é só uma ideia."
       }
     },
     "focused_worker": {
-      "title": "Deep focus person",
-      "identityStatement": "I am someone who protects focus and does one thing at a time.",
+      "title": "Foco profundo",
+      "identityStatement": "Sou alguém que protege o foco e faz uma coisa por vez.",
       "phases": {
-        "phase_1": "Foundation — Close tabs.",
-        "phase_2": "Consolidation — Protect blocks.",
-        "phase_3": "Automaticity — Focus is habit."
+        "phase_1": "Fundação — Feche abas.",
+        "phase_2": "Consolidação — Tempo de profundidade cresce.",
+        "phase_3": "Automaticidade — Foco é reflexo."
+      },
+      "blurb": "Uma aba, uma tarefa — corte o ruído.",
+      "shortHabitLabel": "vou entrar em foco de tarefa única",
+      "microActionInitial": "Feche todas as abas, deixe uma tarefa — olhe por 1 minuto.",
+      "whyPlaceholder": "Minha atenção se dispersa porque…",
+      "anchorPreview": {
+        "after_start_work": "ao trabalhar travo em uma tarefa numa aba",
+        "after_morning_drink": "depois da bebida fecho abas e escolho uma tarefa",
+        "after_brush": "depois da rotina matinal escolho uma tarefa",
+        "after_phone_down": "ao largar o celular foco 5 min em uma tarefa",
+        "before_bed": "escrevo a prioridade de amanhã e fecho o trabalho",
+        "after_lunch": "depois do almoço abro um bloco de foco",
+        "after_wake": "ao acordar escolho a tarefa principal do dia"
+      },
+      "recoveryAction": "Diga em voz alta sua única tarefa atual, olhe 1 minuto.",
+      "mirror": {
+        "lowEnergy": "Como trabalhador focado, deixar uma aba hoje já basta.",
+        "resistance": "Fechar distrações também é produção. Feche agora.",
+        "identity": "Você escolhe profundidade. Esse é seu estilo de trabalho."
       }
     },
     "night_owl": {
-      "title": "Night rest person",
-      "identityStatement": "I am someone who winds down and protects sleep.",
+      "title": "Quem dorme bem",
+      "identityStatement": "Sou alguém que desacelera e protege o sono.",
       "phases": {
-        "phase_1": "Foundation — Screen off.",
-        "phase_2": "Consolidation — Evening ritual.",
-        "phase_3": "Automaticity — Rest is identity."
+        "phase_1": "Fundação — Afaste o celular.",
+        "phase_2": "Consolidação — Ritual se instala.",
+        "phase_3": "Automaticidade — Sinal noturno aprendido."
+      },
+      "blurb": "Feche a tela — proteja o sono.",
+      "shortHabitLabel": "vou fechar telas e iniciar o ritual de sono",
+      "microActionInitial": "Feche a tela. 10 segundos de olhos fechados, respire.",
+      "whyPlaceholder": "Fico acordado até tarde porque…",
+      "anchorPreview": {
+        "before_bed": "antes de dormir fecho telas e desacelero",
+        "after_phone_down": "fecho a tela e respiro dez segundos",
+        "after_brush": "tiro o celular do quarto e desacelero",
+        "after_morning_drink": "lembro do limite de sono desta noite",
+        "after_lunch": "defino a hora de dormir desta noite",
+        "after_wake": "defino o horário de desacelerar hoje",
+        "after_start_work": "lembro do corte de tela desta noite"
+      },
+      "recoveryAction": "Vire o celular, respire 4 seg — suficiente.",
+      "mirror": {
+        "lowEnergy": "Quem protege o sono, virar o celular hoje já basta.",
+        "resistance": "Fechar a tela não é perda — protege o que você construiu.",
+        "identity": "Seu cérebro merece descanso. Isso te define agora."
       }
     },
     "social_builder": {
-      "title": "Connection builder",
-      "identityStatement": "I am someone who nurtures connection in small ways.",
+      "title": "Quem conecta",
+      "identityStatement": "Sou alguém que nutre conexões em pequenas doses.",
       "phases": {
-        "phase_1": "Foundation — Write a name.",
-        "phase_2": "Consolidation — One message.",
-        "phase_3": "Automaticity — Connection is natural."
+        "phase_1": "Fundação — Escreva um nome.",
+        "phase_2": "Consolidação — Envie uma mensagem.",
+        "phase_3": "Automaticidade — Conexão é reflexo."
+      },
+      "blurb": "Toque pequeno — a conexão cresce.",
+      "shortHabitLabel": "vou fazer um pequeno contato",
+      "microActionInitial": "Escreva o nome de uma pessoa — mensagem ainda não é obrigatória.",
+      "whyPlaceholder": "Negligencio relações porque…",
+      "anchorPreview": {
+        "after_lunch": "farei um pequeno contato com alguém",
+        "after_morning_drink": "mando um oi curto para alguém",
+        "after_brush": "planejo um toque com alguém em mente",
+        "after_phone_down": "escrevo um nome e planejo um check-in",
+        "before_bed": "penso em uma boa noite para alguém querido",
+        "after_wake": "escrevo com quem quero conectar hoje",
+        "after_start_work": "ao trabalhar planejo um check-in rápido"
+      },
+      "recoveryAction": "Pense em alguém e planeje um 'como vai' — enviar é opcional.",
+      "mirror": {
+        "lowEnergy": "Quem constrói laços, pensar em uma pessoa hoje já basta.",
+        "resistance": "Não precisa da frase perfeita. Uma palavra vence o nada.",
+        "identity": "Um contato por dia. Assim você se relaciona agora."
       }
     }
   },
   "checkInConfirmation": {
-    "subtitle": "Salve rápido — os detalhes podem vir depois",
+    "subtitle": "Não há resposta errada — um registro honesto basta. Detalhes depois.",
     "other": "Outro",
-    "otherPlaceholder": "Escreva em poucas palavras...",
+    "otherPlaceholder": "Escreva brevemente com suas palavras…",
     "save": "Salvar e concluir",
     "custom": {
       "title": "Onde você esteve hoje nesse caminho de identidade?",
+      "subtitle": "Passo pequeno, pela metade ou só perceber — tudo conta.",
       "options": [
         "Avancei como queria",
-        "Fiz em parte, ficou pela metade",
-        "Foi difícil, mas tentei",
-        "Minha energia estava baixa",
-        "Outras prioridades tomaram conta",
+        "Fiz em parte, ficou incompleto",
+        "Foi difícil mas tentei",
+        "Energia baixa — fiz versão mínima",
+        "Outras prioridades vieram primeiro",
+        "Só tive intenção, pouca ação",
+        "Hoje escolhi descansar",
         "Uma nota rápida bastou"
       ]
     },
     "mental-clarity": {
-      "title": "O que você captou hoje para clareza mental?",
+      "title": "Como alguém que busca clareza mental, onde esteve hoje?",
+      "subtitle": "Dispersão também é dado — escrever ou perceber já é avanço.",
       "options": [
-        "Anotei a ansiedade/pensamento",
-        "Organizei meus pensamentos",
-        "Respirei, mesmo que por pouco",
-        "Reduzi a indecisão",
-        "Só percebi",
-        "Ainda não"
+        "Anotei a preocupação ou pensamento",
+        "Reduzi a mente a uma prioridade",
+        "Respiração curta + uma frase bastou",
+        "Reduzi indecisão, ficou mais claro",
+        "Só percebi, não escrevi",
+        "Dia disperso — ainda observei",
+        "Hoje a mente precisava de descanso",
+        "Deixei plano de uma linha para amanhã"
       ]
     },
     "moving-body": {
-      "title": "O que aconteceu hoje no lado do movimento?",
+      "title": "Como alguém que move o corpo, onde esteve hoje?",
+      "subtitle": "30 segundos contam — visibilidade, não perfeição.",
       "options": [
-        "Fiz o movimento que planejei",
-        "Um movimento curto bastou",
-        "Até caminhada/alongamento conta",
-        "Não deu tempo",
-        "Ouvir meu corpo",
-        "Ficou pela metade"
+        "Completei o movimento planejado",
+        "Movimento curto / alongamento bastou",
+        "Caminhada ou escadas deram impulso",
+        "Ouvi o corpo e descansei",
+        "Sem tempo, mas houve intenção",
+        "Ficou pela metade — ainda tentei",
+        "Dor/cansaço — só versão mínima",
+        "Movimento não era necessário hoje"
       ]
     },
     "lifelong-learner": {
-      "title": "Onde você está na rotina de aprendizado hoje?",
+      "title": "Como aprendiz contínuo, onde esteve hoje?",
+      "subtitle": "Uma linha, uma página, uma curiosidade — sinal de aprendizado.",
       "options": [
-        "Li/assisti algo pequeno",
-        "Anotei ou revisei",
-        "Dei um passo",
-        "Hoje não rolou",
-        "Só fiquei curioso",
-        "Compenso amanhã"
+        "Li ou vi algo pequeno",
+        "Fiz anotações ou revisei",
+        "Abri a fonte e dei um passo",
+        "Só fiquei curioso e registrei",
+        "Não rolou hoje — tudo bem",
+        "Deixei marca para amanhã",
+        "Liguei aprendizado ao dia a dia",
+        "Capturei ideia nova, mesmo breve"
       ]
     },
     "self-care": {
-      "title": "O que você fez por autocuidado hoje?",
+      "title": "Como alguém que pratica autocuidado, onde esteve hoje?",
+      "subtitle": "Gentileza pode ser pequena — limite, pausa, água, respiração.",
       "options": [
         "Fiz um pequeno favor a mim",
-        "Permiti descansar",
-        "Coloquei um limite / disse não",
-        "Pausa curta",
-        "Houve um momento de consciência",
-        "Hoje foi difícil"
+        "Permiti descanso conscientemente",
+        "Coloquei limite ou disse não",
+        "Pausa curta + respiração",
+        "Capturei momento de consciência",
+        "Dia difícil — ainda percebi",
+        "Cuidei de água/sono/alimentação",
+        "Tratei-me sem julgamento"
       ]
     },
     "creator": {
-      "title": "Como foi produtividade / criatividade hoje?",
+      "title": "Como criador, onde esteve hoje?",
+      "subtitle": "Rascunho, uma palavra, uma linha — criação começa assim.",
       "options": [
-        "Trabalhei nisso",
-        "Saiu um rascunho ou ideia",
-        "Algum progresso, mesmo pequeno",
-        "Baixei expectativas",
+        "Trabalhei nisso — houve progresso",
+        "Saiu rascunho ou ideia",
+        "Um passo concreto pequeno",
         "Começar bastou",
-        "Não aconteceu"
+        "Baixei expectativa e continuei",
+        "Hoje não era dia de produção",
+        "Saída bruta em vez de editar",
+        "Escrevi plano de uma linha para amanhã"
       ]
     },
     "deep-focus": {
-      "title": "O que você diria sobre foco hoje?",
+      "title": "Como trabalhador focado, onde esteve hoje?",
+      "subtitle": "Bloco profundo, tarefa única ou 5 min de foco — tudo vale.",
       "options": [
-        "Bloco de trabalho profundo",
-        "Travei em uma tarefa",
-        "Cortei uma distração",
-        "Até bloco curto ajudou",
-        "Hoje foi disperso",
-        "Não tentei"
+        "Travei em uma tarefa — senti bem",
+        "Até bloco curto de foco ajudou",
+        "Cortei distrações por um tempo",
+        "Difícil começar mas foquei alguns min",
+        "Tentei regra de uma aba / uma tarefa",
+        "Dia disperso — ainda percebi",
+        "Foco não era necessário — descansei",
+        "Montei plano claro de foco para amanhã"
       ]
     },
     "night-owl": {
-      "title": "Onde você está na rotina noturna hoje?",
+      "title": "Como quem protege o ritmo noturno, onde esteve hoje?",
+      "subtitle": "Versão noturna é sempre menor — proteja o sono.",
       "options": [
-        "Fiz o passo planejado",
-        "Energia baixa, mas tentei",
-        "Desisti cedo",
-        "Dia cheio",
-        "Uma coisa pequena",
-        "Deixei para amanhã"
+        "Fiz o passo noturno planejado",
+        "Energia baixa mas passo mínimo",
+        "Tentei largar a tela mais cedo",
+        "Respiração ou desaceleração calma",
+        "Dia cheio — deixei para amanhã",
+        "Desisti cedo — sem julgamento",
+        "Uma coisa pequena manteve o ritmo",
+        "Rotina noturna pulada hoje"
       ]
     },
     "social-builder": {
-      "title": "Como foi conexão / comunicação hoje?",
+      "title": "Como quem constrói conexão, onde esteve hoje?",
+      "subtitle": "Mensagem, escuta ou interação mínima — conexão começa pequena.",
       "options": [
-        "Falei com alguém / escrevi",
-        "Interação mínima",
-        "Ouvir ou apoiar",
-        "Tempo para mim",
-        "Me senti sozinho hoje",
-        "Pulei"
+        "Falei ou escrevi para alguém",
+        "Interação mínima / oi",
+        "Escutei ou apoiei alguém",
+        "Tempo para mim — isso também conta",
+        "Me senti sozinho — percebi",
+        "Pulei — deixei intenção para amanhã",
+        "Rascunhei mensagem, nem enviei",
+        "Contato breve presencial aconteceu"
       ]
     }
   },
   "dailyPrinciples": {
     "1": {
-      "principle": "Começar é centenas de vezes mais importante do que ficar perfeito.",
-      "science": "Tarefas abertas (Zeigarnik): a ação iniciada leva a mente ao desligamento.",
-      "action": "Baixe o hábito para a versão menor hoje e inicie-o apenas uma vez."
+      "principle": "Começar é centenas de vezes mais importante que aperfeiçoar.",
+      "science": "Tarefas iniciadas ficam abertas na mente (Zeigarnik) — a vontade de fechar te puxa de volta.",
+      "action": "Encolha o hábito para a menor versão de hoje; comece só uma vez."
     },
     "2": {
-      "principle": "A motivação é emoção; as emoções passam, o sistema permanece.",
-      "science": "Teoria da Autodeterminação: o comportamento sustentável requer autonomia e significado (Deci & Ryan).",
-      "action": "Anote seu motivo por 10 segundos e depois comece pelo gatilho."
+      "principle": "Motivação é sentimento; sentimentos passam, sistema e âncora ficam.",
+      "science": "Teoria da Autodeterminação: comportamento sustentável precisa de autonomia e significado (Deci & Ryan).",
+      "action": "Escreva seu porquê em 10 segundos, depois comece só no gatilho."
+    },
+    "3": {
+      "principle": "O cérebro aprende com repetição, não com sensação de perfeição.",
+      "science": "Regra de Hebb: neurônios que disparam juntos se conectam — cada rep da âncora fortalece o caminho.",
+      "action": "Repita a mesma âncora no mesmo horário mais uma vez."
     },
     "4": {
-      "principle": "O pequeno comportamento excede a grande resistência.",
-      "science": "As intenções de implementação aumentam o sucesso planejado do par gatilho-ação (Gollwitzer).",
-      "action": "Se-então: \\"
+      "principle": "Comportamento pequeno vence resistência grande em silêncio.",
+      "science": "Intenções de implementação tornam pares gatilho-ação muito mais confiáveis (Gollwitzer).",
+      "action": "Diga seu se-então em voz alta: 'Quando X, farei Y.'"
     },
     "5": {
-      "principle": "Instinto: desintegrar-se. Solução: projetar o ambiente.",
-      "science": "Vontade comportamental: a dificuldade diminui ao reduzir o atrito no ambiente (tendências Thaler & Sunstein).",
-      "action": "Prepare a ferramenta/preparação com 30 segundos de antecedência à noite."
+      "principle": "Distração é instinto; a resposta é desenhar o ambiente.",
+      "science": "Menos atrito, menos dificuldade — design comportamental vence força de vontade (Thaler & Sunstein).",
+      "action": "Prepare ferramentas ou setup hoje à noite em 30 segundos."
     },
     "6": {
-      "principle": "A identidade é primeiro a frase, depois o movimento.",
-      "science": "Autoesquema: história consistente sobre comportamentos reforça a identidade (BEM/reflexão de identidade).",
-      "action": "Frase hoje: \\"
+      "principle": "Identidade começa como frase, depois cresce com ação repetida.",
+      "science": "Autoesquema: história consistente de comportamento reforça identidade (BEM / reflexão de identidade).",
+      "action": "Diga hoje: 'Sou alguém que começa' — depois uma rep."
     },
     "7": {
-      "principle": "Cerca de 7 dias é o primeiro sinal suficiente para abrir um novo caminho para o cérebro.",
-      "science": "A plasticidade sináptica é fortalecida pela repetição; a duração varia entre os indivíduos (variação Lally).",
-      "action": "Volte para a versão mini desde o primeiro dia e complete outra rodada."
+      "principle": "Sete dias é um forte primeiro sinal para o cérebro abrir um novo caminho.",
+      "science": "Plasticidade sináptica fortalece com repetição; duração varia por pessoa (Lally).",
+      "action": "Volte à mini versão do dia um e complete mais uma rodada."
     },
     "8": {
-      "principle": "A ideia de desistir é a defesa do cérebro do jeito antigo.",
-      "science": "Velho hábito: ciclo dos gânglios da base-dopamina; novo caminho ainda é fraco (pesquisa de hábitos).",
-      "action": "Detalhe positivo: diga em voz alta a 1 vitória de ontem."
+      "principle": "Vontade de desistir é o caminho antigo se defendendo — normal e temporário.",
+      "science": "Circuitos antigos nos gânglios da base competem com vias novas ainda finas (Graybiel; Yin & Knowlton).",
+      "action": "Diga uma vitória de ontem em voz alta — detalhe positivo alimenta o novo caminho."
     },
     "9": {
-      "principle": "Às vezes, a recompensa é apenas uma sensação de “pronto”.",
-      "science": "Reforço: pequenas recompensas complementares reforçam a unidade com a dopamina; exagero.",
-      "action": "Dê a si mesmo uma pequena e saudável 'recompensa de sinal' logo após a conclusão."
+      "principle": "Às vezes a melhor recompensa é só o sentimento de 'terminei'.",
+      "science": "Pequenas recompensas de conclusão equilibram dopamina; excesso enfraquece motivação interna.",
+      "action": "Dê uma 'recompensa marcador' minúscula e saudável logo após terminar."
     },
     "10": {
-      "principle": "A estabilidade é mais segura que a intensidade.",
-      "science": "Efeito limite inicial: pequenas repetições são suficientes para o crescimento; pular quebra a motivação.",
-      "action": "Em vez de tempo ou volume, concentre-se apenas na caixa “está lá”."
+      "principle": "Consistência é mais confiável que intensidade.",
+      "science": "Limiar de início: reps pequenas bastam para crescimento; pular quebra motivação.",
+      "action": "Foque em 'apareci hoje?' não em duração ou volume."
     },
     "11": {
-      "principle": "O estresse não é boa vontade, mas sim uma demanda que transcende o sistema.",
-      "science": "Carga cognitiva: a memória processual é suprimida quando o trabalhador preenche a memória (modelos Baddeley).",
-      "action": "Reduza a versão de hoje para não mais que 2 minutos."
+      "principle": "Uma rep salva o dia quando a mente dispersa.",
+      "science": "Com carga cognitiva alta, memória procedural é suprimida — mini versão reduz carga.",
+      "action": "Escolha a menor versão de hoje; presença antes de perfeição."
     },
     "12": {
-      "principle": "O primeiro trimestre é o mais caro; a taxa não é mais pagável.",
-      "science": "O início tardio é mais caro para restaurar a queda da autoeficácia.",
-      "action": "Defina o limite de tempo exato para a ação de hoje: cronômetro."
+      "principle": "Mesma âncora, mesmo horário — o padrão começa a ser reconhecido.",
+      "science": "Repetição fortalece aprendizado procedural; 21 dias não é mágica, é acúmulo de sinal (Lally).",
+      "action": "Não mude a âncora; comece mais uma vez no mesmo ponto."
     },
     "13": {
-      "principle": "O atrito é um projeto ruim, não uma má vontade.",
-      "science": "A engenharia de mídia muda o comportamento que projeta bem os padrões (arquitetura de escolha).",
-      "action": "Mova os gatilhos ruins para um passo de distância (por exemplo, o telefone está em outra sala)."
+      "principle": "Um passo das duas semanas — paciência vence velocidade.",
+      "science": "Curva de automaticidade é lenta e ondulada — tédio faz parte do processo (Lally, 2009).",
+      "action": "Só seja visível hoje; marque presença, não duração."
     },
     "14": {
-      "principle": "A exposição à repetição leva ao aumento do interesse.",
-      "science": "A mera exposição torna o familiar selecionável.",
-      "action": "Torne a mesma microação intencionalmente entediante: a monotonia muda para a automação."
+      "principle": "Quatorze dias: você deixa um rastro diário, não um teste.",
+      "science": "Autorregistro e acompanhamento melhoram comportamento de forma significativa (meta-análise Harkin).",
+      "action": "Marque a rep de hoje — dados são seu mapa de progresso."
     },
     "15": {
-      "principle": "A comunidade é um modo cerebral diferente da solidão.",
-      "science": "A facilitação social pode aumentar ligeiramente a motivação em dificuldades moderadas; público/suporte faz a diferença.",
-      "action": "Diga a alguém suas intenções em uma frase (micro-responsabilidade)."
+      "principle": "Quando você conta para alguém, deixa de ir sozinho.",
+      "science": "Apoio ou plateia pode aumentar levemente a motivação em tarefas médias (Zajonc).",
+      "action": "Hoje diga sua intenção em uma frase para uma pessoa."
     },
     "16": {
-      "principle": "O tempo depende do diâmetro, não da fonte.",
-      "science": "As intenções de implicação duplicam a execução ao fixar o tempo (metanálises).",
-      "action": "Coloque um ninho de 5 minutos no calendário e deixe tocar (notificação ou peer)."
+      "principle": "Sem horário fixo, o dia escapa.",
+      "science": "Planejar quando agir quase dobra a execução (Gollwitzer).",
+      "action": "Reserve 5 minutos na agenda — ative lembrete ou peça um toque a alguém."
     },
     "17": {
-      "principle": "A procrastinação não é preguiça; é uma cura retardada.",
-      "science": "As dificuldades com a regulamentação criam barreiras cognitivas; a autocompaixão não agrava o rótulo.",
-      "action": "Sem julgar a procrastinação, apenas ‘agora 30s’ de ação."
+      "principle": "Procrastinar não é preguiça — às vezes é o cérebro dizendo que está cansado.",
+      "science": "Ser duro consigo prolonga o atraso; começar com leveza funciona melhor (Neff).",
+      "action": "Dê um passo de 30 segundos antes de se julgar."
     },
     "18": {
-      "principle": "Não de vez em quando: acione ou adie.",
-      "science": "Se-então planeja respostas involuntárias diretas (Gollwitzer, intenções de implementação).",
-      "action": "Reescreva o momento 'então' de hoje em uma frase."
+      "principle": "Na dúvida, o cérebro escolhe adiar — plano claro salva.",
+      "science": "Planos if-then direcionam impulsos no automático (Gollwitzer).",
+      "action": "Reescreva o gatilho de hoje em uma linha: 'Quando X, farei Y.'"
     },
     "19": {
-      "principle": "Ficar entediado é o túnel para a automação.",
-      "science": "A curva de automaticidade tem em média mais de 66 dias de variação; o tédio é um processo (Lally).",
-      "action": "Mesma repetição; ambiente apenas de variação (por exemplo, 1 repetição em sala diferente)."
+      "principle": "Tédio é sinal de que você entrou no túnel da automação.",
+      "science": "Automaticidade vem devagar e irregular; tédio faz parte (Lally).",
+      "action": "Mesma repetição — só mude um pouco o ambiente (outro cômodo, mesmo movimento)."
     },
     "20": {
-      "principle": "Os limites não são uma barreira para a liberdade, mas uma estrutura.",
-      "science": "O espaço restrito reduz o cansaço das decisões; a autogestão persiste na sala de aula (Baumeister).",
-      "action": "Ceil o tempo máximo de hoje em 2 minutos (saiba o final, não o tempo gasto)."
+      "principle": "Limites não cortam liberdade; aliviam o peso das decisões.",
+      "science": "Menos escolhas reduzem fadiga mental e facilitam persistir (Baumeister).",
+      "action": "Defina o teto de hoje em 2 minutos — saiba quando termina, não quanto durou."
     },
     "21": {
-      "principle": "Na terceira semana, ele passa a carregar a frase ‘sim’.",
-      "science": "A repetição fortalece a aprendizagem processual; 21 dias não têm mágica, mas o sinal se acumula (mito popular vs ciência: a duração varia de indivíduo para indivíduo).",
-      "action": "Adicione 'total de repetições X até o momento' à lista e escreva realmente um número."
+      "principle": "Terceira semana: 'estou fazendo' já não é só intenção.",
+      "science": "Repetição fortalece aprendizado procedural — 21 dias não é mágica, é acúmulo (Lally).",
+      "action": "Escreva um número real de quantas reps você já fez."
     },
     "22": {
-      "principle": "Terminada a fase de instalação, não se trata de ampliar, mas de permanecer no espelho.",
-      "science": "A transição de fase cria uma tempestade de motivação; a coerência deve ser mantida (pesquisa de hábitos).",
-      "action": "Jure pela pequenez: amanhã, fique igual ou menor que a versão da fase 1 ao dia 1."
+      "principle": "Base pronta: ganhar agora é ficar pequeno, não crescer.",
+      "science": "Motivação oscila nas transições de fase; proteger gatilhos supera forçar intensidade (Lally; Wood).",
+      "action": "Prometa que amanhã fica no mini do dia 1 ou menor."
     },
     "23": {
-      "principle": "A motivação cairá; faz parte do plano, não do colapso.",
-      "science": "A curva de automaticidade é lenta e ondulada (Lally e equipe, 2009).",
-      "action": "Não meça a motivação; concentre-se apenas em manter 1 iteração hoje."
+      "principle": "A motivação vai cair — faz parte do plano, não é pane.",
+      "science": "A curva de automaticidade é lenta e irregular; quedas são normais (Lally, 2009).",
+      "action": "Não meça motivação; proteja a repetição única de hoje."
     },
     "24": {
-      "principle": "Identidade, primeira frase; então, muitos dias novamente.",
-      "science": "Os hábitos baseados na identidade (claros) são compatíveis com a neurociência: o autoconceito impulsiona o comportamento (autoesquemas).",
-      "action": "Aumente a frase 'Eu sou... alguém que é' em 1 passo, mas mantenha o movimento mini."
+      "principle": "Identidade começa numa frase e cresce com provas pequenas todo dia.",
+      "science": "Comportamento atualiza autoconceito — palavra e ação juntas (autoesquema).",
+      "action": "Amplie um passo o 'sou alguém que…'; movimento continua mínimo."
     },
     "25": {
-      "principle": "A consistência vem da visibilidade e não do temperamento.",
-      "science": "Rastreabilidade e registro, automonitoramento, melhoram o comportamento no nível% (meta-análise de Harkin).",
-      "action": "Deixe uma confirmação de linha única (data + ícone) para a ação de hoje."
+      "principle": "O visível continua; o escondido some.",
+      "science": "Auto-monitoramento melhora comportamento de forma significativa (Harkin).",
+      "action": "Deixe prova de uma linha hoje: data + um símbolo."
     },
     "26": {
-      "principle": "Resistir à resistência fortalece o músculo de inibição.",
-      "science": "O controle da inibição é fortalecido pelo exercício, mas esgotado (debates sobre esgotamento do ego; não se esqueça de descansar).",
-      "action": "1 respiração profunda + 1 repetição no momento do gatilho; desativar o pensamento brevemente."
+      "principle": "Resistir à resistência fortalece o músculo do 'pare' — mas descanse também.",
+      "science": "Controle inibitório funciona mas esgota; recuperação é necessária (Baumeister).",
+      "action": "Uma respiração funda no gatilho, depois uma rep — pule o debate."
     },
     "27": {
-      "principle": "A apreciação não é sua, mas sim sua.",
-      "science": "O sentimento de competência nutre a motivação interna; medida, veja melhoria (SDT).",
-      "action": "Escreva o esforço leve ou pesado de ontem de 1 a 10; sem julgamento, apenas dados."
+      "principle": "Crédito para o você de hoje, não o de ontem.",
+      "science": "Sentir-se capaz alimenta motivação interna — note progresso pequeno (Deci & Ryan).",
+      "action": "Nota de 1–10 no esforço de ontem; sem julgamento, só dado."
+    },
+    "28": {
+      "principle": "Mesmo movimento, lugar diferente — prova que o hábito é seu.",
+      "science": "Mudança de contexto revela o quão sólido é o padrão (generalização).",
+      "action": "Tente a micro-ação em lugar incomum mas seguro."
     },
     "29": {
-      "principle": "A recompensa externa pode extinguir o instinto; a medida não escapa.",
-      "science": "Risco de justificação excessiva, reforço externo descontrolado (Lepper).",
-      "action": "Volte à recompensa, sinal completo: pequeno, tangível, agora."
+      "principle": "Prêmio grande pode apagar o impulso interno — mantenha na medida.",
+      "science": "Reforço externo pesado pode enfraquecer motivação intrínseca (Lepper).",
+      "action": "Prêmio pequeno e imediato: fez? marque."
     },
     "30": {
-      "principle": "A questão não é mais 'Você fez isso?' mas 'Em que versão estou?'",
-      "science": "A execução baseada em identidade alinha-se com sentenças de autorreferência (autopercepção, ajuste cognitivo).",
-      "action": "A mesma minivariação pela terceira vez sob o nome de hábito no dia 30."
+      "principle": "Dia 30: a pergunta não é 'fez?' e sim 'em qual versão estou?'",
+      "science": "Quando linguagem de identidade alinha com ação, executar fica mais fácil (autopercepção).",
+      "action": "Faça hoje pela terceira vez a mesma mini variação com o nome do hábito."
     },
     "31": {
-      "principle": "Estresse, boa oportunidade, má desculpa: a escolha é sua.",
-      "science": "O estresse pode atrapalhar a automação; os planos de enfrentamento fazem a diferença (implementação).",
-      "action": "Se a ênfase for 7+, faça a versão intermediária, mantenha o registro de presença."
+      "principle": "Estresse não é desculpa grátis — encolha a versão e apareça.",
+      "science": "Estresse quebra o automático; versão micro planejada ajuda a recuperar (coping).",
+      "action": "Se estresse 7+, faça metade da versão — check-in ainda conta."
     },
     "32": {
-      "principle": "A recuperação é uma janela para o aprendizado, não para o fracasso.",
-      "science": "Versão incompleta + análise curta tornam a próxima tentativa previsível (mentalidade construtiva, Dweck; por medição).",
-      "action": "Se houve um sequestro, 1 frase: não o motivo, plano 'amanhã 30 segundos'."
+      "principle": "Dia perdido não é fracasso; é janela de recuperação.",
+      "science": "Revisão breve + plano pequeno tornam a próxima tentativa previsível (Dweck).",
+      "action": "Se perdeu, escreva uma linha: plano de 30s amanhã — não o motivo."
     },
     "33": {
-      "principle": "A mente vende a procrastinação como ‘não é doloroso agora’.",
-      "science": "O desconto instantâneo subestima as recompensas futuras; dispositivo de compromisso ajuda.",
-      "action": "Deixe um minicompromisso social/vinculativo com alguém ou lugar."
+      "principle": "A mente vende adiamento como 'sem dor agora' — amarre-se a algo pequeno.",
+      "science": "Recompensa imediata encolhe o futuro; dispositivos de compromisso ajudam (Mischel).",
+      "action": "Deixe um mini compromisso com alguém ou em lugar visível."
     },
     "34": {
-      "principle": "O grupo quebra o egoísmo; a responsabilidade vai além de lembrar.",
-      "science": "A responsabilização aumenta as taxas de sucesso (estudos de apoio de Cook & Jackson).",
-      "action": "Hoje, considere a expectativa de 'perguntou' ou 'você fez isso' de uma pessoa em uma frase."
+      "principle": "Alguém perguntando 'fez?' vai além de lembrete.",
+      "science": "Prestação de contas aumenta taxa de sucesso (Aşçı & Jackson).",
+      "action": "Peça hoje a uma pessoa: 'você me cobra?' em uma frase."
     },
     "35": {
-      "principle": "Resistência, como músculo: se recusar a descansar, você abre um buraco.",
-      "science": "A inibição e a autorregulação são limitadas; o sono e a cognição inibem a exaustão (glicose de Galliot, discussões; resumo: o fato da exaustão).",
-      "action": "Em um sinal de exaustão, a meta é 10 segundos/1 repetição, sem prioridade de sono/açúcar (antes de dormir)."
+      "principle": "Resistência é músculo — sem descanso, abre buraco.",
+      "science": "Autocontrole é finito; sono e esgotamento bloqueiam (Galliot).",
+      "action": "No sinal de esgotamento, caia para 10s ou 1 rep — sono primeiro."
     },
     "36": {
-      "principle": "Espelhamento, não; lembrete: você fala sozinho.",
-      "science": "Gerencia o autodiscurso, o humor e a execução; a linguagem de cura se alinha com o SDT.",
-      "action": "Hoje, acalme a voz interior com a frase da 3ª pessoa e depois com 1 ação."
+      "principle": "Como a voz interna fala decide se você age.",
+      "science": "Autofala molda humor e execução (SDT).",
+      "action": "Acalme a voz interna em terceira pessoa, depois uma ação."
     },
     "37": {
-      "principle": "A linha do progresso é a tríade de percepção, medição e consistência.",
-      "science": "Gradiente de meta: velocidade ao se aproximar do final; impulso de pequenos marcos (Hull, 1932 - interpretação moderna).",
-      "action": "Coloque uma pequena bandeira no meio: estou no reforço 37/44, 1 iteração hoje."
+      "principle": "Progresso precisa de percepção, medição e consistência juntas.",
+      "science": "Ritmo sobe perto do fim — bandeiras pequenas dão impulso (Hull).",
+      "action": "Plante bandeira: estou em 37/44 reforço; rep única hoje."
     },
     "38": {
-      "principle": "A contradição interna se resolve em espelhos, em quantos cresce.",
-      "science": "A contradição cognitiva, a necessidade de reduzir a inconsistência, impulsiona o comportamento (Festinger, interpretação medida).",
-      "action": "Uma frase: 'Eu, que faço isso, tento isso uma vez' (alivie a contradição com 1 movimento)."
+      "principle": "Conflito interno encolhe quando você se move, mesmo pouco.",
+      "science": "Inconsistência incomoda; um passo restaura alinhamento (Festinger).",
+      "action": "Diga: 'Quem fez isso também tenta aquilo uma vez.'"
     },
     "39": {
-      "principle": "A linha do tempo é mais longa que a emoção; a consistência é curta, acumula.",
-      "science": "O dia exausto faz sentido novamente no próximo caminho, mesmo 0,5 segundo (a psicologia da interrupção).",
-      "action": "Dia claro, 1 ação de qualquer maneira: duração não superior a 10 s."
+      "principle": "Dia difícil conta com 10 segundos — não rompa a corrente.",
+      "science": "A menor rep após pausa mantém o caminho vivo (psicologia de interrupção).",
+      "action": "Dia leve: uma ação, no máximo 10 segundos."
     },
     "40": {
-      "principle": "Contexto é troca de pistas, não punição.",
-      "science": "Controle de estímulos, nova resposta com novas pistas; análise comportamental.",
-      "action": "Liste 1 variável de ambiente ruim, concentre-se em 1 amanhã."
+      "principle": "Ambiente ruim não é punição; é troca de pista.",
+      "science": "Novas pistas geram novas respostas; ajustar ambiente funciona (análise comportamental).",
+      "action": "Liste uma variável ruim do ambiente; escolha uma para amanhã."
     },
     "41": {
-      "principle": "As recompensas internas são satisfação aprendida, não dependência externa.",
-      "science": "O reforço interno, execução avançada, traz motivação de longo prazo (SDT).",
-      "action": "Após a conclusão, uma frase interna clara: 'Este é um pequeno momento que me define.'"
+      "principle": "Recompensa interna não cai do céu; aprende a cada conclusão.",
+      "science": "Reforço intrínseco sustenta motivação de longo prazo (Deci & Ryan).",
+      "action": "Ao terminar, diga por dentro: 'Este é um momento pequeno que me define.'"
     },
     "42": {
-      "principle": "Não apenas procrastinar, mas desistir mais cedo; os dois são bolsos separados.",
-      "science": "Modelo de estágio, distinção intenção-ação; o registro da diferença intervém (Prochaska, em resumo).",
-      "action": "Se tiver sido adiado, proibir a frase “não desista”; apenas limite as horas."
+      "principle": "Adiar e desistir são bolsos diferentes — não misture.",
+      "science": "Ver o vão entre intenção e ação abre espaço para intervir (Prochaska).",
+      "action": "Se adiou, não diga 'desisti'; limite o horário e volte ao mini."
     },
     "43": {
-      "principle": "Reforço na semana passada: gargalo, apenas sua âncora.",
-      "science": "Lally, a chegada à máquina de venda automática varia de 18 a 254 dias; 66, média, sua velocidade é diferente (Lally).",
-      "action": "Gatilho que você mais errou: Renomeie com 1 frase (mude o nome, mesmo gatilho)."
+      "principle": "Última semana de reforço: gargalo é sua âncora — renomeie.",
+      "science": "Automação leva 18–254 dias; 66 é média, a sua pode variar (Lally).",
+      "action": "Dê nome novo em uma linha ao gatilho que mais perde — gatilho igual."
     },
     "44": {
-      "principle": "A Fase 2 conectou suas frases de identidade ao verbo; a fase 3 dá polimento ao autômato.",
-      "science": "Quando o hábito se torna automático, a carga da consciência diminui (Madeira).",
-      "action": "Dia 44: Em 10 segundos, 'onde estou fazendo isso sem perceber?' 1 resposta."
+      "principle": "Fase dois fechada: frase de identidade agora liga à ação — vem automação.",
+      "science": "Com hábitos automatizados, carga consciente cai (Wood).",
+      "action": "Em 10 segundos: 'Onde faço isso sem perceber?'"
     },
     "45": {
-      "principle": "Você não está mais “decidindo”, você está lembrando e percebendo.",
-      "science": "Gânglios da base, automáticos; pré-frontal, entrega da alta administração (Willingham, memória processual).",
-      "action": "Hoje, observe 1 momento no momento do disparo (silencioso, 2 segundos)."
+      "principle": "Dia 45: você não decide mais — lembra.",
+      "science": "Execução automática vai aos gânglios basais; carga pré-frontal alivia (Willingham).",
+      "action": "No gatilho, perceba em silêncio por 2 segundos — sem julgamento."
     },
     "46": {
-      "principle": "O piloto automático é economia, não culpa.",
-      "science": "A automação libera carga cognitiva; o foco muda para objetivos mais elevados (processo duplo).",
-      "action": "Comemore o autômato: 1 frase, não 'deixei isso comigo', mas 'deixo isso comigo'."
+      "principle": "Piloto automático não é culpa; é largura de banda que você ganhou.",
+      "science": "Automação libera carga cognitiva para metas maiores (dual-process).",
+      "action": "Diga hoje: 'deixo isso rodar' — celebre, não se culpe."
     },
     "47": {
-      "principle": "66 dias, em média; sua duração pode ser diferente, isso é normal.",
-      "science": "Variação Lally: mediana/média distribuída entre 18-66+ semanas; específico da pessoa.",
-      "action": "Todos os dias na fase 3: registre 'diferença', não 'aponte agora': ausência de cabeça/fluência 1-5."
+      "principle": "66 dias é média; seu ritmo diferente é normal.",
+      "science": "Variação individual é ampla, muitas vezes 18–66+ dias (Lally).",
+      "action": "Registre sensação, não nota: automatismo/fluxo de 1–5."
     },
     "48": {
-      "principle": "Tédio, não disciplina, mas sim o assobio do sistema.",
-      "science": "A rotina é a linha de repetição ininterrupta (habituação) e não a onda de dopamina.",
-      "action": "1 frase em sua mente entediada: 'Tédio, sinal: entrei na automação.'"
+      "principle": "Tédio não é falta de disciplina; é o sistema roncando.",
+      "science": "Rotina é menos pico de dopamina, mais linha de repetição (habituação).",
+      "action": "No tédio, diga: 'Tédio significa que entrei na automação.'"
     },
     "49": {
-      "principle": "O que toca a identidade é medido pelo movimento inesquecível.",
-      "science": "As atualizações do autoesquema são combinadas com experimentação consistente (aceitação cognitivo-interpessoal).",
-      "action": "Para alguém, ou no espelho, com uma voz de 5 segundos: 'Fui eu quem fez isso.'"
+      "principle": "Identidade se mede em movimentos pequenos que você não esquece.",
+      "science": "Experiência consistente atualiza autoesquema (pesquisa de autoconceito).",
+      "action": "Fale 5 segundos, no espelho ou para alguém: 'Sou quem faz isso.'"
     },
     "50": {
-      "principle": "Redesenhar não é parar, mas avançar.",
-      "science": "Hipótese da continuidade do hábito: se o contexto muda, o hábito se estende no ponto fraco (oportunidade de intervir na crise).",
-      "action": "Variável de contexto do teste 1: horário diferente, mesma microação."
+      "principle": "Redesenhar não é parar; é levar o mesmo núcleo adiante.",
+      "science": "Mudança de contexto afrouxa hábito — chance de reancorar (habit-discontinuity).",
+      "action": "Teste uma variável: horário diferente, mesma micro-ação."
     },
     "51": {
-      "principle": "Confie na automação, não abrindo mão do controle.",
-      "science": "Linhas alvo, jogo preciso no metaplano, prevenção de escorregões (Gollwitzer, se-então).",
-      "action": "1 backup if-then: 'Se a gravação cair, mesma âncora no mesmo dia em 30 segundos.'"
+      "principle": "Confiar na automação não é soltar controle — é ter plano B.",
+      "science": "Planos if-then de reserva cortam risco de escorregão (Gollwitzer).",
+      "action": "Escreva um backup: 'Se perder o registro, mesmo dia, 30s, mesma âncora.'"
     },
     "52": {
-      "principle": "O dia da recuperação não é o dia do fracasso; é o dia do sinal.",
-      "science": "A prevenção da recaída ocorre explicando o gatilho e reduzindo o plano (Marlatt).",
-      "action": "Probabilidade de deterioração: gatilho+emoção 1 sentença; solução: mini se-então."
+      "principle": "Dia de recuperação não é dia falho; é sinal do sistema.",
+      "science": "Prevenção de recaída nomeia gatilho e humor, depois encolhe o plano (Marlatt).",
+      "action": "Se escorregão é provável: gatilho + emoção numa linha; correção mini if-then."
     },
     "53": {
-      "principle": "Disciplina não é punição; é gerenciamento de recompensa diferida.",
-      "science": "Preferências temporais, procrastinação e autocontrole (Mischel, biscoito, resumo: recompensa atrasada).",
-      "action": "Nenhum grande prêmio, pequeno: hoje, 10 segundos de movimento calmo (alongamento, etc.) após a conclusão."
+      "principle": "Disciplina não é castigo; é colocar prêmio pequeno no momento certo.",
+      "science": "Gratificação adiada fortalece autocontrole (Mischel).",
+      "action": "Sem prêmio grande: ao terminar, 10s de movimento calmo (alongar etc.)."
     },
     "54": {
-      "principle": "Você preenche 66; 66 não limita você.",
-      "science": "Adaptação: novo limite após meta, empilhamento de hábitos/hierarquia de metas.",
-      "action": "Rascunho de 1 frase para maiores de 67 anos: 'Mesma âncora, uma superior 2 min.' (rascunho hoje)."
+      "principle": "Você preenche os 66; os 66 não te cercam.",
+      "science": "Após a meta, novo limiar ou hábito empilhado sustenta (habit stacking).",
+      "action": "Rascunhe uma linha para 67+: 'Mesma âncora, +2 min.' — só escreva hoje."
     },
     "55": {
-      "principle": "Dia 55: sinal, sua velocidade, pode deixar na média.",
-      "science": "Distribuição Lally: variação específica da pessoa, o desvio da média não é extraordinário.",
-      "action": "Se pesado: 'Sou uma viagem lenta' 1 frase; 1 ação novamente 2 min e abaixo."
+      "principle": "Dia 55: se está mais lento que a média, jornada lenta também vale.",
+      "science": "Variação pessoal não é rara — é distribuição esperada (Lally).",
+      "action": "Se pesar, diga 'estou no caminho lento' — ação ainda abaixo de 2 min."
     },
     "56": {
-      "principle": "Automático, não adormecido: execução inconsciente.",
-      "science": "Aprendizagem processual implícita vs explícita; repetição imprudente (Willingham).",
-      "action": "Quando a ação termina, o silencioso 'o que aconteceu?' pergunta por 3 segundos não faz julgamentos."
+      "principle": "Automático não é dormir — é execução inconsciente.",
+      "science": "Aprendizado procedural muitas vezes consolida sem você notar (Willingham).",
+      "action": "Após a ação, 3s em silêncio: 'O que aconteceu?' — sem julgamento."
     },
     "57": {
-      "principle": "A dor contextual pode ser o sinal para um novo teste de âncora na semana passada.",
-      "science": "Risco (renovação) estimulante do contexto, mas a redimensionação planeada é encerrada (resumo).",
-      "action": "Projete 1 teste de âncora novo e pequeno em 5 s, hoje apenas teste, sem desempenho completo."
+      "principle": "Vazamento de contexto pode sinalizar hora de testar nova âncora.",
+      "science": "Com mudança de cenário, pistas antigas voltam; reancoragem planejada fecha (renewal).",
+      "action": "Desenhe mini âncora nova em 5s — hoje só teste, sem performance plena."
     },
     "58": {
-      "principle": "Não você, mas o sistema: descanse seu ego, alinhe o padrão.",
-      "science": "Automação do sistema 1, planejamento do sistema 2, sistema 1 vence na sobreposição, sistema 2 ajusta o ambiente (Stanovich).",
-      "action": "Corrija permanentemente 1 padrão no ambiente (por exemplo, luz, porta, localização da bolsa)."
+      "principle": "O sistema te carrega; descanse o ego, alinhe o padrão.",
+      "science": "Sistema 1 vence choques; Sistema 2 ajusta ambiente (Kahneman).",
+      "action": "Corrija um padrão permanente no espaço: luz, porta ou bolsa."
     },
     "59": {
-      "principle": "De 7 a 66, o recorde é o espelho, não a ostentação.",
-      "science": "O automonitoramento não cega a execução; reverso, revelador (Harkin).",
-      "action": "Resuma a tendência da diferença -1-5 desde 47 em uma frase (se não, escreva 'dados ainda')."
+      "principle": "Sete dias para 66: registro não é vaidade — é espelho.",
+      "science": "Auto-monitoramento não cega execução; torna visível (Harkin).",
+      "action": "Resuma em uma linha tendência 1–5 desde o dia 47 — ou 'sem dados ainda'."
     },
     "60": {
-      "principle": "O hábito é a chave que abre a próxima porta, não o fim.",
-      "science": "Acumulação de hábitos, encadeamento, aciona o anterior; Cadeia de comportamento clara + (Lally, fácil ao mudar para automação).",
-      "action": "1 plano curto, novo e pequeno 'depois' de 5 segundos: +1 anel no topo da linha existente."
+      "principle": "Hábito não é fim; é chave da próxima porta.",
+      "science": "Um hábito pode disparar o próximo — encadeamento facilita (Clear).",
+      "action": "Some +1 elo na corrente atual: plano de 5s do 'depois'."
     },
     "61": {
-      "principle": "Se a comunidade carregou você em 66, deixe-a aberta em 67 ou limite-a – conscientemente.",
-      "science": "Benchmarking social, motivação extrínseca, influências intrínsecas fracas (discussões, medidas).",
-      "action": "Conta, compartilhamento ou privacidade em 1 frase: qual é o sustentador, a escolha de hoje."
+      "principle": "Se comunidade te carregou, escolha com consciência no 67: aberto ou limitado.",
+      "science": "Comparação social aumenta motivação externa; pode afetar a interna (SDT).",
+      "action": "Compartilhe ou mantenha privado — marque o que sustenta hoje."
     },
     "62": {
-      "principle": "Nos últimos 5, não a alma, mas o ritmo: o final não toca o ritmo, carrega-o.",
-      "science": "Efeitos de fechamento, risco de aceleração (gradiente de meta) e exaustão na abordagem alvo; ritmo, protetor.",
-      "action": "Hoje, a hora habitual, o local habitual, a variação mínima, a fidelização máxima."
+      "principle": "Últimos cinco: ritmo, não humor — a linha de chegada carrega o compasso.",
+      "science": "Impulso sobe perto da meta, mas risco de esgotamento também (goal-gradient).",
+      "action": "Hoje: horário e lugar de sempre — mínima variação, máxima fidelidade."
     },
     "63": {
-      "principle": "Aos 63 anos, vence a simplificação e não o esquecimento.",
-      "science": "A simplificação cognitiva reduz o planejamento excessivo na automação; o minimalismo acelera a execução (resumo).",
-      "action": "1 item do plano foge, proceda como se nada tivesse acontecido (deixe o motorista pelo menos)."
+      "principle": "Dia 63: ganha simplificando, não esquecendo.",
+      "science": "Plano extra aumenta carga na automação; minimalismo acelera.",
+      "action": "Remova silenciosamente um item do plano — siga como se nada mudasse."
+    },
+    "64": {
+      "principle": "Chegada não é vitória; é cumprir promessa feita.",
+      "science": "If-then final perto do fim corta risco de escorregão (Gollwitzer).",
+      "action": "Faça promessa de três dias com testemunha — pessoa ou nota."
     },
     "65": {
-      "principle": "Aos 65 anos, deixe de lado a continuidade, não a procrastinação, para os próximos 66.",
-      "science": "A continuidade não dura com grandes novos objetivos, mas com expansão com o mesmo núcleo.",
-      "action": "Mesma âncora + 1 obrigatório: amanhã, apenas 1 minuto, sem diferença, ênfase na continuação."
+      "principle": "Dia 65: não adie o próximo 66 — continue com o mesmo núcleo.",
+      "science": "Continuidade cresce expandindo o núcleo, não com saltos gigantes.",
+      "action": "Mesma âncora + amanhã só 1 minuto — sem variação, foco em continuar."
     },
     "66": {
-      "principle": "Não se trata de um fim corrido, mas sim da conclusão de um contrato que promete automação.",
-      "science": "Lally, variação individual na automação; 66, o símbolo, o cientista se recusa a ser peculiar 66 — mas o ritual faz a ponte.",
-      "action": "1 página ou 1 frase: Marque 'mesmo/mini/arte' de 67, basta assinar hoje."
+      "principle": "Isso não é corrida que acaba — é assinar o contrato com a automação.",
+      "science": "66 é ponte simbólica — automaticidade varia, mas ritual une (Lally).",
+      "action": "Marque em uma linha escolha pós-67: mesmo / mini / crescer — assine hoje."
     }
   },
   "journeyEducation": {
@@ -1831,9 +2696,9 @@
         "body": "Ao se aproximar do dia 66, o objetivo não é só fechar uma caixa — é alinhar esse comportamento com o seu senso de si. Quanto mais você sentir 'eu escolhi isso', maior a chance de continuar (próximo da autonomia subjetiva na linguagem da SDT)."
       },
       {
-        "id": "pág.3-4",
-        "title": "Otomatikleşme fazı için cümle",
-        "body": "Artık hedef ‘mükemmel gün’ değil, sapınca hızlı toparlamak. Uzun yol küçük onarımların toplamıdır. Bugün yapılan e küçük geri bağlanış bile yolcusunu taşır."
+        "id": "p3-4",
+        "title": "Uma frase para a fase de automaticidade",
+        "body": "O objetivo não é mais um 'dia perfeito', e sim se recuperar rápido quando escorregar. O caminho longo é a soma de pequenos reparos. Até a menor reconexão de hoje te leva adiante."
       }
     ]
   },
@@ -1864,11 +2729,1001 @@
     ]
   },
   "coachNotes": {
-    "day7": "A primeira semana ficou para trás. A âncora está se instalando — agora fica mais fácil.",
-    "day14": "Duas semanas. Novas conexões se formam no cérebro. Mesmo que você não perceba.",
-    "day22": "Ponto crítico. Quem chega aqui em geral termina.",
-    "day30": "30 dias. A pergunta já não é 'está fazendo?' e sim 'quem está se tornando?'",
-    "day44": "A fase 2 terminou. Você não escolhe mais — faz.",
-    "day66": "66 dias. Isso é seu agora — ninguém tira."
+    "day7": "Uma semana completa. A âncora assentou — cada dia pesa um pouco menos.",
+    "day14": "Duas semanas. Novos caminhos se formam; o progresso continua mesmo sem você sentir.",
+    "day22": "Limite crítico: a maioria que chega aqui termina. Você está aqui.",
+    "day30": "30 dias. A pergunta não é 'fez?' — é 'quem você está se tornando?'",
+    "day44": "Fase 2 concluída. A maioria dos dias não parece escolha — parece fluxo.",
+    "day66": "66 dias. Este ritmo é seu agora — ninguém tira o que você construiu."
+  },
+  "anchors": {
+    "after_wake": {
+      "label": "Logo ao acordar"
+    },
+    "after_brush": {
+      "label": "Depois de escovar os dentes"
+    },
+    "after_morning_drink": {
+      "label": "Depois da bebida da manhã"
+    },
+    "after_lunch": {
+      "label": "Depois do almoço"
+    },
+    "after_phone_down": {
+      "label": "Depois de largar o celular"
+    },
+    "before_bed": {
+      "label": "Antes de dormir"
+    },
+    "after_start_work": {
+      "label": "Quando começo a trabalhar"
+    },
+    "after_arrive_home": {
+      "label": "Quando chego em casa"
+    }
+  },
+  "timeRanges": {
+    "sabah": {
+      "label": "Manhã (6h–12h)",
+      "short": "Manhã"
+    },
+    "ogle": {
+      "label": "Meio-dia (12h–14h)",
+      "short": "Meio-dia"
+    },
+    "ogleden-sonra": {
+      "label": "Tarde (14h–18h)",
+      "short": "Tarde"
+    },
+    "aksam": {
+      "label": "Noite (18h–21h)",
+      "short": "Noite"
+    },
+    "gece": {
+      "label": "Madrugada (21h–0h)",
+      "short": "Madrugada"
+    }
+  },
+  "journeyMoments": {
+    "byDay": {
+      "1": "Dia um: começar conta, não a perfeição. O cérebro abre o caderno hoje — baixar a barra é o movimento inteligente.",
+      "2": "Segunda repetição: sentimentos passam; o pequeno passo de hoje fica.",
+      "3": "Dia três: conexões ainda finas — cada repetição lança mais um fio.",
+      "4": "Dia quatro: um plano se-então claro vence motivação aleatória.",
+      "5": "Dia cinco: moldar o ambiente ganha mais que forçar força de vontade.",
+      "6": "Dia seis: identidade começa como frase, depois cresce com ação consistente.",
+      "8": "Limite da segunda semana: o ritmo se forma — ser visível basta.",
+      "9": "Dia nove: uma pequena sensação de conclusão é o sinal de 'continuar'.",
+      "10": "Dia dez: presença repetida vence intensidade.",
+      "11": "Dia onze: uma repetição salva o dia quando a mente dispersa.",
+      "12": "Dia doze: mesma âncora, mesmo horário — o cérebro reconhece o padrão.",
+      "13": "Dia treze: um passo das duas semanas — paciência vence velocidade.",
+      "15": "Dia quinze: o hábito não é mais teste — é um rastro diário.",
+      "16": "Dia dezesseis: o caminho antigo ainda tenta — o novo fortalece a cada passagem.",
+      "17": "Dia dezessete: autocompaixão é combustível, não desculpa.",
+      "18": "Dia dezoito: gatilho planejado é a chave para começar sem pensar demais.",
+      "19": "Dia dezenove: tédio é normal — automação se constrói devagar.",
+      "20": "Dia vinte: três semanas perto — passos pequenos se acumulam.",
+      "21": "Dia vinte e um: última curva da Fase 1 — consistência vira identidade.",
+      "23": "Limite da Fase 2: com consistência dominante, o tom da identidade soa mais claro.",
+      "24": "Dia vinte e quatro: a pergunta muda de 'devo?' para 'como faço?'",
+      "25": "Dia vinte e cinco: medição é dado, não julgamento.",
+      "26": "Dia vinte e seis: resistência é como músculo — uma respiração + uma rep basta.",
+      "27": "Dia vinte e sete: credite o esforço de hoje, não a história de ontem.",
+      "28": "Dia vinte e oito: mesmo passo em novo contexto desbloqueia generalização.",
+      "29": "Dia vinte e nove: recompensa é sinal de conclusão, não exagero.",
+      "31": "Dia trinta e um: estresse pode ser pista — encolha a versão, siga.",
+      "32": "Dia trinta e dois: uma falha é janela de aprendizado — plano de 30s para amanhã basta.",
+      "33": "Dia trinta e três: procrastinação diz 'sem dor agora' — seu plano quebra isso.",
+      "34": "Dia trinta e quatro: uma frase de responsabilidade vai além de lembretes.",
+      "35": "Dia trinta e cinco: sinal de exaustão = encolher meta, não pular descanso.",
+      "36": "Dia trinta e seis: o tom da voz interna molda o comportamento.",
+      "37": "Dia trinta e sete: o ritmo pode subir perto do fim — proteja seu compasso.",
+      "38": "Dia trinta e oito: sensação de inconsistência é o cérebro buscando alinhamento.",
+      "39": "Dia trinta e nove: meio segundo conta — não quebre a corrente.",
+      "40": "Dia quarenta: fim da Fase 2 — automação começa a ser sentida.",
+      "41": "Dia quarenta e um: novas pistas reescrevem o comportamento antigo.",
+      "42": "Dia quarenta e dois: reforço interno alimenta motivação de longo prazo.",
+      "43": "Dia quarenta e três: registrar fecha a lacuna entre intenção e ação.",
+      "45": "Fase 3: a maioria dos movimentos ainda passa despercebida — o caminho parece vir de você.",
+      "46": "Dia quarenta e seis: automação libera consciência — gaste energia em outro lugar.",
+      "47": "Dia quarenta e sete: circuitos basais entram; carga pré-frontal alivia.",
+      "48": "Dia quarenta e oito: com carga mental menor, metas maiores emergem.",
+      "49": "Dia quarenta e nove: cada um tem seu ritmo — fique na sua curva.",
+      "50": "Dia cinquenta: rotina é continuidade de repetição, não onda de dopamina.",
+      "51": "Dia cinquenta e um: frase de identidade e comportamento se alimentam.",
+      "52": "Dia cinquenta e dois: mudança de contexto testa o hábito — tenha plano pronto.",
+      "53": "Dia cinquenta e três: risco de escorregão alto — mantenha se-então no bolso.",
+      "54": "Dia cinquenta e quatro: nomear gatilhos acelera recuperação.",
+      "55": "Dia cinquenta e cinco: adiar encolhe recompensa futura — escolha a versão de hoje.",
+      "56": "Dia cinquenta e seis: aceleração perto da meta é normal — cuidado com esgotamento.",
+      "57": "Dia cinquenta e sete: execução simples vence planejamento excessivo.",
+      "58": "Dia cinquenta e oito: reta final — feche risco com se-então.",
+      "59": "Dia cinquenta e nove: mesmo núcleo, borda expandindo — crescimento sustentável.",
+      "60": "Dia sessenta: ritmo é seu; pequenos deslizes são dados, não pânico.",
+      "61": "Dia sessenta e um: aprendizado implícito aprofunda — repetição carrega qualidade.",
+      "62": "Dia sessenta e dois: mudança de contexto é oportunidade; renovação medida basta.",
+      "63": "Dia sessenta e três: Sistema 1 fortalece, Sistema 2 molda o ambiente.",
+      "64": "Dia sessenta e quatro: registro torna pontos cegos visíveis.",
+      "65": "Dia sessenta e cinco: dias finais — mantenha ritmo, não adicione meta gigante."
+    },
+    "pool": [
+      "Um passo pequeno hoje fortalece o você de amanhã.",
+      "Não precisa de dia perfeito — um dia visível basta.",
+      "Sentimentos oscilam; sistema e âncora permanecem.",
+      "Uma repetição às vezes basta para manter a corrente.",
+      "O cérebro também registra hoje — marque, mesmo pequeno.",
+      "Progresso lento sempre vence ficar parado.",
+      "Autocompaixão não é oposto de disciplina — é combustível.",
+      "Começo planejado vence motivação aleatória.",
+      "Ajustar o ambiente ganha sem esgotar força de vontade.",
+      "Hoje pergunte 'quão pequeno posso ir?' não 'como me sinto?'",
+      "Consistência importa mais que intensidade.",
+      "O hábito antigo ainda pode tentar — é normal; o novo caminho fortalece.",
+      "Uma respiração profunda + uma rep pode salvar o dia.",
+      "Identidade se constrói com movimentos pequenos repetidos, não discursos.",
+      "Uma falha não é o fim — é dado para amanhã.",
+      "Em dias estressantes, encolha a versão — presença sobre perfeição.",
+      "Mantenha a âncora firme; o cérebro precisa de continuidade.",
+      "O você de hoje pode ser um passo mais forte que o de ontem.",
+      "Automação exige paciência — tédio faz parte do progresso.",
+      "Meça-se, não julgue; dados são seu mapa.",
+      "O ritmo pode subir perto da meta — proteja respiração e compasso.",
+      "Uma frase de intenção alivia o resto do dia.",
+      "Esta jornada não são 66 dias — é hábito reescolhido todo dia.",
+      "Aparecer hoje já é uma vitória significativa."
+    ]
+  },
+  "interrupt": {
+    "prepare": "Prepare-se",
+    "forcedBadge": "Passo obrigatório",
+    "nowLabel": "{{muscle}} · AGORA",
+    "secondsLeft": "{{count}}s",
+    "doneEarly": "Feito",
+    "doneEarlyA11y": "Completei a ação",
+    "muscleWorked": "Seu músculo {{muscle}} trabalhou.",
+    "flash": [
+      "Bom, continue.",
+      "Músculo ativado.",
+      "Você deu um passo."
+    ]
+  },
+  "notifications": {
+    "eveningTitle": "Antes do dia acabar: cartão Hoje",
+    "eveningBodies": [
+      "Ainda sem movimento para {{habit}}. Versão mínima basta — check-in honesto à noite.",
+      "Mais uma rodada antes do fim: {{habit}}. Um passo claro; 10 segundos contam.",
+      "{{habit}}: ainda dá para marcar “feito”. Encolha e aja.",
+      "Não espere motivação — o micro-passo de hoje para {{habit}} basta agora."
+    ],
+    "phaseMilestones": [
+      {
+        "dayOffset": 6,
+        "title": "7 dias de base 🌱",
+        "body": "Primeira semana. O cérebro nota o padrão — continue hoje."
+      },
+      {
+        "dayOffset": 13,
+        "title": "14 dias — Padrão se forma",
+        "body": "Duas semanas de reps. O caminho abre — passos pequenos contam."
+      },
+      {
+        "dayOffset": 21,
+        "title": "Fase base concluída 🎯",
+        "body": "22 dias de reps + check-in. Reforço começa — continue."
+      },
+      {
+        "dayOffset": 29,
+        "title": "30 dias — Metade",
+        "body": "Metade da jornada de 66 dias. Consistência deixou rastro."
+      },
+      {
+        "dayOffset": 43,
+        "title": "Fase final: Automação 🚀",
+        "body": "Reforço feito. Em dias difíceis, versão mínima ainda é opção."
+      },
+      {
+        "dayOffset": 59,
+        "title": "60 dias — Reta final 🌟",
+        "body": "6 dias restam. Esta jornada já te define."
+      },
+      {
+        "dayOffset": 65,
+        "title": "66 dias — Completo 🎉",
+        "body": "Isso faz parte de quem você é. Voltar também faz parte."
+      }
+    ],
+    "push": {
+      "habitFallback": "seu hábito",
+      "phase": {
+        "1": "Fundação",
+        "2": "Reforço",
+        "3": "Automatização"
+      },
+      "morning": {
+        "early": [
+          {
+            "title": "Dia {{day}} — Seu cérebro abre um novo caminho",
+            "body": "Para {{habit}}, escolha o único movimento claro no cartão de Hoje.",
+            "bodyPlanned": "Para {{habit}}, escolha o único movimento claro no cartão de Hoje. Seu plano: {{plan}}."
+          },
+          {
+            "title": "Dia {{day}} — Primeiros traços",
+            "body": "{{habit}}: Âncora + micro-passo no cartão Hoje. Pequeno, mas real.",
+            "bodyPlanned": "Seu plano está pronto: {{plan}}. Toque sua âncora para {{habit}}, depois um movimento."
+          },
+          {
+            "title": "Dia {{day}} — Voto de identidade começa",
+            "body": "Como alguém que faz {{habit}}, dê mais um voto hoje. Abra o cartão, marque.",
+            "bodyPlanned": "{{plan}} — clareza nos primeiros dias ajuda {{habit}} a fixar."
+          }
+        ],
+        "day66": {
+          "title": "66 dias completos 🎉",
+          "body": "{{habit}} agora faz parte de quem você é. A estrutura está sempre aqui."
+        },
+        "milestones": {
+          "7": {
+            "title": "7 dias de fundação 🌱",
+            "body": "{{habit}}: Primeira semana concluída. Seu cérebro começa a notar um novo padrão. Continue."
+          },
+          "14": {
+            "title": "Semana 2 — Padrão se formando",
+            "body": "14 dias de {{habit}}. O traço neural fortalece — uma repetição hoje basta."
+          },
+          "21": {
+            "title": "Dia 21 — Fase de fundação terminando",
+            "body": "{{habit}}: Reforço começa no dia 22. Seu cartão está pronto — um passo pequeno e claro."
+          },
+          "23": {
+            "title": "Você entrou no reforço",
+            "body": "{{habit}} está na fase dois. O hábito se fixa pela repetição — continue hoje."
+          },
+          "30": {
+            "title": "Dia 30 — Metade do caminho 🎯",
+            "body": "{{habit}}: 30 dias. Seu cérebro já conhece esse padrão. Faltam {{daysLeft}} dias."
+          },
+          "44": {
+            "title": "Fase de reforço concluída",
+            "body": "{{habit}}: Você entra na fase final. Automatização começa hoje — continue."
+          },
+          "45": {
+            "title": "Fase final: Automatização 🚀",
+            "body": "{{habit}}: Escolhas viram hábito. Faltam {{daysLeft}} dias — abra seu cartão hoje."
+          },
+          "60": {
+            "title": "Dia 60 — Linha de chegada à vista",
+            "body": "{{habit}}: Faltam {{daysLeft}} dias. Esta jornada vira parte da sua identidade."
+          }
+        },
+        "green": [
+          {
+            "title": "Dia {{day}} — {{streak}} dias seguidos 🔥",
+            "body": "Você está no caminho com {{habit}}. Escolha seu pequeno passo hoje.",
+            "bodyPlanned": "Você planejou: {{plan}}. Mais um passo."
+          },
+          {
+            "title": "Sequência de {{streak}} dias continua",
+            "body": "{{habit}}: Faça o único movimento no cartão de Hoje — dia feito."
+          },
+          {
+            "title": "Dia {{day}} — Músculo fortalecendo",
+            "body": "Um micro-passo para {{habit}} hoje basta.",
+            "bodyPlanned": "Seu plano: {{plan}}. Hora de começar {{habit}}."
+          },
+          {
+            "title": "Âncora + um movimento",
+            "body": "{{habit}}: Faça sua âncora primeiro, depois escolha o passo no cartão — 30 segundos."
+          },
+          {
+            "title": "Dia {{day}} — Voto de identidade",
+            "body": "\"Como alguém que faz {{habit}}, mais um voto hoje\": Abra o cartão, marque."
+          },
+          {
+            "title": "Ritmo matinal",
+            "body": "{{habit}}: Comece com a versão menor — não espere perfeição."
+          },
+          {
+            "title": "Você está em {{phase}}",
+            "body": "Nesta fase, seu cérebro fixa o padrão de {{habit}}. Repita hoje — mesmo brevemente."
+          },
+          {
+            "title": "Repetição = traço",
+            "body": "Cada repetição gasta menos energia. Deixe mais um traço para {{habit}} hoje."
+          },
+          {
+            "title": "Dia {{day}} — Faltam {{daysLeft}} dias",
+            "body": "Mais {{daysLeft}} dias para {{habit}}. Abra seu cartão, continue."
+          },
+          {
+            "title": "Momentum é real",
+            "body": "Sequência de {{streak}} dias é um traço no cérebro. Um passo pequeno e claro para {{habit}} hoje."
+          },
+          {
+            "title": "Dia {{day}} — Boa notícia",
+            "body": "Manhã de quem faz {{habit}}. Cartão aberto — seu passo está pronto."
+          },
+          {
+            "title": "Padrão se fixando",
+            "body": "Em {{phase}}, a repetição de {{habit}} parece mais familiar. Mesmo pequeno passo hoje."
+          }
+        ],
+        "greenHighAuto": [
+          {
+            "title": "Automatização subindo",
+            "body": "Média recente de automatização: {{autoAvg}}/10. Mesmo pequeno passo para {{habit}} hoje."
+          },
+          {
+            "title": "Cérebro conhece o caminho",
+            "body": "{{habit}}: {{autoAvg}}/10 de automatização — a escolha gasta menos energia. Continue."
+          },
+          {
+            "title": "Aproximando do fluxo",
+            "body": "{{habit}} exige menos esforço agora ({{autoAvg}}/10). Abra o cartão, mantenha o ritmo."
+          },
+          {
+            "title": "Dia {{day}} — Hábito se fixando",
+            "body": "Pontuação forte {{autoAvg}}/10. Uma repetição para {{habit}} hoje basta."
+          },
+          {
+            "title": "Sinal de identidade",
+            "body": "Como quem faz {{habit}}, você pensa menos agora ({{autoAvg}}/10). Mais um voto hoje."
+          },
+          {
+            "title": "Fase final se aproximando",
+            "body": "Automatização {{autoAvg}}/10 — escolha de {{habit}} vira corporal. Pequeno passo basta."
+          },
+          {
+            "title": "Ritmo estabelecido",
+            "body": "{{habit}}: Seu cérebro reconhece esse caminho ({{autoAvg}}/10). Escolha o movimento no cartão."
+          },
+          {
+            "title": "Menos esforço, mais traço",
+            "body": "{{autoAvg}}/10 — até a versão menor de {{habit}} é um sinal forte hoje."
+          }
+        ],
+        "greenLowAuto": [
+          {
+            "title": "Ainda exige esforço — normal",
+            "body": "Automatização {{autoAvg}}/10; {{habit}} ainda não é automático. Pequeno passo ainda deixa traço."
+          },
+          {
+            "title": "Esforço = investimento",
+            "body": "Você escolhe {{habit}} conscientemente ({{autoAvg}}/10). Abra o cartão — músculo de repetição cresce."
+          },
+          {
+            "title": "Dia {{day}} — Fase de paciência",
+            "body": "Em {{phase}}, {{autoAvg}}/10 é esperado. {{habit}}: Versão menor basta."
+          },
+          {
+            "title": "Ainda não automático",
+            "body": "{{autoAvg}}/10 — {{habit}} ainda é escolha consciente. Um movimento hoje fortalece o padrão."
+          },
+          {
+            "title": "Cérebro aprendendo",
+            "body": "Automatização {{autoAvg}}/10; cada repetição torna o caminho de {{habit}} mais familiar. Continue."
+          },
+          {
+            "title": "Pequeno passo, grande efeito",
+            "body": "{{habit}}: Com {{autoAvg}}/10, o micro-passo no cartão hoje é progresso."
+          },
+          {
+            "title": "Dias de esforço passam",
+            "body": "{{autoAvg}}/10 — sentir dificuldade é normal. A versão menor de {{habit}} ainda conta."
+          },
+          {
+            "title": "Músculo de repetição ativo",
+            "body": "{{habit}} ainda não está em fluxo ({{autoAvg}}/10). Âncora + um movimento hoje basta."
+          }
+        ],
+        "yellow": [
+          {
+            "title": "Dia {{day}} — Ponto de deriva",
+            "body": "{{habit}}: Dias recentes foram difíceis, mas a versão menor hoje basta."
+          },
+          {
+            "title": "Deixe ontem, olhe hoje",
+            "body": "Até a versão mínima de {{habit}} conta. Abra o cartão de Hoje."
+          },
+          {
+            "title": "Dia {{day}} — Um passo basta",
+            "body": "Não espere motivação. Escolha a ação clara no cartão de {{habit}} — 10 segundos contam."
+          },
+          {
+            "title": "Não é semana de deriva",
+            "body": "{{habit}}: Ontem foi difícil, mas 2 min hoje reinicia a sequência."
+          },
+          {
+            "title": "Cérebro lembra o caminho antigo",
+            "body": "Um dia off é normal. Abra o cartão de {{habit}}, marque o menor movimento."
+          },
+          {
+            "title": "Armadilha da perfeição",
+            "body": "{{habit}}: Não precisa ser grande. 2 minutos já fazem hoje valer."
+          },
+          {
+            "title": "Rachaduras normais em {{phase}}",
+            "body": "Quedas no meio da fase muitas vezes não são falta de motivação — hábito ainda não é automático. Um passo para {{habit}} hoje."
+          },
+          {
+            "title": "Sequência reinicia",
+            "body": "{{habit}}: O cartão oferece a versão menor — comece, não termine.",
+            "bodyPlanned": "Seu plano: {{plan}}. Ainda há tempo para {{habit}}."
+          },
+          {
+            "title": "Pergunta de identidade",
+            "body": "\"O que alguém que faz {{habit}} faria hoje?\" — Abra o cartão, escolha um passo pequeno e real."
+          },
+          {
+            "title": "Dia {{day}} — Escolha direção",
+            "body": "Você não precisa fazer {{habit}} completo hoje. Só escolha sua direção."
+          },
+          {
+            "title": "Sinal de inconsistência",
+            "body": "{{habit}}: Um dia perdido não quebra o padrão — recupere a direção com um pequeno passo hoje."
+          },
+          {
+            "title": "Realinhe",
+            "body": "Em {{phase}}, um movimento claro para {{habit}} hoje basta. Cartão aberto."
+          }
+        ],
+        "red": [
+          {
+            "title": "Dia de retorno",
+            "body": "Voltar após {{misses}} dias off faz parte da jornada. O menor passo para {{habit}} hoje basta."
+          },
+          {
+            "title": "Seu cérebro ainda conhece esse caminho",
+            "body": "{{habit}}: Retornar após pausas faz parte do sistema. Abra seu cartão hoje."
+          },
+          {
+            "title": "Cair faz parte da jornada",
+            "body": "Quem faz {{habit}} se levanta. Comece com a versão menor — sem culpa."
+          },
+          {
+            "title": "Modo retorno",
+            "body": "{{habit}}: Levante-se primeiro, depois um micro-passo — check-in vem depois."
+          },
+          {
+            "title": "Jornada continua",
+            "body": "{{misses}} dias off não bloqueiam o retorno. Abra o cartão de {{habit}} — a versão menor merece."
+          },
+          {
+            "title": "Não do zero, continue",
+            "body": "{{habit}}: Pausa não zera você — o acúmulo ainda está lá. Abrir o cartão basta."
+          },
+          {
+            "title": "Recuperação também é hábito",
+            "body": "{{habit}}: As melhores jornadas não são lisas, são resilientes. Continue hoje."
+          },
+          {
+            "title": "Dê um passo hoje",
+            "body": "{{habit}}: Abra o cartão, marque um movimento — isso basta.",
+            "bodyPlanned": "Seu plano espera: {{plan}}. Mesmo pequeno, para {{habit}} hoje."
+          },
+          {
+            "title": "Você se deu permissão",
+            "body": "Alguns dias off é humano. Voltar a {{habit}} hoje é escolha suficiente."
+          },
+          {
+            "title": "Dia {{day}} — Comece de novo",
+            "body": "{{habit}}: A sequência pode ter ido, mas a jornada continua. Um passo pequeno e real hoje."
+          },
+          {
+            "title": "{{daysLeft}} dias ainda pela frente",
+            "body": "A maior parte dos 66 dias ainda vem. Volte a {{habit}} hoje."
+          },
+          {
+            "title": "Voto de identidade",
+            "body": "{{habit}}: Pausas são temporárias, hábito é duradouro. Mais um voto para sua identidade hoje."
+          }
+        ]
+      },
+      "evening": {
+        "gentle": [
+          {
+            "title": "Antes do dia acabar: cartão Hoje",
+            "body": "Ainda sem movimento para {{habit}}. A versão menor basta."
+          },
+          {
+            "title": "Última rodada",
+            "body": "{{habit}}: Escolha o micro-passo no cartão de Hoje — 10 segundos já servem."
+          },
+          {
+            "title": "Regra dos 2 minutos",
+            "body": "Escolha a versão menor de {{habit}} — comece, não termine."
+          },
+          {
+            "title": "Antes do dia fechar",
+            "body": "{{habit}}: Abra o cartão, marque um movimento.",
+            "bodyPlanned": "Seu plano: {{plan}}. Ainda há tempo para {{habit}}."
+          },
+          {
+            "title": "Hoje ainda conta",
+            "body": "{{habit}}: Um movimento pequeno antes do dia acabar — check-in à noite."
+          },
+          {
+            "title": "Ritmo noturno",
+            "body": "Faltam poucos minutos para {{habit}}. Abra o cartão, escolha o quanto for pequeno."
+          },
+          {
+            "title": "Não conhecimento, repetição",
+            "body": "O cérebro só aprende pela experiência. {{habit}}: Mais uma repetição esta noite."
+          },
+          {
+            "title": "Dia {{day}} — Antes da meia-noite",
+            "body": "{{habit}}: Faça a versão menor hoje. Cartão aberto para planejar amanhã também."
+          },
+          {
+            "title": "Lembrete noturno",
+            "body": "{{habit}}: Um movimento antes do dia passar — por menor que seja.",
+            "bodyPlanned": "{{plan}} ainda espera. Última rodada para {{habit}}."
+          },
+          {
+            "title": "Balanço do fim do dia",
+            "body": "{{habit}}: Ainda não hoje. Termine com um passo pequeno e real."
+          },
+          {
+            "title": "Âncora + micro-passo",
+            "body": "{{habit}}: Toque sua âncora noturna, depois escolha o menor movimento no cartão."
+          },
+          {
+            "title": "Ainda não é tarde",
+            "body": "Dia {{day}} — um passo claro para {{habit}} ainda é possível. Reduza, comece."
+          }
+        ],
+        "gentleFirstWeek": [
+          {
+            "title": "Primeira semana — cartão Hoje",
+            "body": "Dia {{day}}: Ainda há tempo para {{habit}}. Versão menor basta — sem culpa."
+          },
+          {
+            "title": "Semana de fundação",
+            "body": "{{habit}}: Nos primeiros 7 dias, visibilidade vence perfeição. Abra o cartão."
+          },
+          {
+            "title": "Dia {{day}} — Não é última chance",
+            "body": "Um micro-passo para {{habit}} esta noite ainda constrói o padrão."
+          },
+          {
+            "title": "Novo caminho, ritmo suave",
+            "body": "Dia {{day}} — {{habit}}: Cérebro ainda aprende. Pequeno passo basta."
+          },
+          {
+            "title": "Âncora noturna",
+            "body": "{{habit}}: Na primeira semana, âncora + cartão = início forte. Ainda há tempo."
+          },
+          {
+            "title": "Antes do dia acabar",
+            "body": "{{habit}} no dia {{day}}. Se ainda sem movimento, escolha a versão menor."
+          }
+        ],
+        "urgent": [
+          {
+            "title": "Sequência prestes a quebrar ⚠️",
+            "body": "Para manter {{streak}} dias seguidos: {{habit}} — faça o menor passo hoje."
+          },
+          {
+            "title": "Hoje ainda conta",
+            "body": "{{habit}}: Não espere motivação — abra o cartão, marque um movimento."
+          },
+          {
+            "title": "Sequência de {{streak}} dias",
+            "body": "Menor passo para {{habit}} hoje — mantenha a sequência."
+          },
+          {
+            "title": "Âncora noturna",
+            "body": "{{habit}}: Lembre sua âncora, depois escolha o movimento no cartão."
+          },
+          {
+            "title": "Antes da meia-noite",
+            "body": "{{habit}}: Sequência de {{streak}} dias. Um passo pequeno e real hoje."
+          },
+          {
+            "title": "Janela de última hora",
+            "body": "{{habit}}: Abra o cartão de hoje — 2 minutos salvam a sequência.",
+            "bodyPlanned": "Você planejou de manhã: {{plan}}. Ainda possível."
+          },
+          {
+            "title": "Pequeno mas real",
+            "body": "Você acumulou {{streak}} dias. {{habit}}: Versão menor hoje protege a sequência."
+          },
+          {
+            "title": "Intervenção noturna",
+            "body": "{{habit}}: Não um passo grande — só a repetição pequena de hoje — sequência continua."
+          },
+          {
+            "title": "Mais um voto",
+            "body": "Como quem faz {{habit}}, um último voto hoje: abra o cartão, marque."
+          },
+          {
+            "title": "Decisão antes do dia acabar",
+            "body": "{{habit}}: Sequência {{streak}} dias. 1 passo pequeno + check-in = suficiente."
+          },
+          {
+            "title": "Proteção de sequência",
+            "body": "Traço de {{streak}} dias — um movimento para {{habit}} esta noite basta."
+          },
+          {
+            "title": "Modo sequência",
+            "body": "{{habit}}: {{streak}} dias seguidos. Reduza, faça, marque."
+          }
+        ],
+        "recovery": [
+          {
+            "title": "Oportunidade de retorno",
+            "body": "{{habit}}: Se fizer hoje, a sequência reinicia. Um movimento pequeno basta."
+          },
+          {
+            "title": "Cair faz parte do caminho",
+            "body": "Quem faz {{habit}} abre o cartão hoje. Sem culpa — só um passo."
+          },
+          {
+            "title": "Reiniciar",
+            "body": "{{habit}}: Micro-passo primeiro, check-in depois — ordem importa."
+          },
+          {
+            "title": "Esta noite conta",
+            "body": "Após dias perdidos, um movimento pequeno mantém o caminho de {{habit}} aberto."
+          },
+          {
+            "title": "Não do zero, continue",
+            "body": "{{habit}}: Voltar após alguns dias off também é escolha. Abra seu cartão hoje."
+          },
+          {
+            "title": "Cérebro conhece esse caminho",
+            "body": "{{habit}}: Retornar parece familiar ao cérebro — comece com a versão menor."
+          },
+          {
+            "title": "Momento de recuperação",
+            "body": "{{habit}}: Um movimento pequeno esta noite mostra que a jornada continua."
+          },
+          {
+            "title": "Você pausou, agora volte",
+            "body": "{{habit}}: Alguns dias off acabaram. Hoje com um passo pequeno e real.",
+            "bodyPlanned": "Seu plano: {{plan}}. {{habit}}: Volte esta noite."
+          },
+          {
+            "title": "Jornada continua",
+            "body": "Não sequência perfeita — jornada longa importa. {{habit}}: Mais um passo esta noite."
+          },
+          {
+            "title": "Antes da meia-noite",
+            "body": "{{habit}}: Ainda possível hoje. Mesmo a versão menor — esta noite conta."
+          },
+          {
+            "title": "{{misses}} dias off — ainda cedo",
+            "body": "Abra seu cartão de {{habit}} — um passo pequeno e real mantém a jornada aberta."
+          },
+          {
+            "title": "Modo retorno",
+            "body": "{{habit}}: Recuperação faz parte do sistema. Um movimento esta noite basta."
+          }
+        ],
+        "highEffort": [
+          {
+            "title": "Dias difíceis — reduza",
+            "body": "{{habit}}: Dias recentes exigiram muito esforço. Escolha a versão mini esta noite — basta."
+          },
+          {
+            "title": "Sugestão de escala",
+            "body": "Até 2 min de {{habit}} hoje contam. Abra o cartão, reduza, continue."
+          },
+          {
+            "title": "Fase de esforço é temporária",
+            "body": "{{habit}} ainda parece difícil — normal. Menor movimento esta noite basta."
+          },
+          {
+            "title": "Alivie a carga",
+            "body": "{{habit}}: Em dias difíceis, versão mini = escolha inteligente. Abra o cartão hoje."
+          },
+          {
+            "title": "Resiliência > perfeição",
+            "body": "O menor passo para {{habit}} esta noite ainda protege a jornada."
+          },
+          {
+            "title": "Sinal de esforço",
+            "body": "Se dias recentes foram pesados para {{habit}}, hoje só âncora + 10 seg basta."
+          }
+        ]
+      },
+      "streak": {
+        "milestones": {
+          "7": {
+            "title": "7 dias seguidos 🔥",
+            "body": "{{habit}}: Primeira sequência semanal completa. Cérebro abre novo caminho — continue."
+          },
+          "14": {
+            "title": "14 dias de sequência! 🌱",
+            "body": "{{habit}}: 2 semanas sem pausa. Traço neural fortalecendo. Continue."
+          },
+          "21": {
+            "title": "21 dias de sequência 🏆",
+            "body": "{{habit}}: 3 semanas feitas. Esta sequência vira parte da sua identidade."
+          },
+          "30": {
+            "title": "30 dias de sequência 🎯",
+            "body": "{{habit}}: Na metade! Sequência de 30 dias mostra que o hábito é real."
+          },
+          "44": {
+            "title": "44 dias — Reforço concluído 💪",
+            "body": "{{habit}}: Entrando na fase final. Esta sequência é o início da automatização."
+          },
+          "60": {
+            "title": "60 dias de sequência 🌟",
+            "body": "{{habit}}: Faltam {{daysLeft}} dias. Esta jornada vira quem você é."
+          },
+          "66": {
+            "title": "66 dias completos! 🎉",
+            "body": "{{habit}} agora faz parte da sua identidade. Um dos hábitos que te define."
+          }
+        },
+        "weekly": {
+          "title": "{{streak}} dias de sequência 🔥",
+          "body": "Como quem faz {{habit}}, sua jornada de {{streak}} dias continua. Ganho de identidade é real."
+        },
+        "every5": {
+          "title": "Sequência de {{streak}} dias",
+          "body": "{{habit}}: {{streak}} dias de repetição deixam traço no cérebro. Continue hoje."
+        }
+      },
+      "recovery": [
+        {
+          "title": "Hora de voltar",
+          "body": "Você ficou {{misses}} dias off. {{habit}}: O resto da jornada ainda é seu. Abra seu cartão hoje."
+        },
+        {
+          "title": "Jornada continua",
+          "body": "{{misses}} dias off não bloqueiam — recuperar faz parte desta jornada. Um passo pequeno para {{habit}} hoje."
+        },
+        {
+          "title": "Não do zero, continue",
+          "body": "{{habit}}: {{misses}} dias off não apagam acúmulo. Cérebro ainda conhece esse caminho — volte hoje."
+        },
+        {
+          "title": "Voltar também é hábito",
+          "body": "{{habit}}: Retornar após cada queda fortalece o músculo. Abra seu cartão hoje."
+        },
+        {
+          "title": "Momento de recuperação",
+          "body": "Após {{misses}} dias, um passo pequeno faz diferença. {{habit}}: Dê hoje."
+        },
+        {
+          "title": "Não perder, continuar",
+          "body": "A jornada recompensa resiliência, não perfeição. {{habit}}: Volte hoje."
+        },
+        {
+          "title": "{{misses}} dias off — ainda cedo",
+          "body": "A maior parte dos 66 dias está pela frente. Abra o cartão de {{habit}} — um passo pequeno e real."
+        },
+        {
+          "title": "Voto de identidade",
+          "body": "{{habit}}: Pausas são temporárias, hábito é duradouro. Mais um voto para sua identidade hoje."
+        },
+        {
+          "title": "Cérebro esperando",
+          "body": "Após {{misses}} dias off, o caminho de {{habit}} ainda está aberto. Comece com a versão menor."
+        },
+        {
+          "title": "Dia de recuperação",
+          "body": "{{habit}}: {{misses}} dias perdidos não zeram a jornada. Volte hoje."
+        }
+      ]
+    }
+  },
+  "brand": {
+    "name": "Rito",
+    "storeName": "Rito: Jornada de Hábitos e Identidade",
+    "tagline": "Pequeno passo. Marca duradoura.",
+    "hashtag": "#RitoApp"
+  },
+  "fiveSecondTrainer": {
+    "badge": "Mini missão",
+    "scienceKicker": "Gatilho claro + janela curta facilita agir — cada rodada ensaia o caminho neural.",
+    "phase": {
+      "ready": "Pronto",
+      "counting": "Contagem",
+      "action": "VAI!",
+      "result": "Resultado"
+    },
+    "tier": {
+      "0": "Reflexo relâmpago",
+      "1": "Resposta rápida",
+      "2": "Concluído"
+    },
+    "difficultyA11y": "Dificuldade {{n}} de 5",
+    "taskKicker": "Texto da tarefa",
+    "rulesTitle": "Como jogar",
+    "rule1": "Comece → fique pronto até o fim da contagem",
+    "rule2": "Quando aparecer VAI!, faça o movimento de verdade",
+    "rule3": "Toque em “Fiz” ao terminar — velocidade dá XP bônus",
+    "startGame": "Começar jogo",
+    "countdown": "Contagem regressiva",
+    "seconds": "segundos",
+    "actionHint": "Faça um movimento claro agora. Toque abaixo ao terminar — mais rápido, mais estrelas.",
+    "done": "Fiz",
+    "roundDone": "Rodada concluída",
+    "reactionTime": "Tempo de reação: {{sec}} seg",
+    "baseXp": "XP base",
+    "speedBonus": "Bônus de velocidade",
+    "total": "Total",
+    "growthText": "Repetições fortalecem o caminho — cada rodada é um set de treino.",
+    "continue": "Continuar",
+    "skip": "Não quero jogar agora",
+    "skipA11y": "Pular mini missão",
+    "secondsShort": "{{count}} seg",
+    "muscle": {
+      "karar": "Momento de decisão",
+      "direnc": "Resistência",
+      "baglam": "Contexto",
+      "energi": "Energia",
+      "sosyal": "Pressão social"
+    },
+    "flavor": {
+      "karar": "Um movimento claro — encurte o tempo de pensar.",
+      "direnc": "Jogue para começar, não para adiar.",
+      "baglam": "O gatilho pode permanecer mesmo quando o ambiente muda.",
+      "energi": "Dose mínima ainda conta em dias de baixa energia.",
+      "sosyal": "Aperte seu próprio botão de início sem esperar aprovação."
+    }
+  },
+  "proactiveIntervention": {
+    "title": "Hoje parece um dia de risco",
+    "body": "A automaticidade pode ter caído ou a consistência oscilou um pouco. Isso é normal nos 66 dias — a maioria flutua aqui. Uma pequena intervenção pode ajudar.",
+    "cta": "Iniciar treino de 5 segundos",
+    "dismiss": "Eu mesmo resolvo"
+  },
+  "stackingModal": {
+    "defaultHabit": "este hábito",
+    "evoTitle": "O que mudou por dentro nesta rodada?",
+    "stackTitle": "Agora? Vamos acrescentar uma camada pequena a esta identidade.",
+    "sameHabit": "Mesmo hábito — novos 66 dias",
+    "sameHabitHint": "Nova rodada com o mesmo objetivo de identidade; marcas diárias zeram, níveis e notas ficam.",
+    "share": "Compartilhar este momento",
+    "shareMessage": "Completei minha jornada de 66 dias: “{{habit}}”. Agora é uma camada de quem sou. Construindo a próxima. {{hashtag}}",
+    "later": "Lembrar depois",
+    "variant": {
+      "celebrate": {
+        "title": "Dia 66 — Você construiu isso",
+        "lead": "“{{habit}}” não é só algo que você faz; é uma camada que sua mente chama de “sou assim”.\n\nPor 66 dias seu cérebro repetiu este caminho — construção silenciosa. Hoje essa estrutura está em grande parte pronta.",
+        "chartTitle": "66 dias · traço de automaticidade",
+        "chartSubtitle": "Dias que você avaliou — cada ponto é um pequeno voto"
+      },
+      "resume": {
+        "title": "Depois do dia 66 — próxima camada",
+        "lead": "Você terminou o dia 66; pode adiar a próxima rodada de 66 dias — faz parte do processo.\n\nQuando estiver pronto, escolha uma nova camada na mesma linha de identidade: pequena, clara, alinhada com “{{habitLower}}”.",
+        "chartTitle": "Esta rodada · traço de automaticidade",
+        "chartSubtitle": "Dias avaliados nesta curva"
+      },
+      "late": {
+        "title": "Respire — ainda está na hora",
+        "lead": "O tempo pode ter passado; não está atrasado para uma nova rodada. “{{habit}}” ainda vive na sua identidade.\n\nEntre em um novo 66 quando quiser — até uma adição pequena faz diferença.",
+        "chartTitle": "Esta rodada · traço de automaticidade",
+        "chartSubtitle": "Dias avaliados nesta curva"
+      },
+      "strong_nudge": {
+        "title": "Estar aqui já é um bom sinal",
+        "lead": "Você pode ter adiado a escolha — isso é sala de espera, não beco sem saída.\n\nVocê não perdeu a camada que ganhou com “{{habit}}”. Escolha um próximo passo pequeno e recomece.",
+        "chartTitle": "Esta rodada · traço de automaticidade",
+        "chartSubtitle": "Dias avaliados nesta curva"
+      }
+    },
+    "evolutionIntro": "Você deixou {{count}} rastros nas notas da Mente — o tom das palavras também pode ter mudado.",
+    "evolutionCelebrate": "No começo você escreveu algo como: “{{first}}” Agora está mais perto de: “{{last}}” Não foram só caixinhas — sua voz interior também se moveu.",
+    "evolutionOther": "Da primeira nota: “{{first}}” Da mais recente: “{{last}}” O mesmo você; distância interior diferente.",
+    "evolutionClosingCelebrate": "O que antes parecia muito deliberado agora muitas vezes chega com menos atrito. Essa é a vitória mais silenciosa da disciplina."
+  },
+  "habitStacking": {
+    "defaultHabit": "Este hábito",
+    "headlineReason": "Músculo mais aberto a crescimento agora: {{muscle}}. O próximo micro-hábito pode mirar nele.",
+    "suggestionReason": "Sua jornada com {{completed}} fortaleceu {{focus}}. Próximo: uma mini camada para {{target}}.",
+    "muscleNames": {
+      "karar": "Momento de decisão",
+      "direnc": "Resistência",
+      "baglam": "Contexto",
+      "energi": "Energia",
+      "sosyal": "Pressão social"
+    },
+    "pool": {
+      "karar": [
+        {
+          "title": "Prática de escolha única",
+          "anchor": "Toda manhã, primeiro passo: escreva e faça uma mini escolha de 2 min.",
+          "reason": "Repetição de baixo atrito para o músculo do momento de decisão."
+        },
+        {
+          "title": "Respiração antes do celular",
+          "anchor": "Três respirações profundas antes de pegar o celular — depois escolha uma tarefa.",
+          "reason": "Cria espaço entre impulso e escolha."
+        },
+        {
+          "title": "Preparação noturna",
+          "anchor": "Antes de dormir, escolha um item para amanhã (roupa ou bolsa).",
+          "reason": "Alivia a primeira decisão do dia seguinte."
+        }
+      ],
+      "direnc": [
+        {
+          "title": "Cinco flexões ou agachamentos",
+          "anchor": "Antes de deitar, 5 repetições — conte e pare.",
+          "reason": "Músculo de resistência: um rep físico pequeno de 'comece, não debata'."
+        },
+        {
+          "title": "Primeiros cinco minutos",
+          "anchor": "Na tarefa que você evita, sente por só 5 minutos — pode parar quando acabar o tempo.",
+          "reason": "Caixa de tempo para começar — reduz pressão."
+        },
+        {
+          "title": "Um prato / um e-mail",
+          "anchor": "Antes de sair de casa, lave um prato/copo ou responda um e-mail.",
+          "reason": "Micro-conclusão abaixa o limiar de resistência."
+        }
+      ],
+      "baglam": [
+        {
+          "title": "Par de troca de contexto",
+          "anchor": "Uma vez por semana, faça o mesmo hábito em outro lugar (varanda em vez da sala).",
+          "reason": "Músculo de contexto: variar o gatilho."
+        },
+        {
+          "title": "Gatilho de sair",
+          "anchor": "Logo após tirar os sapatos, 2 minutos lá fora.",
+          "reason": "Mini ritmo fora de casa."
+        }
+      ],
+      "energi": [
+        {
+          "title": "Versão de baixa energia",
+          "anchor": "Quando cansado, faça a 'versão mini' (50% do tempo ou intensidade normal).",
+          "reason": "Músculo de energia: continuar quando as condições mudam."
+        },
+        {
+          "title": "Luz e água",
+          "anchor": "Ao acordar, abra as cortinas + meio copo de água — depois o hábito principal.",
+          "reason": "Eleva levemente a linha de base de energia."
+        }
+      ],
+      "sosyal": [
+        {
+          "title": "Micro-compromisso compartilhado",
+          "anchor": "Diga em voz alta a uma pessoa: 'Hoje farei X por 5 minutos' — sem precisar de resposta.",
+          "reason": "Responsabilidade social leve, sem pressão tóxica."
+        },
+        {
+          "title": "Uma rodada no barulho",
+          "anchor": "No escritório movimentado, 3 min: celular na gaveta, uma tarefa.",
+          "reason": "Tolerar distrações sociais ao redor."
+        }
+      ]
+    }
+  },
+  "exactAlarm": {
+    "title": "Lembretes no horário exato",
+    "body": "No Android 12+, notificações matinais e noturnas precisam da permissão \"Alarmes e lembretes\" para chegar no horário. Sem ela, lembretes aproximados são usados (mais confiáveis com o app aberto).",
+    "openSettings": "Abrir configurações",
+    "skip": "Pular por agora"
+  },
+  "dataLoadBanner": {
+    "checkins": "Registros de hoje",
+    "mind": "Notas da Mente",
+    "message": "Não foi possível carregar {{items}}.",
+    "retry": "Recarregar",
+    "messageFull": "{{items}} não carregou deste dispositivo. Recarregue para confiar nos resumos locais.",
+    "joinAnd": " e "
+  },
+  "errorBoundary": {
+    "title": "Algo deu errado",
+    "body": "O app parou de forma inesperada. Tente de novo; se persistir, feche e abra o app.",
+    "retry": "Tentar de novo",
+    "unknown": "Erro desconhecido"
+  },
+  "mindDumpReflection": {
+    "bannerTitle": "Lemos sua nota aqui",
+    "bannerBodyKeyword": "“{{keyword}}” aparece hoje — você pode estar num momento do músculo de resistência.",
+    "bannerBodyDefault": "Sua linha foi registrada — uma voz interior pequena pode revelar um padrão maior.",
+    "bannerBodyRecovery": "\"{{keyword}}\" aparece hoje — notar o peso importa. Um passo pequeno ainda conta.",
+    "bannerBodyActivation": "\"{{keyword}}\" aparece hoje — baixa energia costuma ser temporária; mantenha o passo de hoje pequeno.",
+    "quote": "No dia {{day}} você escreveu \"{{snippet}}\"; fechou a caixa naquele dia. Para {{habit}}, a menor versão basta hoje também.",
+    "defaultHabit": "passo de hoje"
   }
 }

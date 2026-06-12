@@ -2,12 +2,12 @@
  * Haftalık koç nabzı — veriden 2–4 cümlelik hikâye (kişisel metin yok).
  */
 
+import i18n from "../i18n/config";
 import { buildWeeklyDigest } from "./weeklySummary";
 import { getAverageAutomaticity } from "./profileMetrics";
 import type { CheckinRecord } from "../types";
 import type { SDTScore } from "../types";
-import type { RecentAction } from "../engine";
-import { MUSCLE_LABELS, type MuscleType } from "../engine";
+import type { RecentAction, MuscleType } from "../engine";
 
 export interface WeeklyCoachPulseInput {
   startDate: string;
@@ -41,26 +41,32 @@ function dominantMuscle(recent: RecentAction[]): MuscleType | null {
   return ranked[0]?.[0] ?? null;
 }
 
+function muscleLabel(type: MuscleType): string {
+  const key = `home.muscle.${type}`;
+  const v = i18n.t(key);
+  return v === key ? type : v;
+}
+
 export function buildWeeklyCoachPulse(input: WeeklyCoachPulseInput): WeeklyCoachPulse {
   const digest = buildWeeklyDigest(input.startDate, input.checkins);
   const avgAuto = getAverageAutomaticity(input.checkins);
   const autoPct = avgAuto != null ? Math.round((avgAuto / 10) * 100) : null;
-  const h = input.habitName.trim() || "alışkanlığın";
+  const h = input.habitName.trim() || i18n.t("home.coachPulse.defaultHabit");
   const muscle = dominantMuscle(input.recentActions);
 
   const lines: string[] = [
-    `Son 7 günde ${digest.completedDays}/7 gün tamamlandı.`,
+    i18n.t("home.coachPulse.line.completedDays", { done: digest.completedDays }),
   ];
 
   if (autoPct != null) {
-    lines.push(`Otomatiklik ortalaman yaklaşık %${autoPct}.`);
+    lines.push(i18n.t("home.coachPulse.line.autoAvg", { pct: autoPct }));
   }
 
   if (input.currentStreak >= 3) {
-    lines.push(`${input.currentStreak} günlük seri devam ediyor — momentum korunuyor.`);
+    lines.push(i18n.t("home.coachPulse.line.streak", { count: input.currentStreak }));
   } else if (digest.missedDaysInWindow >= 2) {
     lines.push(
-      `${digest.missedDaysInWindow} gün kaçırıldı; bu hafta küçültme ve tek çapa öncelikli.`
+      i18n.t("home.coachPulse.line.missed", { count: digest.missedDaysInWindow })
     );
   }
 
@@ -71,38 +77,42 @@ export function buildWeeklyCoachPulse(input: WeeklyCoachPulseInput): WeeklyCoach
   if (input.latestSdt) {
     const { autonomy, competence, relatedness } = input.latestSdt;
     const low = [
-      autonomy <= 2 ? "özerklik" : null,
-      competence <= 2 ? "yetkinlik" : null,
-      relatedness <= 2 ? "bağlanma" : null,
+      autonomy <= 2 ? i18n.t("home.coachPulse.dim.autonomy") : null,
+      competence <= 2 ? i18n.t("home.coachPulse.dim.competence") : null,
+      relatedness <= 2 ? i18n.t("home.coachPulse.dim.relatedness") : null,
     ].filter(Boolean);
     if (low.length > 0) {
       lines.push(
-        `SDT: ${low.join(", ")} düşük — alışkanlığı “zorunluluk” değil “seçim” gibi çerçevele.`
+        i18n.t("home.coachPulse.line.sdtLow", { dims: low.join(", ") })
       );
     } else if (autonomy >= 4 && competence >= 4) {
-      lines.push("SDT: özerklik ve yetkinlik güçlü — bu hafta aynı tempoda devam et.");
+      lines.push(i18n.t("home.coachPulse.line.sdtStrong"));
     }
   }
 
   if (muscle) {
-    lines.push(`Son mikro adımların çoğu “${MUSCLE_LABELS[muscle]}” kasına dokundu.`);
+    lines.push(
+      i18n.t("home.coachPulse.line.muscle", { muscle: muscleLabel(muscle) })
+    );
   }
 
-  let suggestion = `Bugün ${h} için tek net mikro adım seç; check-in öncesi 30 sn yeter.`;
+  let suggestion = i18n.t("home.coachPulse.suggestion.default", { habit: h });
   if (digest.missedDaysInWindow >= 2) {
-    suggestion = "Yarın planına sadece 2 dk sürüm yaz; sabah hatırlatma ile başla.";
+    suggestion = i18n.t("home.coachPulse.suggestion.missed");
   } else if (digest.slipProneWeekdayShort) {
-    suggestion = `${digest.slipProneWeekdayShort} günlerinde çapayı görünür kıl — hatırlatıcı veya not.`;
+    suggestion = i18n.t("home.coachPulse.suggestion.slipDay", {
+      day: digest.slipProneWeekdayShort,
+    });
   } else if (input.dayNumber <= 22) {
-    suggestion = "Kuruluş fazındasın: mükemmel değil, tekrar. Bugünkü adımı küçük tut.";
+    suggestion = i18n.t("home.coachPulse.suggestion.phase1");
   }
 
   const headline =
     digest.completedDays >= 5
-      ? "Güçlü hafta"
+      ? i18n.t("home.coachPulse.headline.strong")
       : digest.completedDays >= 3
-      ? "Dengeli hafta"
-      : "Toparlanma haftası";
+      ? i18n.t("home.coachPulse.headline.balanced")
+      : i18n.t("home.coachPulse.headline.recovery");
 
   return { headline, lines: lines.slice(0, 4), suggestion };
 }

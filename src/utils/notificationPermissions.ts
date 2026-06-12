@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 
-const DEFAULT_CHANNEL_ID = "kimlik-reminders";
+const DEFAULT_CHANNEL_ID = "rito-reminders";
 
 export async function ensureAndroidNotificationChannel(): Promise<void> {
   if (Platform.OS !== "android") return;
