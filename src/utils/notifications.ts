@@ -488,7 +488,7 @@ export async function scheduleHabitReminder(
   days: number[],
   options?: { title?: string; body?: string; habitName?: string }
 ): Promise<string[]> {
-  const granted = await NotificationPerms.requestNotificationPermissions();
+  const granted = await NotificationPerms.hasNotificationPermissions();
   if (!granted) return [];
 
   if (needsExactAlarmPermissionCheck() && exactAlarmStatus === "unknown") {
@@ -554,7 +554,7 @@ export async function scheduleMorningNotifications(
   listsByDate: Record<string, TomorrowTodoList> = {},
   checkins: Record<string, CheckinRecord> = {}
 ): Promise<void> {
-  const granted = await NotificationPerms.requestNotificationPermissions();
+  const granted = await NotificationPerms.hasNotificationPermissions();
   if (!granted) return;
 
   const baseDate = new Date();
@@ -636,7 +636,7 @@ export async function scheduleEveningReminderToday(
   checkins: Record<string, CheckinRecord> = {},
   listsByDate: Record<string, TomorrowTodoList> = {}
 ): Promise<void> {
-  const granted = await NotificationPerms.requestNotificationPermissions();
+  const granted = await NotificationPerms.hasNotificationPermissions();
   if (!granted) return;
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -690,7 +690,7 @@ async function cancelPhaseMilestoneNotifications(): Promise<void> {
 }
 
 export async function schedulePhaseTransitions(profile: UserProfile): Promise<void> {
-  const granted = await NotificationPerms.requestNotificationPermissions();
+  const granted = await NotificationPerms.hasNotificationPermissions();
   if (!granted) return;
 
   if (profile.notifyPhaseMilestones === false) {
@@ -724,7 +724,7 @@ export async function scheduleRecoveryPushIfNeeded(
   const misses = countConsecutiveMissesFromYesterday(profile.startDate, checkins);
   if (misses < 2) return;
 
-  const granted = await NotificationPerms.requestNotificationPermissions();
+  const granted = await NotificationPerms.hasNotificationPermissions();
   if (!granted) return;
 
   const today = format(new Date(), "yyyy-MM-dd");
@@ -801,4 +801,8 @@ export function handleNotificationResponseData(
   };
 }
 
-export { requestNotificationPermissions } from "./notificationPermissions";
+export {
+  requestNotificationPermissions,
+  requestNotificationPermissionsFromUser,
+  hasNotificationPermissions,
+} from "./notificationPermissions";

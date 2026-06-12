@@ -1410,9 +1410,13 @@
       "restClear": "Remover",
       "notifFineTune": "Ajuste fino de notificações",
       "notifyMorning": "Notificação da manhã",
+      "notifyMorningSub": "Lembrete do card Hoje no horário que você escolher",
       "notifyEvening": "Lembrete da noite",
+      "notifyEveningSub": "Check-in gentil antes do fim do dia (21h)",
       "notifyWeekend": "Notificações no fim de semana",
+      "notifyWeekendSub": "Push de manhã/noite no sábado e domingo",
       "notifyPhaseMilestones": "Push de marco de fase",
+      "notifyPhaseMilestonesSub": "Marcos da jornada, como dias 7, 22, 30 e 66",
       "backupTitle": "Backup local (JSON)",
       "backupHint": "Um arquivo para guardar no Drive / Arquivos. Importar sobrescreve com o arquivo escolhido.",
       "exportBtn": "Exportar via compartilhar",
@@ -2889,6 +2893,20 @@
     ]
   },
   "notifications": {
+    "permissionRationale": {
+      "title": "Permitir notificações",
+      "message": "O Rito envia apenas lembretes locais no seu aparelho — nada vai para nossos servidores.\n\n• Manhã: seu passo de Hoje no horário escolhido\n• Noite: check-in gentil antes do fim do dia\n• Jornada: marcos das fases na trilha de 66 dias\n• Plano de amanhã: lembrete da ação que você salvou",
+      "allow": "Continuar",
+      "deny": "Agora não"
+    },
+    "planReminder": {
+      "title": "Seu plano de hoje está pronto",
+      "body": "{{action}}{{time}}{{context}} — Faça o check-in na tela Hoje."
+    },
+    "channel": {
+      "name": "Lembretes",
+      "description": "Lembretes de hábito, check-in e jornada"
+    },
     "eveningTitle": "Antes do dia acabar: cartão Hoje",
     "eveningBodies": [
       "Ainda sem movimento para {{habit}}. Versão mínima basta — check-in honesto à noite.",

@@ -1410,9 +1410,13 @@
       "restClear": "Kaldır",
       "notifFineTune": "Bildirim ince ayar",
       "notifyMorning": "Sabah bildirimi",
+      "notifyMorningSub": "Seçtiğin saatte Bugün kartı hatırlatması",
       "notifyEvening": "Akşam hatırlatması",
+      "notifyEveningSub": "Gün bitmeden check-in için nazik hatırlatma (21:00)",
       "notifyWeekend": "Hafta sonu bildirimleri",
+      "notifyWeekendSub": "Cumartesi ve pazar sabah/akşam push'ları",
       "notifyPhaseMilestones": "Faz milestone push",
+      "notifyPhaseMilestonesSub": "7, 22, 30, 66. gün gibi yolculuk dönüm noktaları",
       "backupTitle": "Yerel yedek (JSON)",
       "backupHint": "Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.",
       "exportBtn": "Paylaşım olarak dışa aktar",
@@ -2889,6 +2893,20 @@
     ]
   },
   "notifications": {
+    "permissionRationale": {
+      "title": "Bildirimlere izin ver",
+      "message": "Rito yalnızca cihazında yerel hatırlatma gönderir; sunucuya veri gitmez.\n\n• Sabah: seçtiğin saatte Bugün adımın\n• Akşam: gün bitmeden nazik check-in hatırlatması\n• Yolculuk: 66 günlük faz kilometre taşları\n• Yarın planı: kaydettiğin eylem için hatırlatma",
+      "allow": "Devam et",
+      "deny": "Şimdilik değil"
+    },
+    "planReminder": {
+      "title": "Bugünün planın hazır",
+      "body": "{{action}}{{time}}{{context}} — Bugün ekranından check-in yap."
+    },
+    "channel": {
+      "name": "Hatırlatmalar",
+      "description": "Alışkanlık, check-in ve yolculuk hatırlatmaları"
+    },
     "eveningTitle": "Gün bitmeden: Bugün kartı",
     "eveningBodies": [
       "{{habit}} için henüz hareket yok. En küçük sürüm yeter — akşam dürüst check-in yap.",

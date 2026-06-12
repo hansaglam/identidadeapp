@@ -8,7 +8,7 @@ Uygulama koduna **dokunmaz**. Sadece test cihazına geçici veri yükler; işin 
 
    ```bash
    cd kimlik-app
-   node store/generate-screenshot-demo-backup.mjs
+   node store/generate-screenshot-demo-backup.mjs --all
    ```
 
 2. `screenshot-demo-backup.json` dosyasını telefona aktar (Drive, e-posta, USB).
@@ -61,7 +61,9 @@ Geri yükleme güvenlik nedeniyle `isPremium: false` yapar (`restoreBackup.ts`).
 ## Dosyalar
 
 - `generate-screenshot-demo-backup.mjs` — yedeği yeniden üret
-- `screenshot-demo-backup.json` — git’e commit etmek zorunda değilsin (`.gitignore`’a eklenebilir)
+- `screenshot-demo-backup.json` — Türkçe
+- `screenshot-demo-backup-en.json` — İngilizce içerik (notlar, why)
+- `screenshot-demo-backup-pt.json` — Portekizce içerik
 
 ## Sorun giderme
 
@@ -69,4 +71,5 @@ Geri yükleme güvenlik nedeniyle `isPremium: false` yapar (`restoreBackup.ts`).
 |-------|--------|
 | Kas delta görünmüyor | Script’i **bugün** tekrar çalıştır (hafta anahtarları güncellenir) |
 | Dayanıklılık “test edilmedi” | Geri yükleme başarısız; JSON’u tekrar seç |
-| Dil İngilizce | Uygulama dilini TR yap screenshot öncesi |
+| Dil EN/PT | İlgili JSON’u geri yükle (`-en` / `-pt`), uygulama dilini eşleştir |
+| Çapa Türkçe kalıyor | Script’i `--all` ile çalıştır; `habitAnchor` artık `after_morning_drink` ID |

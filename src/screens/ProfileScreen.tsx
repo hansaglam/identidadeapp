@@ -27,7 +27,7 @@ import { useMindDumpStore } from "../store/mindDumpStore";
 import {
   cancelAllMorningNotifications,
   scheduleMorningNotifications,
-  requestNotificationPermissions,
+  requestNotificationPermissionsFromUser,
 } from "../utils/notifications";
 import { flushNotificationSetup } from "../utils/notificationScheduler";
 import { getAverageAutomaticity } from "../utils/profileMetrics";
@@ -233,7 +233,7 @@ export default function ProfileScreen() {
   };
 
   const handleNotifSetup = async () => {
-    const granted = await requestNotificationPermissions();
+    const granted = await requestNotificationPermissionsFromUser();
     if (granted) {
       setProfileDialog("notif_success");
     } else {

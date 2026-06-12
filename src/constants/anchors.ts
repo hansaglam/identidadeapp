@@ -47,6 +47,7 @@ export const LEGACY_ANCHOR_TO_ID: Record<string, AnchorId> = {
   "Uyandıktan hemen sonra": "after_wake",
   "Dişlerimi fırçaladıktan sonra": "after_brush",
   "Kahvemi içtikten sonra": "after_morning_drink",
+  "Kahvemi aldıktan sonra": "after_morning_drink",
   "Öğle yemeğinden sonra": "after_lunch",
   "Telefonu elimden bıraktıktan sonra": "after_phone_down",
   "Yatağa girmeden önce": "before_bed",

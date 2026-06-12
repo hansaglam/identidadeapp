@@ -1410,9 +1410,13 @@
       "restClear": "Clear",
       "notifFineTune": "Notification fine-tuning",
       "notifyMorning": "Morning notification",
+      "notifyMorningSub": "Today card reminder at your chosen time",
       "notifyEvening": "Evening reminder",
+      "notifyEveningSub": "Gentle check-in before the day ends (9:00 PM)",
       "notifyWeekend": "Weekend notifications",
+      "notifyWeekendSub": "Saturday and Sunday morning/evening pushes",
       "notifyPhaseMilestones": "Phase milestone push",
+      "notifyPhaseMilestonesSub": "Journey milestones such as days 7, 22, 30, and 66",
       "backupTitle": "Local backup (JSON)",
       "backupHint": "One file you can keep in Drive / Files. Import overwrites data from the chosen file.",
       "exportBtn": "Export via share",
@@ -2889,6 +2893,20 @@
     ]
   },
   "notifications": {
+    "permissionRationale": {
+      "title": "Allow notifications",
+      "message": "Rito sends local reminders on your device only — nothing goes to our servers.\n\n• Morning: your Today step at the time you choose\n• Evening: gentle check-in before the day ends\n• Journey: phase milestones on your 66-day path\n• Tomorrow plan: reminder for your planned action",
+      "allow": "Continue",
+      "deny": "Not now"
+    },
+    "planReminder": {
+      "title": "Your plan for today is ready",
+      "body": "{{action}}{{time}}{{context}} — Check in from the Today screen."
+    },
+    "channel": {
+      "name": "Reminders",
+      "description": "Habit, check-in, and journey reminders"
+    },
     "eveningTitle": "Before the day ends: Today card",
     "eveningBodies": [
       "No movement yet for {{habit}}. Smallest version is enough — honest evening check-in.",

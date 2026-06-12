@@ -7,6 +7,7 @@ import type { Action } from "../engine/types";
 import type { IdentityTagId, IdentityTemplate } from "../constants/identityTemplates";
 import { IDENTITY_TEMPLATES } from "../constants/identityTemplates";
 import type { UserProfile } from "../types";
+import { resolveAnchorId } from "../constants/anchors";
 
 export function localizeActionTitle(id: string, fallback: string): string {
   return tOrFallback(`actions.${id}.title`, fallback);
@@ -86,6 +87,15 @@ export function localizeAnchorLabel(anchorId: string, fallback?: string): string
   const key = `anchors.${anchorId}.label`;
   const v = i18n.t(key);
   return v === key ? (fallback ?? anchorId) : v;
+}
+
+/** Profilde kayıtlı çapa metni veya anchor ID → aktif dilde etiket */
+export function localizeHabitAnchor(raw: string | undefined | null): string {
+  const trimmed = raw?.trim() ?? "";
+  if (!trimmed) return "";
+  const anchorId = resolveAnchorId(trimmed);
+  if (anchorId) return localizeAnchorLabel(anchorId, trimmed);
+  return trimmed;
 }
 
 export function localizeTimeRangeLabel(timeId: string, fallback: string): string {

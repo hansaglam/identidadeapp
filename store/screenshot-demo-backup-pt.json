@@ -1,13 +1,13 @@
 {
-  "exportedAt": "2026-06-12T15:23:34.450Z",
+  "exportedAt": "2026-06-12T15:23:34.457Z",
   "schemaVersion": 2,
   "profile": {
-    "id": "screenshot-demo-rito-tr",
+    "id": "screenshot-demo-rito-pt",
     "createdAt": "2026-05-04T08:00:00.000Z",
     "identityTagId": "moving_person",
-    "habitName": "Egzersiz",
+    "habitName": "Exercício",
     "habitAnchor": "after_morning_drink",
-    "habitWhy": "Daha enerjik ve disiplinli hissetmek istiyorum.",
+    "habitWhy": "Quero me sentir com mais energia e disciplina.",
     "startDate": "2026-05-04T08:00:00.000Z",
     "isPremium": true,
     "purchaseToken": null,
@@ -357,31 +357,31 @@
   "mindDumps": [
     {
       "id": "1778014800000",
-      "content": "Kafam karışık ama başlamak iyi geldi.",
+      "content": "A cabeça estava confusa, mas começar fez bem.",
       "createdAt": "2026-05-05T21:00:00.000Z",
       "updatedAt": "2026-05-05T21:00:00.000Z"
     },
     {
       "id": "1778619600001",
-      "content": "Biraz daha düzenli hissediyorum.",
+      "content": "Estou me sentindo um pouco mais consistente.",
       "createdAt": "2026-05-12T21:00:00.000Z",
       "updatedAt": "2026-05-12T21:00:00.000Z"
     },
     {
       "id": "1779397200002",
-      "content": "Kaçırdığımda suçluluk yerine küçük adım işe yarıyor.",
+      "content": "Quando falho, um passo pequeno vence a culpa.",
       "createdAt": "2026-05-21T21:00:00.000Z",
       "updatedAt": "2026-05-21T21:00:00.000Z"
     },
     {
       "id": "1780261200003",
-      "content": "Artık çapa olmadan da aklıma geliyor.",
+      "content": "Já lembro sem precisar da âncora.",
       "createdAt": "2026-05-31T21:00:00.000Z",
       "updatedAt": "2026-05-31T21:00:00.000Z"
     },
     {
       "id": "1780866000004",
-      "content": "Geri dönmek normalmiş — pes etmeyen biri oluyorum.",
+      "content": "Voltar é normal — estou virando alguém que não desiste.",
       "createdAt": "2026-06-07T21:00:00.000Z",
       "updatedAt": "2026-06-07T21:00:00.000Z"
     }
@@ -394,22 +394,22 @@
   },
   "habitDefinition": {
     "id": "screenshot-habit-1",
-    "identity": "Hareket eden biri",
+    "identity": "Alguém que se move",
     "identityIcon": "🏃",
     "identitySlug": "moving-body",
     "cue": "after_morning_drink",
     "timeSlot": "morning",
-    "why": "Daha enerjik ve disiplinli hissetmek istiyorum."
+    "why": "Quero me sentir com mais energia e disciplina."
   },
   "habitReflections": [
     {
       "day": 12,
-      "comment": "Bugün zorlandım ama küçük adım yeterli oldu.",
+      "comment": "Hoje foi difícil, mas um passo pequeno bastou.",
       "date": "2026-05-15"
     },
     {
       "day": 28,
-      "comment": "Daha kontrollü hissediyorum.",
+      "comment": "Me sinto mais no controle.",
       "date": "2026-05-31"
     }
   ],

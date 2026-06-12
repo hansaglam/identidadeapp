@@ -8,6 +8,7 @@ import LiveActionModal from "../LiveActionModal";
 import InterruptModal from "../InterruptModal";
 import { useBehaviorStore } from "../../store/useBehaviorStore";
 import { trackEvent } from "../../utils/analytics";
+import { localizeHabitAnchor } from "../../i18n/localizeContent";
 import type { UserState, Action } from "../../engine";
 
 interface Props {
@@ -71,6 +72,7 @@ export default function TaskDetailSheet({
   }, [userBehaviorState, onToast]);
 
   const suggested = userBehaviorState?.suggestedAction;
+  const anchorLabel = localizeHabitAnchor(anchorBehavior);
 
   return (
     <>
@@ -92,7 +94,7 @@ export default function TaskDetailSheet({
               <View style={styles.section}>
                 <View style={styles.infoRow}>
                   <MapPin size={13} color={Colors.textTertiary} strokeWidth={2} />
-                  <Text style={styles.infoText}>{t("taskSheet.anchor", { anchor: anchorBehavior })}</Text>
+                  <Text style={styles.infoText}>{t("taskSheet.anchor", { anchor: anchorLabel })}</Text>
                 </View>
                 <View style={styles.infoRow}>
                   <Clock size={13} color={Colors.textTertiary} strokeWidth={2} />

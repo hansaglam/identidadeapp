@@ -353,6 +353,7 @@ export default function AdvancedPreferencesCard({
             <ToggleLine
               icon={<Sunrise size={14} color={Colors.textSecondary} />}
               title={t("profile.advanced.notifyMorning")}
+              subtitle={t("profile.advanced.notifyMorningSub")}
               value={profile.notifyMorningEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyMorningEnabled: v })}
@@ -360,6 +361,7 @@ export default function AdvancedPreferencesCard({
             <ToggleLine
               icon={<Sunset size={14} color={Colors.textSecondary} />}
               title={t("profile.advanced.notifyEvening")}
+              subtitle={t("profile.advanced.notifyEveningSub")}
               value={profile.notifyEveningEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyEveningEnabled: v })}
@@ -367,6 +369,7 @@ export default function AdvancedPreferencesCard({
             <ToggleLine
               icon={<Calendar size={14} color={Colors.textSecondary} />}
               title={t("profile.advanced.notifyWeekend")}
+              subtitle={t("profile.advanced.notifyWeekendSub")}
               value={profile.notifyWeekendEnabled !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyWeekendEnabled: v })}
@@ -374,6 +377,7 @@ export default function AdvancedPreferencesCard({
             <ToggleLine
               icon={<Bell size={14} color={Colors.textSecondary} />}
               title={t("profile.advanced.notifyPhaseMilestones")}
+              subtitle={t("profile.advanced.notifyPhaseMilestonesSub")}
               value={profile.notifyPhaseMilestones !== false}
               palette={Colors}
               onChange={(v) => void onPatch({ notifyPhaseMilestones: v })}
@@ -489,12 +493,14 @@ export default function AdvancedPreferencesCard({
 
 function ToggleLine({
   title,
+  subtitle,
   value,
   palette,
   onChange,
   icon,
 }: {
   title: string;
+  subtitle?: string;
   value: boolean;
   palette: AppColors;
   onChange: (v: boolean) => void;
@@ -504,7 +510,12 @@ function ToggleLine({
     <View style={styles.toggleRow}>
       <View style={styles.toggleLeft}>
         {icon}
-        <Text style={[styles.toggleTitle, { color: palette.textPrimary }]}>{title}</Text>
+        <View style={styles.toggleTextCol}>
+          <Text style={[styles.toggleTitle, { color: palette.textPrimary }]}>{title}</Text>
+          {subtitle ? (
+            <Text style={[styles.toggleSub, { color: palette.textTertiary }]}>{subtitle}</Text>
+          ) : null}
+        </View>
       </View>
       <Switch
         value={value}
@@ -574,11 +585,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.sm,
     flexShrink: 1,
+    flex: 1,
+    paddingRight: Spacing.sm,
+  },
+  toggleTextCol: {
+    flexShrink: 1,
+    flex: 1,
   },
   toggleTitle: {
     fontSize: FontSizes.sm,
     fontFamily: "Inter_400Regular",
     flexShrink: 1,
+  },
+  toggleSub: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    marginTop: 2,
+    lineHeight: 16,
   },
   exportBtn: {
     flexDirection: "row",

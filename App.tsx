@@ -51,6 +51,7 @@ import { trackEvent } from "./src/utils/analytics";
 import { useIAPStore } from "./src/store/iapStore";
 import { format } from "date-fns";
 import ExactAlarmPermissionModal from "./src/components/ExactAlarmPermissionModal";
+import NotificationPermissionRationaleModal from "./src/components/NotificationPermissionRationaleModal";
 import AppSplashOverlay from "./src/components/AppSplashOverlay";
 import { SPLASH_BACKGROUND } from "./src/constants/splash";
 import { Colors, FontSizes, Radii } from "./src/constants/theme";
@@ -308,6 +309,7 @@ function AppBootstrap() {
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
             <LanguageProvider>
             <ExactAlarmPermissionModal />
+            <NotificationPermissionRationaleModal />
             <NavigationContainer
               theme={navTheme}
               ref={navigationRef}

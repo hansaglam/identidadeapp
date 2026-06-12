@@ -1,8 +1,14 @@
 /**
  * Play Store screenshot demo yedeği üretir.
- * Uygulama koduna dokunmaz — sadece store/screenshot-demo-backup.json yazar.
+ * Uygulama koduna dokunmaz — store/screenshot-demo-backup*.json yazar.
  *
- * Kullanım: node store/generate-screenshot-demo-backup.mjs
+ * Kullanım:
+ *   node store/generate-screenshot-demo-backup.mjs           # tr (varsayılan)
+ *   node store/generate-screenshot-demo-backup.mjs --locale en
+ *   node store/generate-screenshot-demo-backup.mjs --locale pt
+ *   node store/generate-screenshot-demo-backup.mjs --all     # tr + en + pt
+ *
+ * habitAnchor = after_morning_drink → dil değişince çapa etiketi i18n'den gelir.
  */
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -19,7 +25,76 @@ import {
 } from "date-fns";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const OUT = join(__dirname, "screenshot-demo-backup.json");
+
+/** Stable anchor ID — anchors.{id}.label ile tüm dillerde çevrilir */
+const ANCHOR_ID = "after_morning_drink";
+
+const LOCALE_COPY = {
+  tr: {
+    habitName: "Egzersiz",
+    habitWhy: "Daha enerjik ve disiplinli hissetmek istiyorum.",
+    identity: "Hareket eden biri",
+    mindDumps: [
+      "Kafam karışık ama başlamak iyi geldi.",
+      "Biraz daha düzenli hissediyorum.",
+      "Kaçırdığımda suçluluk yerine küçük adım işe yarıyor.",
+      "Artık çapa olmadan da aklıma geliyor.",
+      "Geri dönmek normalmiş — pes etmeyen biri oluyorum.",
+    ],
+    reflections: [
+      "Bugün zorlandım ama küçük adım yeterli oldu.",
+      "Daha kontrollü hissediyorum.",
+    ],
+    outFile: "screenshot-demo-backup.json",
+  },
+  en: {
+    habitName: "Exercise",
+    habitWhy: "I want to feel more energetic and disciplined.",
+    identity: "Someone who moves",
+    mindDumps: [
+      "My head was scattered, but starting felt good.",
+      "I'm feeling a bit more consistent.",
+      "When I miss a day, a small step beats guilt.",
+      "It comes to mind even without the anchor now.",
+      "Coming back is normal — I'm becoming someone who doesn't quit.",
+    ],
+    reflections: [
+      "Today was hard, but a small step was enough.",
+      "I feel more in control.",
+    ],
+    outFile: "screenshot-demo-backup-en.json",
+  },
+  pt: {
+    habitName: "Exercício",
+    habitWhy: "Quero me sentir com mais energia e disciplina.",
+    identity: "Alguém que se move",
+    mindDumps: [
+      "A cabeça estava confusa, mas começar fez bem.",
+      "Estou me sentindo um pouco mais consistente.",
+      "Quando falho, um passo pequeno vence a culpa.",
+      "Já lembro sem precisar da âncora.",
+      "Voltar é normal — estou virando alguém que não desiste.",
+    ],
+    reflections: [
+      "Hoje foi difícil, mas um passo pequeno bastou.",
+      "Me sinto mais no controle.",
+    ],
+    outFile: "screenshot-demo-backup-pt.json",
+  },
+};
+
+function parseLocales(argv) {
+  if (argv.includes("--all")) return ["tr", "en", "pt"];
+  const idx = argv.indexOf("--locale");
+  if (idx >= 0 && argv[idx + 1]) {
+    const loc = argv[idx + 1].toLowerCase();
+    if (loc === "pt-br" || loc === "pt_br") return ["pt"];
+    if (LOCALE_COPY[loc]) return [loc];
+    console.error(`Unknown locale: ${argv[idx + 1]}. Use tr, en, pt, or --all`);
+    process.exit(1);
+  }
+  return ["tr"];
+}
 
 function isoWeekKey(d) {
   const week = getISOWeek(d);
@@ -78,30 +153,24 @@ function buildCheckins(startDate, today) {
   return records;
 }
 
-function buildMindDumps(startDate) {
+function buildMindDumps(startDate, texts) {
   const start = parseISO(startDate);
-  const snippets = [
-    { dayOffset: 2, text: "Kafam karışık ama başlamak iyi geldi." },
-    { dayOffset: 9, text: "Biraz daha düzenli hissediyorum." },
-    { dayOffset: 18, text: "Kaçırdığımda suçluluk yerine küçük adım işe yarıyor." },
-    { dayOffset: 28, text: "Artık çapa olmadan da aklıma geliyor." },
-    { dayOffset: 35, text: "Geri dönmek normalmiş — pes etmeyen biri oluyorum." },
-  ];
+  const offsets = [2, 9, 18, 28, 35];
 
-  return snippets.map((s, idx) => {
-    const created = addDays(start, s.dayOffset);
+  return offsets.map((dayOffset, idx) => {
+    const created = addDays(start, dayOffset);
     const ts = created.getTime() + idx;
     return {
       id: String(ts),
-      content: s.text,
+      content: texts[idx],
       createdAt: created.toISOString(),
       updatedAt: created.toISOString(),
     };
   });
 }
 
-function main() {
-  const today = new Date();
+function buildPayload(localeKey, today) {
+  const copy = LOCALE_COPY[localeKey];
   const todayKey = isoDate(today);
   const yesterdayKey = isoDate(subDays(today, 1));
   const startDate = isoDate(subDays(today, 39));
@@ -142,16 +211,16 @@ function main() {
     sosyal: 8,
   };
 
-  const payload = {
+  return {
     exportedAt: new Date().toISOString(),
     schemaVersion: 2,
     profile: {
-      id: "screenshot-demo-rito",
+      id: `screenshot-demo-rito-${localeKey}`,
       createdAt: startIso,
       identityTagId: "moving_person",
-      habitName: "Egzersiz",
-      habitAnchor: "Kahvemi aldıktan sonra",
-      habitWhy: "Daha enerjik ve disiplinli hissetmek istiyorum.",
+      habitName: copy.habitName,
+      habitAnchor: ANCHOR_ID,
+      habitWhy: copy.habitWhy,
       startDate: startIso,
       isPremium: true,
       purchaseToken: null,
@@ -191,7 +260,7 @@ function main() {
       checkInActionGate: "soft",
     },
     checkins: buildCheckins(startDate, today),
-    mindDumps: buildMindDumps(startDate),
+    mindDumps: buildMindDumps(startDate, copy.mindDumps),
     tomorrowPlans: {},
     habitDaily: {
       todayCheckedIn: false,
@@ -200,22 +269,22 @@ function main() {
     },
     habitDefinition: {
       id: "screenshot-habit-1",
-      identity: "Hareket eden biri",
+      identity: copy.identity,
       identityIcon: "🏃",
       identitySlug: "moving-body",
-      cue: "Kahvemi aldıktan sonra",
+      cue: ANCHOR_ID,
       timeSlot: "morning",
-      why: "Daha enerjik ve disiplinli hissetmek istiyorum.",
+      why: copy.habitWhy,
     },
     habitReflections: [
       {
         day: 12,
-        comment: "Bugün zorlandım ama küçük adım yeterli oldu.",
+        comment: copy.reflections[0],
         date: isoDate(addDays(parseISO(startDate), 11)),
       },
       {
         day: 28,
-        comment: "Daha kontrollü hissediyorum.",
+        comment: copy.reflections[1],
         date: isoDate(addDays(parseISO(startDate), 27)),
       },
     ],
@@ -248,13 +317,29 @@ function main() {
       totalActions: 24,
     },
   };
+}
 
-  writeFileSync(OUT, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-  console.log(`Wrote ${OUT}`);
+function main() {
+  const locales = parseLocales(process.argv.slice(2));
+  const today = new Date();
+  const todayKey = isoDate(today);
+  const startDate = isoDate(subDays(today, 39));
+  const prevWeek = isoWeekKey(subWeeks(today, 1));
+  const currentWeek = isoWeekKey(today);
+
+  for (const localeKey of locales) {
+    const copy = LOCALE_COPY[localeKey];
+    const outPath = join(__dirname, copy.outFile);
+    const payload = buildPayload(localeKey, today);
+    writeFileSync(outPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+    console.log(`Wrote ${outPath} (${localeKey})`);
+  }
+
   console.log(`  startDate: ${startDate}  today: ${todayKey}  (~day 40)`);
   console.log(`  snapshots: ${prevWeek} -> ${currentWeek}  (direnc +4)`);
-  console.log(`  Restore: Profil > Gelismis > Yedekten geri yukle`);
-  console.log(`  Note: isPremium resets to false on restore — see SCREENSHOT_DEMO.md`);
+  console.log(`  anchor: ${ANCHOR_ID} (localizes with app language)`);
+  console.log(`  Restore: Profil > VERI > JSON dosyasindan geri yukle`);
+  console.log(`  EN/PT: restore matching file, then set app language`);
 }
 
 main();

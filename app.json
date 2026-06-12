@@ -15,12 +15,15 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.rito.app",
+      "buildNumber": "1",
       "infoPlist": {
-        "CFBundleDisplayName": "Rito: Habit & Identity Journey"
+        "CFBundleDisplayName": "Rito: Habit & Identity Journey",
+        "NSUserNotificationsUsageDescription": "Rito sends local habit and check-in reminders on this device only. Nothing is sent to our servers.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "versionCode": 4,
+      "versionCode": 6,
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
@@ -31,7 +34,6 @@
       "permissions": [
         "android.permission.RECEIVE_BOOT_COMPLETED",
         "android.permission.SCHEDULE_EXACT_ALARM",
-        "android.permission.USE_EXACT_ALARM",
         "android.permission.POST_NOTIFICATIONS",
         "android.permission.VIBRATE"
       ]

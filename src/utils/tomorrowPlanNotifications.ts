@@ -7,7 +7,8 @@ import { SchedulableTriggerInputTypes } from "expo-notifications";
 import { format, parseISO } from "date-fns";
 import type { TomorrowTodoList } from "../store/tomorrowPlanStore";
 import type { UserProfile } from "../types";
-import { requestNotificationPermissions } from "./notificationPermissions";
+import { hasNotificationPermissions } from "./notificationPermissions";
+import i18n from "../i18n/config";
 import { isRestModeActive } from "./restMode";
 
 const planReminderId = (date: string) => `plan:${date}`;
@@ -85,7 +86,7 @@ export async function schedulePlanReminder(
   profile: UserProfile,
   list: TomorrowTodoList
 ): Promise<void> {
-  const granted = await requestNotificationPermissions();
+  const granted = await hasNotificationPermissions();
   if (!granted) return;
 
   const dateStr = list.date;
@@ -118,8 +119,12 @@ export async function schedulePlanReminder(
   await Notifications.scheduleNotificationAsync({
     identifier: planReminderId(dateStr),
     content: {
-      title: "Bugünün planın hazır",
-      body: `${primary.text}${timeLine}${contextLine} — Bugün ekranından check-in yap.`,
+      title: i18n.t("notifications.planReminder.title"),
+      body: i18n.t("notifications.planReminder.body", {
+        action: primary.text,
+        time: timeLine,
+        context: contextLine,
+      }),
     },
     trigger: { type: SchedulableTriggerInputTypes.DATE, date: trigger },
   });

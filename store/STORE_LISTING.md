@@ -53,7 +53,7 @@ habit, identity, tiny habits, 66 days, routine, anchor, mindfulness, journal, se
 
 ## Support
 
-support@rito.app
+ethemsincarbusiness@gmail.com
 
 ## Privacy policy URL
 

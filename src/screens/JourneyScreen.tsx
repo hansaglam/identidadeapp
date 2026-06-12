@@ -85,7 +85,7 @@ import {
   markPhaseEducationAutoShown,
 } from "../utils/journeyEducationPrefs";
 import type { MainTabParamList } from "../types";
-import { requestNotificationPermissions } from "../utils/notifications";
+import { requestNotificationPermissionsFromUser } from "../utils/notifications";
 import JourneyIdentityMirrorCard from "../components/journey/JourneyIdentityMirrorCard";
 import JourneyMapTeaser from "../components/journey/JourneyMapTeaser";
 import JourneyPhaseMiniGrid from "../components/journey/JourneyPhaseMiniGrid";
@@ -385,7 +385,7 @@ export default function JourneyScreen({ navigation }: Props) {
 
   const handleSaveTodo = async () => {
     if (!todoDraft.text.trim()) return;
-    await requestNotificationPermissions();
+    await requestNotificationPermissionsFromUser();
     if (editingTodoId) {
       await updateTomorrowTodo(tomorrowDate, editingTodoId, todoDraft);
     } else {
