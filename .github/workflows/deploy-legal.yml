@@ -1,9 +1,7 @@
-# Publishes legal/ → GitHub Pages (Actions deploy).
+# Publishes legal/ → gh-pages branch. Then enable Pages once in repo Settings.
 # Live URLs (repo: hansaglam/identidadeapp):
 #   https://hansaglam.github.io/identidadeapp/privacy.html
 #   https://hansaglam.github.io/identidadeapp/terms.html
-#
-# One-time: Settings → Pages → Source: GitHub Actions
 
 name: Deploy legal pages
 
@@ -16,32 +14,24 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
-  group: deploy-legal-pages
+  group: deploy-legal-gh-pages
   cancel-in-progress: true
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: ./legal
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./legal
+          publish_branch: gh-pages
+          force_orphan: true
+          commit_message: "deploy: legal pages"

@@ -8,14 +8,15 @@
 
 ## 404 veya eski içerik görüyorsanız — tek seferlik GitHub ayarı
 
-Workflow `legal/` klasörünü **GitHub Actions** ile Pages'e yazar:
+Workflow `legal/` klasörünü **gh-pages** branch'ine yazar. Canlı site güncellenmiyorsa Pages yanlış branch'ten yayınlanıyordur:
 
 1. https://github.com/hansaglam/identidadeapp → **Settings** → **Pages**
-2. **Build and deployment** → **Source:** **GitHub Actions** (branch değil)
-3. **Actions** → **Deploy legal pages** → son çalışma yeşil olmalı
-4. 1–2 dakika bekleyin; tarayıcıda privacy.html URL'sini açın (gerekirse Ctrl+F5)
+2. **Build and deployment** → **Source:** **Deploy from a branch**
+3. **Branch:** `gh-pages` · **Folder:** `/ (root)` → **Save**
+4. **Actions** → **Deploy legal pages** → **Run workflow** (yeniden deploy)
+5. 1–2 dakika bekleyin; privacy.html açın (Ctrl+F5)
 
-Eski ayar `Deploy from a branch` + `main` ise canlı site güncellenmez; mutlaka **GitHub Actions** seçin.
+`main` branch seçiliyse eski içerik kalır; mutlaka **gh-pages** olmalı.
 
 Workflow elle çalıştırma: **Actions** → **Deploy legal pages** → **Run workflow**
 
