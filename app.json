@@ -23,7 +23,7 @@
       }
     },
     "android": {
-      "versionCode": 6,
+      "versionCode": 7,
       "edgeToEdgeEnabled": true,
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
