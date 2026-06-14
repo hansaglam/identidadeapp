@@ -1419,6 +1419,7 @@
       "notifyPhaseMilestonesSub": "Marcos da jornada, como dias 7, 22, 30 e 66",
       "backupTitle": "Backup local (JSON)",
       "backupHint": "Um arquivo para guardar no Drive / Arquivos. Importar sobrescreve com o arquivo escolhido.",
+      "backupHintIos": "Para screenshots da App Store: abra store/screenshot-demo-backup*.json no Mac, copie tudo e use «Restaurar colando».",
       "exportBtn": "Exportar via compartilhar",
       "importBtn": "Restaurar de arquivo JSON",
       "pasteBtn": "Restaurar colando",

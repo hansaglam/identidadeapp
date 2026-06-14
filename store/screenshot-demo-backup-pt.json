@@ -1,14 +1,14 @@
 {
-  "exportedAt": "2026-06-12T15:23:34.457Z",
+  "exportedAt": "2026-06-14T22:32:56.179Z",
   "schemaVersion": 2,
   "profile": {
     "id": "screenshot-demo-rito-pt",
-    "createdAt": "2026-05-04T08:00:00.000Z",
+    "createdAt": "2026-05-07T08:00:00.000Z",
     "identityTagId": "moving_person",
     "habitName": "Exercício",
     "habitAnchor": "after_morning_drink",
     "habitWhy": "Quero me sentir com mais energia e disciplina.",
-    "startDate": "2026-05-04T08:00:00.000Z",
+    "startDate": "2026-05-07T08:00:00.000Z",
     "isPremium": true,
     "purchaseToken": null,
     "name": "Demo",
@@ -42,8 +42,8 @@
     "firstComebackCelebrated": true,
     "disciplineMuscleSnapshots": [
       {
-        "weekKey": "2026-W23",
-        "date": "2026-06-05",
+        "weekKey": "2026-W24",
+        "date": "2026-06-08",
         "scores": {
           "karar": 38,
           "direnc": 11,
@@ -53,8 +53,8 @@
         }
       },
       {
-        "weekKey": "2026-W24",
-        "date": "2026-06-12",
+        "weekKey": "2026-W25",
+        "date": "2026-06-15",
         "scores": {
           "karar": 42,
           "direnc": 15,
@@ -72,283 +72,283 @@
   },
   "checkins": [
     {
-      "date": "2026-05-04",
+      "date": "2026-05-07",
       "completed": true,
-      "completedAt": "2026-05-04T09:30:00.000Z",
+      "completedAt": "2026-05-07T09:30:00.000Z",
       "day": 1,
       "automaticityRating": 7,
       "effortRating": 5
     },
     {
-      "date": "2026-05-05",
+      "date": "2026-05-08",
       "completed": true,
-      "completedAt": "2026-05-05T10:30:00.000Z",
+      "completedAt": "2026-05-08T10:30:00.000Z",
       "day": 2,
       "automaticityRating": 8,
       "effortRating": 4
     },
     {
-      "date": "2026-05-06",
+      "date": "2026-05-09",
       "completed": true,
-      "completedAt": "2026-05-06T11:30:00.000Z",
+      "completedAt": "2026-05-09T11:30:00.000Z",
       "day": 3,
       "automaticityRating": 6,
       "effortRating": 5
     },
     {
-      "date": "2026-05-07",
+      "date": "2026-05-10",
       "completed": true,
-      "completedAt": "2026-05-07T08:30:00.000Z",
+      "completedAt": "2026-05-10T08:30:00.000Z",
       "day": 4,
       "automaticityRating": 7,
       "effortRating": 4
     },
     {
-      "date": "2026-05-08",
+      "date": "2026-05-11",
       "completed": true,
-      "completedAt": "2026-05-08T09:30:00.000Z",
+      "completedAt": "2026-05-11T09:30:00.000Z",
       "day": 5,
       "automaticityRating": 8,
       "effortRating": 5
     },
     {
-      "date": "2026-05-09",
+      "date": "2026-05-12",
       "completed": true,
-      "completedAt": "2026-05-09T10:30:00.000Z",
+      "completedAt": "2026-05-12T10:30:00.000Z",
       "day": 6,
       "automaticityRating": 6,
       "effortRating": 4
     },
     {
-      "date": "2026-05-10",
+      "date": "2026-05-13",
       "completed": true,
-      "completedAt": "2026-05-10T11:30:00.000Z",
+      "completedAt": "2026-05-13T11:30:00.000Z",
       "day": 7,
       "automaticityRating": 7,
       "effortRating": 5
     },
     {
-      "date": "2026-05-11",
+      "date": "2026-05-14",
       "completed": true,
-      "completedAt": "2026-05-11T08:30:00.000Z",
+      "completedAt": "2026-05-14T08:30:00.000Z",
       "day": 8,
       "automaticityRating": 8,
       "effortRating": 4
     },
     {
-      "date": "2026-05-12",
+      "date": "2026-05-15",
       "completed": true,
-      "completedAt": "2026-05-12T09:30:00.000Z",
+      "completedAt": "2026-05-15T09:30:00.000Z",
       "day": 9,
       "automaticityRating": 6,
       "effortRating": 5
     },
     {
-      "date": "2026-05-13",
+      "date": "2026-05-16",
       "completed": false,
       "completedAt": null,
       "day": 10
     },
     {
-      "date": "2026-05-14",
+      "date": "2026-05-17",
       "completed": false,
       "completedAt": null,
       "day": 11
     },
     {
-      "date": "2026-05-15",
+      "date": "2026-05-18",
       "completed": true,
-      "completedAt": "2026-05-15T08:30:00.000Z",
+      "completedAt": "2026-05-18T08:30:00.000Z",
       "day": 12,
       "automaticityRating": 6,
       "effortRating": 4
     },
     {
-      "date": "2026-05-16",
+      "date": "2026-05-19",
       "completed": true,
-      "completedAt": "2026-05-16T09:30:00.000Z",
+      "completedAt": "2026-05-19T09:30:00.000Z",
       "day": 13,
       "automaticityRating": 7,
       "effortRating": 5
     },
     {
-      "date": "2026-05-17",
+      "date": "2026-05-20",
       "completed": true,
-      "completedAt": "2026-05-17T10:30:00.000Z",
+      "completedAt": "2026-05-20T10:30:00.000Z",
       "day": 14,
       "automaticityRating": 8,
       "effortRating": 4
     },
     {
-      "date": "2026-05-18",
+      "date": "2026-05-21",
       "completed": false,
       "completedAt": null,
       "day": 15
     },
     {
-      "date": "2026-05-19",
+      "date": "2026-05-22",
       "completed": false,
       "completedAt": null,
       "day": 16
     },
     {
-      "date": "2026-05-20",
+      "date": "2026-05-23",
       "completed": true,
-      "completedAt": "2026-05-20T09:30:00.000Z",
+      "completedAt": "2026-05-23T09:30:00.000Z",
       "day": 17,
       "automaticityRating": 8,
       "effortRating": 5
     },
     {
-      "date": "2026-05-21",
+      "date": "2026-05-24",
       "completed": true,
-      "completedAt": "2026-05-21T10:30:00.000Z",
+      "completedAt": "2026-05-24T10:30:00.000Z",
       "day": 18,
       "automaticityRating": 6,
       "effortRating": 4
     },
     {
-      "date": "2026-05-22",
+      "date": "2026-05-25",
       "completed": true,
-      "completedAt": "2026-05-22T11:30:00.000Z",
+      "completedAt": "2026-05-25T11:30:00.000Z",
       "day": 19,
       "automaticityRating": 7,
       "effortRating": 5
     },
     {
-      "date": "2026-05-23",
+      "date": "2026-05-26",
       "completed": false,
       "completedAt": null,
       "day": 20
     },
     {
-      "date": "2026-05-24",
+      "date": "2026-05-27",
       "completed": false,
       "completedAt": null,
       "day": 21
     },
     {
-      "date": "2026-05-25",
+      "date": "2026-05-28",
       "completed": true,
-      "completedAt": "2026-05-25T10:30:00.000Z",
+      "completedAt": "2026-05-28T10:30:00.000Z",
       "day": 22,
       "automaticityRating": 7,
       "effortRating": 4
     },
     {
-      "date": "2026-05-26",
+      "date": "2026-05-29",
       "completed": true,
-      "completedAt": "2026-05-26T11:30:00.000Z",
+      "completedAt": "2026-05-29T11:30:00.000Z",
       "day": 23,
       "automaticityRating": 8,
       "effortRating": 5
     },
     {
-      "date": "2026-05-27",
+      "date": "2026-05-30",
       "completed": true,
-      "completedAt": "2026-05-27T08:30:00.000Z",
+      "completedAt": "2026-05-30T08:30:00.000Z",
       "day": 24,
       "automaticityRating": 6,
       "effortRating": 4
     },
     {
-      "date": "2026-05-28",
+      "date": "2026-05-31",
       "completed": false,
       "completedAt": null,
       "day": 25
     },
     {
-      "date": "2026-05-29",
+      "date": "2026-06-01",
       "completed": false,
       "completedAt": null,
       "day": 26
     },
     {
-      "date": "2026-05-30",
+      "date": "2026-06-02",
       "completed": true,
-      "completedAt": "2026-05-30T11:30:00.000Z",
+      "completedAt": "2026-06-02T11:30:00.000Z",
       "day": 27,
       "automaticityRating": 6,
       "effortRating": 5
     },
     {
-      "date": "2026-05-31",
+      "date": "2026-06-03",
       "completed": true,
-      "completedAt": "2026-05-31T08:30:00.000Z",
+      "completedAt": "2026-06-03T08:30:00.000Z",
       "day": 28,
       "automaticityRating": 7,
       "effortRating": 4
     },
     {
-      "date": "2026-06-01",
+      "date": "2026-06-04",
       "completed": true,
-      "completedAt": "2026-06-01T09:30:00.000Z",
+      "completedAt": "2026-06-04T09:30:00.000Z",
       "day": 29,
       "automaticityRating": 8,
       "effortRating": 5
     },
     {
-      "date": "2026-06-02",
+      "date": "2026-06-05",
       "completed": false,
       "completedAt": null,
       "day": 30
     },
     {
-      "date": "2026-06-03",
+      "date": "2026-06-06",
       "completed": false,
       "completedAt": null,
       "day": 31
     },
     {
-      "date": "2026-06-04",
+      "date": "2026-06-07",
       "completed": true,
-      "completedAt": "2026-06-04T08:30:00.000Z",
+      "completedAt": "2026-06-07T08:30:00.000Z",
       "day": 32,
       "automaticityRating": 8,
       "effortRating": 4
     },
     {
-      "date": "2026-06-05",
+      "date": "2026-06-08",
       "completed": true,
-      "completedAt": "2026-06-05T09:30:00.000Z",
+      "completedAt": "2026-06-08T09:30:00.000Z",
       "day": 33,
       "automaticityRating": 6,
       "effortRating": 5
     },
     {
-      "date": "2026-06-06",
+      "date": "2026-06-09",
       "completed": true,
-      "completedAt": "2026-06-06T10:30:00.000Z",
+      "completedAt": "2026-06-09T10:30:00.000Z",
       "day": 34,
       "automaticityRating": 7,
       "effortRating": 4
     },
     {
-      "date": "2026-06-07",
+      "date": "2026-06-10",
       "completed": false,
       "completedAt": null,
       "day": 35
     },
     {
-      "date": "2026-06-08",
+      "date": "2026-06-11",
       "completed": false,
       "completedAt": null,
       "day": 36
     },
     {
-      "date": "2026-06-09",
+      "date": "2026-06-12",
       "completed": false,
       "completedAt": null,
       "day": 37
     },
     {
-      "date": "2026-06-10",
+      "date": "2026-06-13",
       "completed": false,
       "completedAt": null,
       "day": 38
     },
     {
-      "date": "2026-06-11",
+      "date": "2026-06-14",
       "completed": false,
       "completedAt": null,
       "day": 39
@@ -356,40 +356,40 @@
   ],
   "mindDumps": [
     {
-      "id": "1778014800000",
+      "id": "1778274000000",
       "content": "A cabeça estava confusa, mas começar fez bem.",
-      "createdAt": "2026-05-05T21:00:00.000Z",
-      "updatedAt": "2026-05-05T21:00:00.000Z"
+      "createdAt": "2026-05-08T21:00:00.000Z",
+      "updatedAt": "2026-05-08T21:00:00.000Z"
     },
     {
-      "id": "1778619600001",
+      "id": "1778878800001",
       "content": "Estou me sentindo um pouco mais consistente.",
-      "createdAt": "2026-05-12T21:00:00.000Z",
-      "updatedAt": "2026-05-12T21:00:00.000Z"
+      "createdAt": "2026-05-15T21:00:00.000Z",
+      "updatedAt": "2026-05-15T21:00:00.000Z"
     },
     {
-      "id": "1779397200002",
+      "id": "1779656400002",
       "content": "Quando falho, um passo pequeno vence a culpa.",
-      "createdAt": "2026-05-21T21:00:00.000Z",
-      "updatedAt": "2026-05-21T21:00:00.000Z"
+      "createdAt": "2026-05-24T21:00:00.000Z",
+      "updatedAt": "2026-05-24T21:00:00.000Z"
     },
     {
-      "id": "1780261200003",
+      "id": "1780520400003",
       "content": "Já lembro sem precisar da âncora.",
-      "createdAt": "2026-05-31T21:00:00.000Z",
-      "updatedAt": "2026-05-31T21:00:00.000Z"
+      "createdAt": "2026-06-03T21:00:00.000Z",
+      "updatedAt": "2026-06-03T21:00:00.000Z"
     },
     {
-      "id": "1780866000004",
+      "id": "1781125200004",
       "content": "Voltar é normal — estou virando alguém que não desiste.",
-      "createdAt": "2026-06-07T21:00:00.000Z",
-      "updatedAt": "2026-06-07T21:00:00.000Z"
+      "createdAt": "2026-06-10T21:00:00.000Z",
+      "updatedAt": "2026-06-10T21:00:00.000Z"
     }
   ],
   "tomorrowPlans": {},
   "habitDaily": {
     "todayCheckedIn": false,
-    "lastCheckInDate": "2026-06-11",
+    "lastCheckInDate": "2026-06-14",
     "todayCheckIn": null
   },
   "habitDefinition": {
@@ -405,28 +405,28 @@
     {
       "day": 12,
       "comment": "Hoje foi difícil, mas um passo pequeno bastou.",
-      "date": "2026-05-15"
+      "date": "2026-05-18"
     },
     {
       "day": 28,
       "comment": "Me sinto mais no controle.",
-      "date": "2026-05-31"
+      "date": "2026-06-03"
     }
   ],
   "sdtScores": [
     {
-      "week": "2026-W23",
+      "week": "2026-W24",
       "autonomy": 4,
       "competence": 3,
       "relatedness": 3,
-      "answeredAt": "2026-06-05T15:23:34.448Z"
+      "answeredAt": "2026-06-07T22:32:56.168Z"
     },
     {
-      "week": "2026-W24",
+      "week": "2026-W25",
       "autonomy": 4,
       "competence": 4,
       "relatedness": 3,
-      "answeredAt": "2026-06-12T15:23:34.448Z"
+      "answeredAt": "2026-06-14T22:32:56.168Z"
     }
   ],
   "behaviorState": {
@@ -438,7 +438,7 @@
       "recovery": 5
     },
     "recentActions": [],
-    "lastActionAt": "2026-06-11T10:30:00.000Z",
+    "lastActionAt": "2026-06-14T10:30:00.000Z",
     "totalActions": 24
   }
 }

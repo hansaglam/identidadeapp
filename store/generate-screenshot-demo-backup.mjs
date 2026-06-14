@@ -338,7 +338,8 @@ function main() {
   console.log(`  startDate: ${startDate}  today: ${todayKey}  (~day 40)`);
   console.log(`  snapshots: ${prevWeek} -> ${currentWeek}  (direnc +4)`);
   console.log(`  anchor: ${ANCHOR_ID} (localizes with app language)`);
-  console.log(`  Restore: Profil > VERI > JSON dosyasindan geri yukle`);
+  console.log(`  Restore: Profil > VERI > Verileri yedekle > Yapistirarak geri yukle (iOS/Mac)`);
+  console.log(`  Android: JSON dosyasindan geri yukle veya yapistirarak`);
   console.log(`  EN/PT: restore matching file, then set app language`);
 }
 

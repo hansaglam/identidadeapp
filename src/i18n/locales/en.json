@@ -1419,6 +1419,7 @@
       "notifyPhaseMilestonesSub": "Journey milestones such as days 7, 22, 30, and 66",
       "backupTitle": "Local backup (JSON)",
       "backupHint": "One file you can keep in Drive / Files. Import overwrites data from the chosen file.",
+      "backupHintIos": "For App Store screenshots: open store/screenshot-demo-backup*.json on Mac, copy all, then use «Restore by pasting».",
       "exportBtn": "Export via share",
       "importBtn": "Restore from JSON file",
       "pasteBtn": "Restore by pasting",

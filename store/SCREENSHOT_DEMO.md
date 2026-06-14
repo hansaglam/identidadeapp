@@ -1,4 +1,4 @@
-# Play Store screenshot demo yedeği
+# Screenshot demo yedeği (Play Store + App Store)
 
 Uygulama koduna **dokunmaz**. Sadece test cihazına geçici veri yükler; işin bitince silebilirsin.
 
@@ -11,13 +11,18 @@ Uygulama koduna **dokunmaz**. Sadece test cihazına geçici veri yükler; işin 
    node store/generate-screenshot-demo-backup.mjs --all
    ```
 
-2. `screenshot-demo-backup.json` dosyasını telefona aktar (Drive, e-posta, USB).
+   Tek dil: `--locale tr` | `en` | `pt`
 
-3. Uygulamada: **Profil → VERİ → Verileri yedekle** → **JSON dosyasından geri yükle** (veya yapıştırarak).
+2. **Veriyi yükle**
 
-4. Uygulamayı kapat-aç (veya geri yükleme sonrası otomatik yenilenir).
+   | Platform | Yöntem |
+   |----------|--------|
+   | **iOS / Mac simulator** | `store/screenshot-demo-backup*.json` → metin editöründe **Cmd+A, Cmd+C** → uygulama: **Profil → VERİ → Verileri yedekle → Yapıştırarak geri yükle** |
+   | **Android** | Dosyadan geri yükle veya yapıştırarak |
 
-5. Screenshot sırası:
+3. Uygulama dilini JSON ile eşleştir (EN için `-en.json` + Profil → Dil → English).
+
+4. Screenshot sırası:
 
    | # | Sekme | Ne çek |
    |---|--------|--------|
@@ -27,7 +32,9 @@ Uygulama koduna **dokunmaz**. Sadece test cihazına geçici veri yükler; işin 
    | 4 | Bugün | Günün adımı + check-in (bugün tamamlanmamış) |
    | 5 | Yolculuk / Zihin | Yolculuk + notlar |
 
-6. Canva’da başlık/alt metin ekle (Play listing metinleri).
+5. **App Store:** Simulator'da **Cmd+S** → PNG'leri App Store Connect'e yükle.
+
+6. **Play Store:** Canva'da başlık/alt metin ekle (listing metinleri).
 
 ## Demo veride ne var?
 

@@ -396,42 +396,75 @@ export default function AdvancedPreferencesCard({
               </Text>
             </View>
             <Text style={[styles.micro, { color: Colors.textTertiary }]}>
-              {t("profile.advanced.backupHint")}
+              {Platform.OS === "ios"
+                ? t("profile.advanced.backupHintIos")
+                : t("profile.advanced.backupHint")}
             </Text>
-            <TouchableOpacity
-              style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
-              onPress={() => void exportTap()}
-              disabled={busy}
-            >
-              {busy ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <>
-                  <Share2 size={16} color="#fff" strokeWidth={2} />
-                  <Text style={styles.exportTxt}>{t("profile.advanced.exportBtn")}</Text>
-                </>
-              )}
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.importBtn, { borderColor: Colors.primary }]}
-              onPress={() => importTap()}
-              disabled={busy}
-            >
-              <Upload size={16} color={Colors.primary} strokeWidth={1.8} />
-              <Text style={[styles.importTxt, { color: Colors.primary }]}>
-                {t("profile.advanced.importBtn")}
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.pasteBtn, { borderColor: Colors.borderStrong }]}
-              onPress={openPasteRestore}
-              disabled={busy}
-            >
-              <ClipboardPaste size={16} color={Colors.textSecondary} strokeWidth={1.8} />
-              <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>
-                {t("profile.advanced.pasteBtn")}
-              </Text>
-            </TouchableOpacity>
+            {Platform.OS === "ios" ? (
+              <TouchableOpacity
+                style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
+                onPress={openPasteRestore}
+                disabled={busy}
+              >
+                <ClipboardPaste size={16} color="#fff" strokeWidth={2} />
+                <Text style={styles.exportTxt}>{t("profile.advanced.pasteBtn")}</Text>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity
+                  style={[styles.exportBtn, { backgroundColor: Colors.primary }]}
+                  onPress={() => void exportTap()}
+                  disabled={busy}
+                >
+                  {busy ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <>
+                      <Share2 size={16} color="#fff" strokeWidth={2} />
+                      <Text style={styles.exportTxt}>{t("profile.advanced.exportBtn")}</Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.importBtn, { borderColor: Colors.primary }]}
+                  onPress={() => importTap()}
+                  disabled={busy}
+                >
+                  <Upload size={16} color={Colors.primary} strokeWidth={1.8} />
+                  <Text style={[styles.importTxt, { color: Colors.primary }]}>
+                    {t("profile.advanced.importBtn")}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.pasteBtn, { borderColor: Colors.borderStrong }]}
+                  onPress={openPasteRestore}
+                  disabled={busy}
+                >
+                  <ClipboardPaste size={16} color={Colors.textSecondary} strokeWidth={1.8} />
+                  <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>
+                    {t("profile.advanced.pasteBtn")}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
+            {Platform.OS === "ios" ? (
+              <TouchableOpacity
+                style={[styles.pasteBtn, { borderColor: Colors.borderStrong, marginTop: 8 }]}
+                onPress={() => void exportTap()}
+                disabled={busy}
+              >
+                {busy ? (
+                  <ActivityIndicator color={Colors.textSecondary} />
+                ) : (
+                  <>
+                    <Share2 size={16} color={Colors.textSecondary} strokeWidth={1.8} />
+                    <Text style={[styles.pasteTxt, { color: Colors.textSecondary }]}>
+                      {t("profile.advanced.exportBtn")}
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            ) : null}
           </>
         ) : null}
       </View>

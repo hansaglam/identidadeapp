@@ -1419,6 +1419,7 @@
       "notifyPhaseMilestonesSub": "7, 22, 30, 66. gün gibi yolculuk dönüm noktaları",
       "backupTitle": "Yerel yedek (JSON)",
       "backupHint": "Drive / Dosyalar ile saklayabileceğin tek dosya. İçe aktarınca veriler seçilen dosyayla baştan yazılır.",
+      "backupHintIos": "App Store screenshot için: Mac'te store/screenshot-demo-backup*.json dosyasını aç, tümünü kopyala, «Yapıştırarak geri yükle» ile yükle.",
       "exportBtn": "Paylaşım olarak dışa aktar",
       "importBtn": "JSON dosyasından geri yükle",
       "pasteBtn": "Yapıştırarak geri yükle",
