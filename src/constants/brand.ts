@@ -17,4 +17,4 @@ export const BRAND_HASHTAG = "#RitoApp";
 
 export const ANDROID_PACKAGE = "com.kimlik.app";
 
-export const IOS_BUNDLE_ID = "com.rito.app";
+export const IOS_BUNDLE_ID = "com.kimlik.app";

@@ -34,7 +34,7 @@ Mağaza adı (EN): **Rito: Habit & Identity Journey**
 
 ## Yayın notları
 
-- **Bundle ID:** `com.rito.app` (iOS), `com.kimlik.app` (Android)
+- **Bundle ID:** `com.kimlik.app` (iOS + Android)
 - iOS App Store: Mac adımları → [`docs/IOS_RELEASE.md`](docs/IOS_RELEASE.md)
 - Paket kimliği değişikliği sonrası native rebuild gerekir: `npx expo prebuild --clean` veya `npx expo run:android` / `run:ios`
 - Hukuki metinler: [`PRIVACY.md`](PRIVACY.md), [`TERMS.md`](TERMS.md) — yayın öncesi URL'leri [`src/constants/appLinks.ts`](src/constants/appLinks.ts) içinde güncelle

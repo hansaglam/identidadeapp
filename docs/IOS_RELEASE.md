@@ -1,6 +1,6 @@
 # Rito — iOS App Store release (Mac)
 
-Bundle ID: `com.rito.app`  
+Bundle ID: `com.kimlik.app`  
 Subscription SKU: `discipline_pro_monthly`  
 Privacy: https://hansaglam.github.io/identidadeapp/privacy.html  
 Support: ethemsincarbusiness@gmail.com
@@ -12,7 +12,7 @@ Support: ethemsincarbusiness@gmail.com
 ## 1. Prerequisites
 
 - Apple Developer Program ($99/year)
-- App ID registered: `com.rito.app` (developer.apple.com → Identifiers)
+- App ID registered: `com.kimlik.app` (developer.apple.com → Identifiers)
 - Mac with Xcode + Command Line Tools
 - Node.js 20+
 
@@ -45,7 +45,7 @@ open ios/*.xcworkspace
 
 1. Select the app target → **Signing & Capabilities**
 2. **Team:** your Apple Developer team
-3. **Bundle Identifier:** `com.rito.app`
+3. **Bundle Identifier:** `com.kimlik.app`
 4. Enable **Automatically manage signing**
 
 ---
@@ -67,7 +67,7 @@ Before first upload:
 | Item | Value |
 |------|--------|
 | App name | Rito: Habit & Identity Journey |
-| Bundle ID | com.rito.app |
+| Bundle ID | com.kimlik.app |
 | Privacy URL | https://hansaglam.github.io/identidadeapp/privacy.html |
 | Subscription | `discipline_pro_monthly` (auto-renewable) |
 | App Privacy | No ads / no tracking; data stays on device |
@@ -131,7 +131,7 @@ Review notes (suggested):
 
 | Platform | ID |
 |----------|-----|
-| iOS | `com.rito.app` |
+| iOS | `com.kimlik.app` |
 | Android | `com.kimlik.app` |
 
 Same subscription product ID on both stores: `discipline_pro_monthly`.

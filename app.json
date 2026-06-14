@@ -14,7 +14,7 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.rito.app",
+      "bundleIdentifier": "com.kimlik.app",
       "buildNumber": "1",
       "infoPlist": {
         "CFBundleDisplayName": "Rito: Habit & Identity Journey",
