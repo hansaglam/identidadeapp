@@ -103,7 +103,7 @@ App Store Connect accepts **PNG only**, not JSON.
 
 1. Generate demo backup: `node store/generate-screenshot-demo-backup.mjs --locale en` (or `tr` / `pt`)
 2. Open `store/screenshot-demo-backup-en.json` on Mac → **Cmd+A, Cmd+C**
-3. Simulator: **Profile → DATA → Back up data → Restore by pasting** → paste → Apply
+3. Simulator: **Profile → DATA → Back up data → Restore by pasting** → paste → Apply (premium unlocked for screenshot demo JSON)
 4. Match app language (Profile → Language) to the JSON locale
 5. **iPhone 15 Pro Max** simulator → screenshot screens → **Cmd+S**
 6. Upload PNGs to App Store Connect → **6.7" Display**

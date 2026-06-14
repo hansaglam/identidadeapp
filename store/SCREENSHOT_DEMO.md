@@ -47,15 +47,11 @@ Uygulama koduna **dokunmaz**. Sadece test cihazına geçici veri yükler; işin 
 
 Skor tam 67 olmayabilir; birkaç aksiyon/check-in sonrası ~60–75 bandına gelir — screenshot için yeterli.
 
-## Önemli: Premium
+## Premium (screenshot demo)
 
-Geri yükleme güvenlik nedeniyle `isPremium: false` yapar (`restoreBackup.ts`).
+`store/screenshot-demo-backup*.json` profil kimliği `screenshot-demo-` ile başlar. Geri yüklemede **`isPremium: true` korunur** — Yolculuk ve diğer premium ekranlar sandbox satın alma olmadan açılır.
 
-**Yolculuk premium ekranı** için:
-
-- Play Console → **License testing** → kendi Gmail’ini ekle
-- Geri yüklemeden sonra uygulamada test satın alma ile Premium aç, veya
-- Free Yolculuk teaser + Zihin sekmesini screenshot’la (Timeline yok — Sprint 3)
+Normal kullanıcı yedeklerinde premium yine sıfırlanır (güvenlik).
 
 ## Temizlik (sonra sil)
 

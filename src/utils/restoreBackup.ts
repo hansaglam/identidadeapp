@@ -138,6 +138,13 @@ export function parseExportPayloadFromUnknown(parsed: unknown): ExportPayload | 
   };
 }
 
+const SCREENSHOT_DEMO_PROFILE_PREFIX = "screenshot-demo-";
+
+/** Mağaza screenshot yedeği — profile.id ile tanınır; premium korunur. */
+export function isScreenshotDemoProfile(profileId: string): boolean {
+  return profileId.startsWith(SCREENSHOT_DEMO_PROFILE_PREFIX);
+}
+
 async function clearV2StorageKeys(): Promise<void> {
   await Promise.all([
     AsyncStorage.removeItem(BACKUP_STORAGE_KEYS.tomorrowPlans),
@@ -150,10 +157,12 @@ async function clearV2StorageKeys(): Promise<void> {
 
 /** Yedekleri diske uygula; v1 davranış sayaçlarını sıfırlar, v2 tam durumu yazar. */
 export async function applyExportPayload(payload: ExportPayload): Promise<void> {
+  const screenshotDemo = isScreenshotDemoProfile(payload.profile.id);
+  const keepPremium = screenshotDemo && payload.profile.isPremium === true;
   const profile = normalizeProfile({
     ...payload.profile,
-    isPremium: false,
-    purchaseToken: null,
+    isPremium: keepPremium,
+    purchaseToken: keepPremium ? "screenshot-demo" : null,
   });
   await clearAllData();
   await clearV2StorageKeys();
