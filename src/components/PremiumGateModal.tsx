@@ -111,6 +111,22 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
   }, [visible, profilePremium, trigger]);
 
   useEffect(() => {
+    if (!visible || profilePremium) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        await connect();
+        if (!cancelled) await loadProducts();
+      } catch {
+        /* fallbacks shown until store responds */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, profilePremium, connect, loadProducts]);
+
+  useEffect(() => {
     if (visible) {
       sheetOpacity.setValue(0);
       sheetTranslate.setValue(28);
@@ -208,7 +224,17 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
     (product as { displayPrice?: string; localizedPrice?: string } | undefined)
       ?.displayPrice ??
     (product as { localizedPrice?: string } | undefined)?.localizedPrice ??
-    "—";
+    null;
+  const subscriptionTitle =
+    (product as { title?: string; displayName?: string } | undefined)?.title ??
+    (product as { displayName?: string } | undefined)?.displayName ??
+    t("premium.subscriptionTitle");
+  const subscriptionPriceLine =
+    priceStr != null
+      ? t("premium.subscriptionPriceLine", { price: priceStr })
+      : isLoading
+        ? t("premium.subscriptionPriceLoading")
+        : t("premium.subscriptionPriceUnavailable");
 
   const ctaPressIn = () => {
     Animated.spring(ctaScale, {
@@ -311,6 +337,19 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                   <Text style={styles.footnoteText}>{t("premium.investmentFootnote")}</Text>
                 </View>
 
+                <View
+                  style={styles.subscriptionDisclosure}
+                  accessibilityRole="summary"
+                  accessibilityLabel={`${subscriptionTitle}. ${t("premium.subscriptionLength")}. ${subscriptionPriceLine}`}
+                >
+                  <Text style={styles.subscriptionDisclosureLabel}>
+                    {t("premium.subscriptionDisclosureLabel")}
+                  </Text>
+                  <Text style={styles.subscriptionTitle}>{subscriptionTitle}</Text>
+                  <Text style={styles.subscriptionLength}>{t("premium.subscriptionLength")}</Text>
+                  <Text style={styles.subscriptionPrice}>{subscriptionPriceLine}</Text>
+                </View>
+
                 <Animated.View
                   style={[styles.ctaScaleWrap, { transform: [{ scale: ctaScale }] }]}
                 >
@@ -325,11 +364,11 @@ export default function PremiumGateModal({ visible, onClose, trigger }: Props) {
                     accessibilityRole="button"
                   >
                     <Text style={styles.ctaText}>
-                      {purchasing || isLoading
+                      {purchasing
                         ? t("common.loading")
-                        : priceStr !== "—"
+                        : priceStr != null
                           ? t("premium.ctaButtonWithPrice", { price: priceStr })
-                          : t("premium.ctaButton")}
+                          : t("premium.ctaButtonSubscribe")}
                     </Text>
                   </TouchableOpacity>
                 </Animated.View>
@@ -586,6 +625,50 @@ const styles = StyleSheet.create({
     fontStyle: "italic",
     color: Colors.textSecondary,
     lineHeight: 17,
+  },
+  subscriptionDisclosure: {
+    backgroundColor: Colors.bg,
+    borderRadius: Radii.card,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: Spacing.sm,
+    marginBottom: Spacing.sm,
+    alignItems: "center",
+  },
+  subscriptionDisclosureLabel: {
+    fontSize: 9,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textTertiary,
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+    marginBottom: 6,
+  },
+  subscriptionTitle: {
+    fontSize: FontSizes.md,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.textPrimary,
+    textAlign: "center",
+    lineHeight: 22,
+  },
+  subscriptionLength: {
+    fontSize: FontSizes.xs,
+    fontFamily: "Inter_400Regular",
+    color: Colors.textSecondary,
+    textAlign: "center",
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  subscriptionPrice: {
+    fontSize: FontSizes.lg,
+    fontFamily: "Inter_600SemiBold",
+    fontWeight: "600",
+    color: Colors.primary,
+    textAlign: "center",
+    marginTop: 6,
+    lineHeight: 24,
   },
   ctaScaleWrap: {
     width: "100%",

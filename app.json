@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.kimlik.app",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "CFBundleDisplayName": "Rito: Habit & Identity Journey",
         "NSUserNotificationsUsageDescription": "Rito sends local habit and check-in reminders on this device only. Nothing is sent to our servers.",
